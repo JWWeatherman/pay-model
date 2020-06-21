@@ -8,7 +8,8 @@
 //    libraryDependencies ++= Seq(
 //      playJson,
 //      bitcoinj,
-//      sttpModel
+//      sttpModel,
+//      "org.scala-lang" % "scala-reflect" % scalaVersion.value
 //    ) ++ scalatest
 //  )
 //
