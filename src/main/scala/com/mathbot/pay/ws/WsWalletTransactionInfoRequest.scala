@@ -1,22 +1,8 @@
-package payModel.models.ws
+package com.mathbot.pay.ws
 
-import play.api.libs.json.{
-  Format,
-  JsDefined,
-  JsError,
-  JsLookupResult,
-  JsNull,
-  JsObject,
-  JsResult,
-  JsUndefined,
-  JsValue,
-  Json,
-  OFormat
-}
-
-import payModel.models.bitcoin._
-
-import com.github.dwickern.macros._
+import com.mathbot.pay.bitcoin.TxId
+import com.github.dwickern.macros.NameOf.nameOf
+import play.api.libs.json._
 
 case class WsWalletTransactionInfoRequest(txId: TxId)
 
