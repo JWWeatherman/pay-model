@@ -1,7 +1,7 @@
 package com.mathbot.pay.ws
 
-import com.mathbot.pay.bitcoin.TxId
 import com.github.dwickern.macros.NameOf.nameOf
+import com.mathbot.pay.bitcoin.TxId
 import play.api.libs.json._
 
 case class WsWalletTransactionInfoRequest(txId: TxId)
