@@ -1,0 +1,3 @@
+[submodule "nameof"]
+	path = nameof
+	url = https://github.com/dwickern/scala-nameof.git
