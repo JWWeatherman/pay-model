@@ -45,6 +45,6 @@ lazy val paymodel = (project in file("./models"))
     libraryDependencies ++= Seq(
       playJson,
       bitcoinj,
-      sttpModel,
+      sttpModel
     ) ++ scalatest
   )
