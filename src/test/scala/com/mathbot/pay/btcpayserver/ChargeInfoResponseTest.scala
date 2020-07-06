@@ -2,17 +2,14 @@ package com.mathbot.pay.btcpayserver
 
 import play.api.libs.json.{JsResultException, Json}
 
-import scala.io.Source
-
 class ChargeInfoResponseTest extends org.scalatest.FunSuite {
 
   test("json parse") {
 
-    val s = Source.fromFile("btcpayserverInvoiceResponse.json")
-
-    val str = s.mkString
-    val json = Json.parse(str)
-
+    val stream = getClass.getResourceAsStream("/btcpayserverInvoiceResponse.json")
+    val lines = io.Source.fromInputStream(stream).getLines
+    val json = Json.parse(lines.mkString)
+    stream.close()
     val r = json.validate[ChargeInfoResponse]
     assert(r.isSuccess)
   }
