@@ -2,6 +2,9 @@ import sbt._
 
 import Dependencies._
 
+// This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
+// object defined in the /pay/project or /math-bot/project directory.
+
 lazy val paymodel = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
