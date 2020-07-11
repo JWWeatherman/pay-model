@@ -10,6 +10,5 @@ case class PaymentSubtotals(
 )
 
 object PaymentSubtotals extends PlayJsonSupport {
-
   implicit val formatPaymentSubtotals: OFormat[PaymentSubtotals] = Json.format[PaymentSubtotals]
 }

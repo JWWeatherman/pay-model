@@ -8,6 +8,5 @@ import play.api.libs.json.Json
 case class PaymentAddresses(BTC: Option[BtcAddress], BTC_LightningLike: Option[Bolt11])
 
 object PaymentAddresses extends PlayJsonSupport {
-
   implicit val formatPaymentAddresses = Json.format[PaymentAddresses]
 }

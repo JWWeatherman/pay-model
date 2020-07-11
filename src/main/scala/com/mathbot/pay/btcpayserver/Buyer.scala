@@ -16,6 +16,5 @@ case class Buyer(
 )
 
 object Buyer {
-
   implicit val formatBuyer: OFormat[Buyer] = Json.format[Buyer]
 }

@@ -1,4 +1,4 @@
-package com.mathbot.pay.models
+package com.mathbot.pay.bitcoin
 
 import com.mathbot.pay.lightning.PayStatus.PayStatus
 import org.scalatest.FunSuite

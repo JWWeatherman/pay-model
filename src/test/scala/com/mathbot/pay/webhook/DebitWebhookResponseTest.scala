@@ -1,4 +1,4 @@
-package com.mathbot.pay.models
+package com.mathbot.pay.webhook
 
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
