@@ -1,6 +1,9 @@
 import sbt.Keys.{libraryDependencies, resolvers, scalaVersion, scalacOptions}
 import sbt._
 
+// This object is only used when running sbt from the pay-model directory, a project like pay or mathbot will use
+// the Dependencies object defined in its ./project directory instead
+
 object Dependencies {
   val scalaV = "2.11.11"
   lazy val playJsonV = "2.7.3"
@@ -28,3 +31,5 @@ object Dependencies {
   )
 
 }
+
+
