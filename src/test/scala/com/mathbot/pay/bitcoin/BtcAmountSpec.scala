@@ -1,6 +1,5 @@
-package com.mathbot.pay.models
+package com.mathbot.pay.bitcoin
 
-import com.mathbot.pay.bitcoin._
 import org.scalatest.FunSuite
 
 class BtcAmountSpec extends FunSuite {

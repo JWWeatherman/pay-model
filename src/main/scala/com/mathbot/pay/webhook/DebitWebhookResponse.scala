@@ -1,4 +1,4 @@
-package com.mathbot.pay.models
+package com.mathbot.pay.webhook
 
 import com.mathbot.pay.bitcoin.{Btc, BtcAddress, TxId}
 import com.mathbot.pay.json.PlayJsonSupport

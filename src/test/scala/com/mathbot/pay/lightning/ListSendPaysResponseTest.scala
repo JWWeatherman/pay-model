@@ -13,7 +13,7 @@ class ListSendPaysResponseTest extends FunSuite {
         |"jsonrpc": "test",
         |"id": 1,
         |"result": {
-        |   "btcpayserver": [
+        |   "payments": [
         |      {
         |         "id": 23,
         |         "payment_hash": "3b431bcca56592809b07fe3da4027af933ccc7a3ad2e9c3079c1cfa3bfec62c4",
@@ -32,7 +32,6 @@ class ListSendPaysResponseTest extends FunSuite {
         |}
       """.stripMargin
     val r = Json.parse(json).validate[ListSendPaysResponse]
-
     assert(r.isSuccess)
   }
 }
