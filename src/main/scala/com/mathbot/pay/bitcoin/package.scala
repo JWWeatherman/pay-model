@@ -11,7 +11,7 @@ package object bitcoin {
     override def toFloat(x: Satoshi): Float = x.toLong
     override def toInt(x: Satoshi): Int = x.toLong.toInt
     override def negate(x: Satoshi): Satoshi = Satoshi(-x.toLong)
-    override def fromInt(x: Int): Satoshi = Satoshi(x)
+    override def fromInt(x: Int): Satoshi = Satoshi(x.toLong)
     override def toLong(x: Satoshi): Long = x.toLong
     override def times(x: Satoshi, y: Satoshi): Satoshi = (x.toLong * y.toLong) satoshi
     override def minus(x: Satoshi, y: Satoshi): Satoshi = (x.toLong - y.toLong) satoshi
