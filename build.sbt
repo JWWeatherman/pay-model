@@ -2,7 +2,6 @@ import sbt._
 
 import Dependencies._
 
-
 lazy val paymodel = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
