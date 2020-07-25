@@ -17,6 +17,7 @@ lazy val paymodel = (project in file("."))
       bitcoinj,
       sttpModel,
       nameof,
-      scalaTest
+      scalaTest,
+      akkaActor
     )
   )
