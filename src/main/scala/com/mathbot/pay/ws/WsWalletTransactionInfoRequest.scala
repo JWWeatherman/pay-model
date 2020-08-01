@@ -7,6 +7,9 @@ import play.api.libs.json._
 case class WsWalletTransactionInfoRequest(txId: TxId)
 
 object WsWalletTransactionInfoRequest {
+
+  def isJsonForThis(js: JsValue): Boolean = (js \ nameOf(WsWalletTransactionInfoRequest)).isDefined
+
   implicit val formatter: Format[WsWalletTransactionInfoRequest] = new Format[WsWalletTransactionInfoRequest] {
 
     private implicit val internal: OFormat[WsWalletTransactionInfoRequest] = Json.format[WsWalletTransactionInfoRequest]
