@@ -1,10 +1,11 @@
 package com.mathbot.pay.ws
 
 import com.github.dwickern.macros.NameOf.nameOf
+import com.mathbot.pay.bitcoin.CallbackURL
 import com.mathbot.pay.lightning.Bolt11
 import play.api.libs.json._
 
-case class WsLightningDebitRequest(bolt11: Bolt11)
+case class WsLightningDebitRequest(bolt11: Bolt11, callbackURL: CallbackURL)
 
 object WsLightningDebitRequest {
   implicit val formatter: Format[WsLightningDebitRequest] = new Format[WsLightningDebitRequest] {
