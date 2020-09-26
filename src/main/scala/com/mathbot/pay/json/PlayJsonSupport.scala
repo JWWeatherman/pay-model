@@ -10,10 +10,10 @@ import scala.util.Try
 trait PlayJsonSupport {
 
   lazy implicit val formatActorRef = new Format[ActorPath] {
-    override def writes(o: ActorPath): JsValue = JsString(o.toStringWithoutAddress)
+    override def writes(o: ActorPath): JsValue = JsString(o.toString) // todo: use toStringWithoutAddress
 
     override def reads(json: JsValue): JsResult[ActorPath] = json match {
-      case JsString(value) => JsSuccess(ActorPath.fromString(value))
+      case JsString(value) => JsSuccess(ActorPath.fromString(value)) // todo: read w/o requiring address
       case e => JsError("Error reading actor path")
     }
   }
