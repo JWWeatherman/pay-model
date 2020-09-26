@@ -1,5 +1,6 @@
 package com.mathbot.pay.json
 
+import akka.actor.ActorPath
 import com.mathbot.pay.bitcoin.{Btc, MilliSatoshi, Satoshi}
 import play.api.libs.json._
 import sttp.model.Uri
@@ -7,6 +8,15 @@ import sttp.model.Uri
 import scala.util.Try
 
 trait PlayJsonSupport {
+
+  lazy implicit val formatActorRef = new Format[ActorPath] {
+    override def writes(o: ActorPath): JsValue = JsString(o.toStringWithoutAddress)
+
+    override def reads(json: JsValue): JsResult[ActorPath] = json match {
+      case JsString(value) => JsSuccess(ActorPath.fromString(value))
+      case e => JsError("Error reading actor path")
+    }
+  }
 
   lazy implicit val formatSatoshi: Format[Satoshi] = new Format[Satoshi] {
     override def writes(o: Satoshi): JsValue = JsNumber(o.toLong)
