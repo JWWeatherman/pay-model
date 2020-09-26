@@ -1,12 +1,14 @@
 package com.mathbot.pay.ws
 
+import akka.actor.ActorPath
 import com.github.dwickern.macros.NameOf.nameOf
+import com.mathbot.pay.json.PlayJsonSupport
 import com.mathbot.pay.lightning.Bolt11
 import play.api.libs.json._
 
-case class WsListPaysRequest(bolt11: Bolt11)
+case class WsListPaysRequest(bolt11: Bolt11, onBehalfOf: ActorPath) extends WebsocketMessage
 
-object WsListPaysRequest {
+object WsListPaysRequest extends PlayJsonSupport {
   implicit val formatter: Format[WsListPaysRequest] = new Format[WsListPaysRequest] {
 
     private implicit val internal: OFormat[WsListPaysRequest] =

@@ -1,11 +1,17 @@
 package com.mathbot.pay.ws
 
+import akka.actor.ActorPath
 import com.github.dwickern.macros.NameOf.nameOf
-import com.mathbot.pay.bitcoin.{BtcAddress, CallbackURL, Satoshi, TxId}
+import com.mathbot.pay.bitcoin.{BtcAddress, CallbackURL, Satoshi}
 import com.mathbot.pay.json.PlayJsonSupport
 import play.api.libs.json._
 
-case class WsBtcDebitRequest(btcAddress: BtcAddress, amount: Satoshi, callbackURL: CallbackURL, id: String)
+case class WsBtcDebitRequest(btcAddress: BtcAddress,
+                             amount: Satoshi,
+                             callbackURL: CallbackURL,
+                             id: String,
+                             onBehalfOf: ActorPath)
+    extends WebsocketMessage
 
 object WsBtcDebitRequest extends PlayJsonSupport {
   implicit val formatter: Format[WsBtcDebitRequest] = new Format[WsBtcDebitRequest] {
