@@ -1,13 +1,16 @@
 package com.mathbot.pay.ws
 
+import akka.actor.ActorPath
 import com.github.dwickern.macros.NameOf.nameOf
 import com.mathbot.pay.bitcoin.CallbackURL
+import com.mathbot.pay.json.PlayJsonSupport
 import com.mathbot.pay.lightning.Bolt11
 import play.api.libs.json._
 
-case class WsLightningDebitRequest(bolt11: Bolt11, callbackURL: CallbackURL)
+case class WsLightningDebitRequest(bolt11: Bolt11, callbackURL: CallbackURL, onBehalfOf: ActorPath)
+    extends WebsocketMessage
 
-object WsLightningDebitRequest {
+object WsLightningDebitRequest extends PlayJsonSupport {
   implicit val formatter: Format[WsLightningDebitRequest] = new Format[WsLightningDebitRequest] {
 
     private implicit val internal: OFormat[WsLightningDebitRequest] =

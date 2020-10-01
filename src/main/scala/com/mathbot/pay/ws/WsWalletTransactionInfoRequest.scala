@@ -1,12 +1,14 @@
 package com.mathbot.pay.ws
 
+import akka.actor.ActorPath
 import com.github.dwickern.macros.NameOf.nameOf
 import com.mathbot.pay.bitcoin.TxId
+import com.mathbot.pay.json.PlayJsonSupport
 import play.api.libs.json._
 
-case class WsWalletTransactionInfoRequest(txId: TxId)
+case class WsWalletTransactionInfoRequest(txId: TxId, onBehalfOf: ActorPath) extends WebsocketMessage
 
-object WsWalletTransactionInfoRequest {
+object WsWalletTransactionInfoRequest extends PlayJsonSupport {
 
   def isJsonForThis(js: JsValue): Boolean = (js \ nameOf(WsWalletTransactionInfoRequest)).isDefined
 
