@@ -9,7 +9,10 @@ class WsWalletTransactionInfoRequestTest extends FunSuite with Matchers {
 
   val txId = TxId("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16")
   test("json serialization") {
-    val r = WsWalletTransactionInfoRequest(txId, ActorPaths.fromString("invalid"))
+    val r = WsWalletTransactionInfoRequest(
+      txId,
+      ActorPaths.fromString("akka://pay-controllers-PaySocketBuilderTest/user/MockOnBehalfOfActor")
+    )
     val json = Json.toJson(r)
     json("WsWalletTransactionInfoRequest") shouldEqual JsNull
     json("txId").as[TxId] shouldEqual txId
@@ -17,7 +20,7 @@ class WsWalletTransactionInfoRequestTest extends FunSuite with Matchers {
   test("json deserialization from null key") {
     val json =
       s"""
-        |{ "WsWalletTransactionInfoRequest": null, "txId": "$txId"  }
+        |{ "WsWalletTransactionInfoRequest": null, "txId": "$txId", "onBehalfOf": "akka://pay-controllers-PaySocketBuilderTest/user/MockOnBehalfOfActor"  }
         |""".stripMargin
     val j = Json.parse(json)
     val r = j.validate[WsWalletTransactionInfoRequest]
@@ -26,7 +29,7 @@ class WsWalletTransactionInfoRequestTest extends FunSuite with Matchers {
   test("json deserialization from blank string key") {
     val json =
       s"""
-         |{ "WsWalletTransactionInfoRequest": "", "txId": "$txId"  }
+         |{ "WsWalletTransactionInfoRequest": "", "txId": "$txId", "onBehalfOf": "akka://pay-controllers-PaySocketBuilderTest/user/MockOnBehalfOfActor"  }
          |""".stripMargin
     val j = Json.parse(json)
     val r = j.validate[WsWalletTransactionInfoRequest]
@@ -35,7 +38,7 @@ class WsWalletTransactionInfoRequestTest extends FunSuite with Matchers {
   test("IllegalArgumentException thrown when valid key and invalid txId") {
     val json =
       s"""
-         |{ "WsWalletTransactionInfoRequest": "", "txId": "${txId.txId + "E"}"  }
+         |{ "WsWalletTransactionInfoRequest": "", "txId": "${txId.txId + "E"}",  "onBehalfOf": "akka://pay-controllers-PaySocketBuilderTest/user/MockOnBehalfOfActor"  }
          |""".stripMargin
     val j = Json.parse(json)
     assertThrows[IllegalArgumentException] {
@@ -45,7 +48,7 @@ class WsWalletTransactionInfoRequestTest extends FunSuite with Matchers {
   test("json deserialization error with bad key") {
     val json =
       s"""
-         |{ "WalletTransactionInfoRequest": "", "txId": "$txId"  }
+         |{ "WalletTransactionInfoRequest": "", "txId": "$txId",  "onBehalfOf": "akka://pay-controllers-PaySocketBuilderTest/user/MockOnBehalfOfActor"  }
          |""".stripMargin
     val j = Json.parse(json)
     val r = j.validate[WsWalletTransactionInfoRequest]
@@ -54,7 +57,7 @@ class WsWalletTransactionInfoRequestTest extends FunSuite with Matchers {
   test("json deserialization error with invalid key and txId") {
     val json =
       s"""
-         |{ "WalletTransactionInfoRequest": "", "txId": "${txId.txId + "E"}"  }
+         |{ "WalletTransactionInfoRequest": "", "txId": "${txId.txId + "E"}",  "onBehalfOf": "akka://pay-controllers-PaySocketBuilderTest/user/MockOnBehalfOfActor"  }
          |""".stripMargin
     val j = Json.parse(json)
     val r = j.validate[WsWalletTransactionInfoRequest]
