@@ -1,0 +1,24 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "currency": "bc",
+    "created_at": 1579361052,
+    "expiry": 1200,
+    "payee": "0254ff808f53b2f8c45e74b70430f336c6c76ba2f4af289f48d6086ae6e60462d3",
+    "msatoshi": 2243514000,
+    "amount_msat": "2243514000msat",
+    "description": "Bitrefill ade298ed-47ac-4fff-a8d6-cb213e1b5772",
+    "min_final_cltv_expiry": 9,
+    "features": "",
+    "fallbacks": [
+      {
+        "type": "P2SH",
+        "addr": "3NhMAo5G451n3GjeG2heHezxA4KFb14PbM",
+        "hex": "a914e66ab4fc2855f9fc9f4a313f884f8f0bf639337387"
+      }
+    ],
+    "payment_hash": "bda71fcff6b6adb03f5e7f4bc519a71e7994e3cd779f50bb3e6801b7ea731071",
+    "signature": "3044022051a60488af7a5fb0474d9da190072dd1e6296d5365cf4e19d59daf9159b510be02204db8b10175b4951fe04061a5b5d0c30f344b06e83c8f90304def638370c3df94"
+  }
+}

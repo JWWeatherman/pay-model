@@ -1,0 +1,45 @@
+{
+  "result": {
+    "chain": "test",
+    "blocks": 1863369,
+    "headers": 1863369,
+    "bestblockhash": "00000000000000a4d26aaf63c25738a71c35bd9a1c25cc0f3410d90c9f9b261c",
+    "difficulty": 21385957.56943904,
+    "mediantime": 1602933611,
+    "verificationprogress": 0.9999987631534628,
+    "initialblockdownload": false,
+    "chainwork": "0000000000000000000000000000000000000000000001d94070a8ac613672f1",
+    "size_on_disk": 28355573820,
+    "pruned": false,
+    "softforks": {
+      "bip34": {
+        "type": "buried",
+        "active": true,
+        "height": 21111
+      },
+      "bip66": {
+        "type": "buried",
+        "active": true,
+        "height": 330776
+      },
+      "bip65": {
+        "type": "buried",
+        "active": true,
+        "height": 581885
+      },
+      "csv": {
+        "type": "buried",
+        "active": true,
+        "height": 770112
+      },
+      "segwit": {
+        "type": "buried",
+        "active": true,
+        "height": 834624
+      }
+    },
+    "warnings": "Warning: unknown new rules activated (versionbit 28)"
+  },
+  "error": null,
+  "id": "scala-jsonrpc"
+}

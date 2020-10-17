@@ -1,0 +1,48 @@
+{
+  "result": {
+    "chain": "main",
+    "blocks": 652850,
+    "headers": 652850,
+    "bestblockhash": "0000000000000000000148a745ab96367e7b644a2e38d32d18858f309ef87d71",
+    "difficulty": 19298087186262.61,
+    "mediantime": 1602766898,
+    "verificationprogress": 0.9999981181967162,
+    "initialblockdownload": false,
+    "chainwork": "000000000000000000000000000000000000000014b2897b90cd81714e2dbff8",
+    "size_on_disk": 26127725326,
+    "pruned": true,
+    "pruneheight": 634202,
+    "automatic_pruning": true,
+    "prune_target_size": 26214400000,
+    "softforks": {
+      "bip34": {
+        "type": "buried",
+        "active": true,
+        "height": 227931
+      },
+      "bip66": {
+        "type": "buried",
+        "active": true,
+        "height": 363725
+      },
+      "bip65": {
+        "type": "buried",
+        "active": true,
+        "height": 388381
+      },
+      "csv": {
+        "type": "buried",
+        "active": true,
+        "height": 419328
+      },
+      "segwit": {
+        "type": "buried",
+        "active": true,
+        "height": 481824
+      }
+    },
+    "warnings": ""
+  },
+  "error": null,
+  "id": "scala-jsonrpc"
+}
