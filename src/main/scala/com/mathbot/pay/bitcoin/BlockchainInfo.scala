@@ -20,8 +20,8 @@ case class BlockchainInfo(
     pruneheight: Option[Long],
     automatic_pruning: Option[Boolean],
     prune_target_size: Option[Double],
-    softforks: Softforks,
-    warnings: String
+//    softforks: Softforks, // testnet seeing an array
+    warnings: Option[String]
 ) {
   def isMain = chain == "main"
   def isTestNet = chain == "test"

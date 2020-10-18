@@ -10,7 +10,7 @@ case class NetworkInfo(
     subversion: String,
     protocolversion: Double,
     localservices: String,
-    localservicesnames: List[String],
+    localservicesnames: Option[List[String]],
     localrelay: Boolean,
     timeoffset: Double,
     networkactive: Boolean,
