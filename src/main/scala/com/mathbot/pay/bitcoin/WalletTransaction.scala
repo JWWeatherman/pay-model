@@ -51,8 +51,8 @@ case class WalletTransaction(amount: Btc,
                              txid: TxId,
                              time: Instant,
                              timereceived: Instant,
-                             details: Seq[Detail],
-                             hex: String)
+                             details: Option[Seq[Detail]],
+                             hex: Option[String])
 
 object WalletTransaction extends PlayJsonSupport with EpochSecondInstantFormatter {
   implicit val formatWalletTransactionPlay: OFormat[WalletTransaction] = Json.format[WalletTransaction]
