@@ -6,4 +6,5 @@ case class ListPaysResponse(jsonrpc: String, id: Long, result: Pays) extends Res
 
 object ListPaysResponse {
   lazy implicit val formatListPaysResponse: OFormat[ListPaysResponse] = Json.format[ListPaysResponse]
+
 }
