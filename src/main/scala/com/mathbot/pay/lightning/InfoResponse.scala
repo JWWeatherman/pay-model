@@ -17,7 +17,9 @@ case class InfoResponse(
     msatoshi_fees_collected: Int,
     fees_collected_msat: String,
     `lightning-dir`: String
-)
+) {
+  override def toString: String = Json.toJson(this).toString()
+}
 
 object InfoResponse {
   lazy implicit val formatInfoResponse: OFormat[InfoResponse] = Json.format[InfoResponse]
