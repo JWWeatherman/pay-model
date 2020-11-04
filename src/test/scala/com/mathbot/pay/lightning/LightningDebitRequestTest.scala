@@ -1,6 +1,6 @@
 package com.mathbot.pay.lightning
 
-import com.mathbot.pay.bitcoin.CallbackURL
+import com.mathbot.pay.webhook.CallbackURL
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
 

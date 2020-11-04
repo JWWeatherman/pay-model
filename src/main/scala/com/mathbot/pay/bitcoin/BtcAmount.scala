@@ -1,5 +1,7 @@
 package com.mathbot.pay.bitcoin
 
+import play.api.libs.json.{Json, OFormat}
+
 sealed trait BtcAmount
 
 case class Satoshi(private val underlying: Long) extends BtcAmount with Ordered[Satoshi] {
@@ -55,9 +57,11 @@ case class MilliBtc(private val underlying: BigDecimal) extends BtcAmount with O
   def toDouble: Double = underlying.toDouble
   def toLong: Long = underlying.toLong
 }
-
+object Btc {
+  implicit val formatBtc: OFormat[Btc] = Json.format[Btc]
+}
 case class Btc(private val underlying: BigDecimal) extends BtcAmount with Ordered[Btc] {
-  require(underlying.abs <= 21e6, "milliSatoshi must not be greater than 21 millions")
+  require(underlying.abs <= 21e6, "btc must not be greater than 21 millions")
 
   def +(other: Btc) = Btc(underlying + other.underlying)
   def -(other: Btc) = Btc(underlying - other.underlying)

@@ -2,9 +2,9 @@ package com.mathbot.pay.ws
 
 import akka.actor.ActorPath
 import com.github.dwickern.macros.NameOf.nameOf
-import com.mathbot.pay.bitcoin.CallbackURL
 import com.mathbot.pay.json.PlayJsonSupport
 import com.mathbot.pay.lightning.Bolt11
+import com.mathbot.pay.webhook.CallbackURL
 import play.api.libs.json._
 
 case class WsLightningDebitRequest(bolt11: Bolt11, callbackURL: CallbackURL, onBehalfOf: ActorPath, id: String)

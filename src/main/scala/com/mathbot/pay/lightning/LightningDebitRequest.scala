@@ -1,7 +1,7 @@
 package com.mathbot.pay.lightning
 
-import com.mathbot.pay.bitcoin.CallbackURL
 import com.mathbot.pay.json.PlayJsonSupport
+import com.mathbot.pay.webhook.CallbackURL
 import com.mathbot.pay.ws.WsLightningDebitRequest
 import play.api.libs.json.{Json, OFormat}
 

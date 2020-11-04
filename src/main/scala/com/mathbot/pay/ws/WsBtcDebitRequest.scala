@@ -2,8 +2,9 @@ package com.mathbot.pay.ws
 
 import akka.actor.ActorPath
 import com.github.dwickern.macros.NameOf.nameOf
-import com.mathbot.pay.bitcoin.{BtcAddress, CallbackURL, Satoshi}
+import com.mathbot.pay.bitcoin.{BtcAddress, Satoshi}
 import com.mathbot.pay.json.PlayJsonSupport
+import com.mathbot.pay.webhook.CallbackURL
 import play.api.libs.json._
 
 case class WsBtcDebitRequest(btcAddress: BtcAddress,

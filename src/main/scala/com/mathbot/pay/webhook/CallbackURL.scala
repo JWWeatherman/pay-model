@@ -1,4 +1,4 @@
-package com.mathbot.pay.bitcoin
+package com.mathbot.pay.webhook
 
 import com.mathbot.pay.json.PlayJsonSupport
 import play.api.libs.json._
