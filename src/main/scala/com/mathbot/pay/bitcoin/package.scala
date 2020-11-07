@@ -1,9 +1,16 @@
 package com.mathbot.pay
 
+import com.mathbot.pay.btcpayserver.BitcoinNetwork
+
 import scala.language.implicitConversions
 
 package object bitcoin {
   val Coin = 100000000L
+
+  val blockHashes = Map(
+    BitcoinNetwork.mainnet -> "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+    BitcoinNetwork.testnet -> "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
+  )
 
   implicit object NumericSatoshi extends Numeric[Satoshi] {
     override def plus(x: Satoshi, y: Satoshi): Satoshi = (x.toLong + y.toLong) satoshi
