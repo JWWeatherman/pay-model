@@ -3,16 +3,16 @@ package com.mathbot.pay.lightning
 import com.mathbot.pay.bitcoin.MilliSatoshi
 import play.api.libs.json._
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
-case class Bolt11(bolt11: String) extends LightningJson {
+case class Bolt11(private val _bolt11: String) extends LightningJson {
 
-  require(Bolt11.isValid(bolt11), "Invalid bolt11")
-  def milliSatoshi: MilliSatoshi = LightningPaymentDecoder.parseAmount(bolt11)
+  val bolt11: String = Bolt11.trimPrefix(_bolt11)
+  val milliSatoshi: MilliSatoshi = LightningPaymentDecoder.parseAmount(bolt11)
 
   override def equals(obj: Any): Boolean = {
     obj match {
-      case Bolt11(b) => bolt11 == b
+      case b: Bolt11 => bolt11 == b.bolt11
       case s: String => bolt11 == s
       case _ => false
     }
@@ -22,19 +22,17 @@ case class Bolt11(bolt11: String) extends LightningJson {
 
 object Bolt11 {
 
+  val prefix = "lightning:"
+
   lazy implicit val formatBolt11: Format[Bolt11] = new Format[Bolt11] {
     override def writes(o: Bolt11): JsValue = JsString(o.bolt11)
 
     override def reads(json: JsValue): JsResult[Bolt11] = json match {
       case JsString(bolt11) =>
-        Try(isValid(bolt11))
-          .map(_ => JsSuccess(Bolt11(bolt11)))
-          .getOrElse(JsError("Invalid bolt1"))
-      case _ => JsError()
+        JsSuccess(Bolt11(bolt11))
     }
   }
 
-  def isValid(bolt11: String): Boolean =
-    Try(LightningPaymentDecoder.parseAmount(bolt11)).map(_.toLong > 0).getOrElse(false)
+  def trimPrefix(bolt11: String) = if (bolt11.startsWith("lightning:")) bolt11.replace("lightning:", "") else bolt11
 
 }

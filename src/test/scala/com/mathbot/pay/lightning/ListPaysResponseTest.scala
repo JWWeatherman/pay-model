@@ -1,5 +1,8 @@
 package com.mathbot.pay.lightning
 
+import java.time.Instant
+
+import com.mathbot.pay.utils.ResourceHelper
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
 
@@ -37,5 +40,13 @@ class ListPaysResponseTest extends FunSuite {
 
     val r = Json.parse(json).validate[ListPaysResponse]
     assert(r.isSuccess)
+  }
+  val start = Instant.parse("2018-01-01T00:00:00Z")
+  test("json 3 large response") {
+    val js = ResourceHelper.read("/listPays.json")
+    val result = js.validate[ListPaysResponse]
+    assert(result.isSuccess)
+    val f = result.get.result.pays.flatMap(_.created_at)
+    f.foreach(i => assert(i.isAfter(start)))
   }
 }

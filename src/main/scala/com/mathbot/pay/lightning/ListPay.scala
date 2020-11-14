@@ -1,12 +1,28 @@
 package com.mathbot.pay.lightning
 
+import java.time.Instant
+
+import com.mathbot.pay.json.EpochSecondInstantFormatter
 import com.mathbot.pay.lightning.PayStatus.PayStatus
 import play.api.libs.json.{Json, OFormat}
+// https://github.com/ElementsProject/lightning/blob/master/doc/lightning-listpays.7.md
+// For old payments (pre-0.7) we didn’t save the bolt11 string, so in its place are three other fields: payment_hash,destination,amount_msat
+case class ListPay(bolt11: Option[Bolt11],
+                   status: PayStatus,
+                   amount_sent_msat: String,
+                   created_at: Option[Instant] = None,
+                   payment_preimage: Option[String] = None,
+                   payment_hash: Option[String] = None,
+                   label: Option[String] = None) {
+  // todo: docs say payment_hash should be returned, found not the case!
+//  if (payment_hash.isDefined) require(payment_preimage.isDefined, s"missing preimage for payment hash $this")
+}
 
-case class ListPay(bolt11: Bolt11, status: PayStatus, amount_sent_msat: String)
-
-object ListPay {
+object ListPay extends EpochSecondInstantFormatter {
   lazy implicit val formatListPay: OFormat[ListPay] = Json.format[ListPay]
   def apply(bolt11: Bolt11, payment: Payment): ListPay =
-    ListPay(bolt11 = bolt11, status = payment.status, amount_sent_msat = payment.amount_sent_msat)
+    ListPay(bolt11 = Some(bolt11),
+            created_at = None,
+            status = payment.status,
+            amount_sent_msat = payment.amount_sent_msat)
 }
