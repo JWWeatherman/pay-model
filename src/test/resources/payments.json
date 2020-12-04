@@ -23,6 +23,18 @@
     "amount_sent_msat": "1007msat",
     "payment_preimage": "e2dcbdabd55bd2fad047219a31a9d4633337dd3bcae2af98cd84d2568cafe7c0",
     "status": "complete"
+  },
+  {
+    "destination": "03c445a245209e328a10806d9e5acf5da8238d8dd0274670a7225a890ab941f456",
+    "payment_hash": "9f6de287c97c9b2add779d3df9b75d91302371e3232579162270a4c2be1ee76d",
+    "created_at": 1606862977.516,
+    "parts": 1,
+    "msatoshi": 53000,
+    "amount_msat": "53000msat",
+    "msatoshi_sent": 53000,
+    "amount_sent_msat": "53000msat",
+    "payment_preimage": "62f917a47abaade036d65fc7ab152e2c41e62dbf9c1a8b0f2bf0e471ee80603f",
+    "status": "complete"
   }
 
 ]

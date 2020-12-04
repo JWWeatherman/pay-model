@@ -46,7 +46,11 @@ class ListPaysResponseTest extends FunSuite {
     val js = ResourceHelper.read("/listPays.json")
     val result = js.validate[ListPaysResponse]
     assert(result.isSuccess)
-    val f = result.get.result.pays.flatMap(_.created_at)
+    val pays = result.get.result.pays
+    val f = pays.flatMap(_.created_at)
     f.foreach(i => assert(i.isAfter(start)))
+    val missingBolts = pays.filter(_.bolt11.isEmpty)
+    val foo = missingBolts
+    assert(true)
   }
 }

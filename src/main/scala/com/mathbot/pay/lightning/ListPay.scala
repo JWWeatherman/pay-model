@@ -11,18 +11,21 @@ case class ListPay(bolt11: Option[Bolt11],
                    status: PayStatus,
                    amount_sent_msat: String,
                    created_at: Option[Instant] = None,
-                   payment_preimage: Option[String] = None,
+                   preimage: Option[String] = None,
                    payment_hash: Option[String] = None,
-                   label: Option[String] = None) {
-  // todo: docs say payment_hash should be returned, found not the case!
-//  if (payment_hash.isDefined) require(payment_preimage.isDefined, s"missing preimage for payment hash $this")
-}
+                   label: Option[String] = None)
 
 object ListPay extends EpochSecondInstantFormatter {
   lazy implicit val formatListPay: OFormat[ListPay] = Json.format[ListPay]
-  def apply(bolt11: Bolt11, payment: Payment): ListPay =
-    ListPay(bolt11 = Some(bolt11),
-            created_at = None,
-            status = payment.status,
-            amount_sent_msat = payment.amount_sent_msat)
+  def apply(bolt11: Bolt11, payment: Payment): ListPay = {
+    ListPay(
+      bolt11 = Some(bolt11),
+      status = payment.status,
+      amount_sent_msat = payment.amount_sent_msat,
+      created_at = Some(payment.created_at),
+      preimage = Some(payment.payment_preimage),
+      payment_hash = Some(payment.payment_hash),
+      label = payment.label
+    )
+  }
 }
