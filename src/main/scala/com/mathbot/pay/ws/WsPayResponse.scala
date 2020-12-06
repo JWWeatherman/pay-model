@@ -5,7 +5,7 @@ import com.mathbot.pay.json.PlayJsonSupport
 import com.mathbot.pay.lightning.{ListPay, Payment}
 import play.api.libs.json.Json
 
-case class WsPayResponse(payment: ListPay, onBehalfOf: ActorPath) extends WebsocketMessage
+case class WsPayResponse(payment: Payment, onBehalfOf: ActorPath) extends WebsocketMessage
 
 object WsPayResponse extends PlayJsonSupport {
   implicit val formatWsLightningPayment = Json.format[WsPayResponse]

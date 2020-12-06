@@ -13,18 +13,6 @@
     "bolt11": "lnbc10n1p0vcsrapp5s2su3sq2zx2c6z8t7h8zplkuk5ssh8vjgfc9y8pr6ss85nanh42qdq9u2d2zxqr3jscqp2sp5ucrrtc3lfnycsgvhmmmrxx73h9twhm8exl3nznwal5wjdmy9cnksrzjqty36649r255qcytf9akhm4ukxhvqklrc3msfd5zkwyfgfr8njjfqz2vdgqqxnsqqqqqqqqqqqqqpjqqrc9qy9qsqysese40w0d9dsyqvetcsu6vccacpfg44znzgr9drqah57vkc09vruq94j3k9jllsnfay948l066k7yem8zr44scy6z6sk4ecacfpjmgqfu0j6w"
   },
   {
-    "destination": "037cc5f9f1da20ac0d60e83989729a204a33cc2d8e80438969fadf35c1c5f1233b",
-    "payment_hash": "8d9bd47fbd62e8a1a536af2b9362aa6757199801064e327d0c833162c18171b1",
-    "created_at": 1602595209.986,
-    "parts": 1,
-    "msatoshi": 1000,
-    "amount_msat": "1000msat",
-    "msatoshi_sent": 1007,
-    "amount_sent_msat": "1007msat",
-    "payment_preimage": "e2dcbdabd55bd2fad047219a31a9d4633337dd3bcae2af98cd84d2568cafe7c0",
-    "status": "complete"
-  },
-  {
     "destination": "03c445a245209e328a10806d9e5acf5da8238d8dd0274670a7225a890ab941f456",
     "payment_hash": "9f6de287c97c9b2add779d3df9b75d91302371e3232579162270a4c2be1ee76d",
     "created_at": 1606862977.516,
