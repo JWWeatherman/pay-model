@@ -1,5 +1,7 @@
 package com.mathbot.pay.bitcoin
 
+import java.text.DecimalFormat
+
 import play.api.libs.json._
 
 sealed trait BtcAmount
@@ -70,8 +72,12 @@ case class MilliBtc(private val underlying: BigDecimal) extends BtcAmount with O
   def toLong: Long = underlying.toLong
 }
 object Btc {
+  def stringify(btc: Btc) = {
+    val btcFormat = new DecimalFormat("0.########")
+    btcFormat.format(btc.toDouble)
+  }
   lazy implicit val formatBtc: Format[Btc] = new Format[Btc] {
-    override def writes(o: Btc): JsValue = JsNumber(o.toDouble)
+    override def writes(o: Btc): JsValue = JsString(stringify(o))
     override def reads(json: JsValue): JsResult[Btc] = json match {
       case JsNumber(btc) => JsSuccess(Btc(btc))
       case JsString(btc) => JsSuccess(Btc(BigDecimal(btc)))
@@ -107,6 +113,18 @@ case class Btc(private val underlying: BigDecimal) extends BtcAmount with Ordere
   def toBigDecimal: BigDecimal = underlying
   def toDouble: Double = underlying.toDouble
   def toLong: Long = underlying.toLong
+
+}
+
+object MilliSatoshi {
+
+  lazy implicit val formatMSatoshi: Format[MilliSatoshi] = new Format[MilliSatoshi] {
+    override def writes(o: MilliSatoshi): JsValue = JsNumber(o.toLong)
+    override def reads(json: JsValue): JsResult[MilliSatoshi] = json match {
+      case JsNumber(sat) => JsSuccess(MilliSatoshi(sat.toLong))
+      case _ => JsError()
+    }
+  }
 
 }
 

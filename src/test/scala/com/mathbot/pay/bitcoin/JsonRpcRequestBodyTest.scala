@@ -7,7 +7,7 @@ class JsonRpcRequestBodyTest extends FunSuite {
 
   test("format getbalance") {
     val json1 = s"""{"method":"getbalance","params":[],"jsonrpc":"1.0","id":"scala-jsonrpc"}"""
-    val json2 = Json.toJson(JsonRpcRequestBody("getbalance", Seq(), "1.0", "scala-jsonrpc")).toString
+    val json2 = Json.toJson(JsonRpcRequestBody("getbalance", Json.arr(), "1.0", "scala-jsonrpc")).toString
     assert(json1 == json2)
   }
 
@@ -15,7 +15,7 @@ class JsonRpcRequestBodyTest extends FunSuite {
     val addr = "adress"
     val amount = "0.000001"
     val json1 = s"""{"method":"sendtoaddress","params":["$addr","$amount"],"jsonrpc":"1.0","id":"scala-jsonrpc"}"""
-    val json2 = Json.toJson(JsonRpcRequestBody("sendtoaddress", Seq(addr, amount))).toString
+    val json2 = Json.toJson(JsonRpcRequestBody("sendtoaddress", Json.arr(addr, amount))).toString
     assert(json1 === json2)
   }
 }
