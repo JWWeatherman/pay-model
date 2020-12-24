@@ -1,7 +1,6 @@
 package com.mathbot.pay.json
 
 import akka.actor.ActorPath
-import com.mathbot.pay.bitcoin.{Btc, MilliSatoshi, Satoshi}
 import play.api.libs.json._
 import sttp.model.Uri
 

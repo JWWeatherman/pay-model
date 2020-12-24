@@ -1,8 +1,8 @@
 package com.mathbot.pay.lightning
 
+import com.mathbot.pay.bitcoin._
 import org.scalatest.FunSuite
 
-import com.mathbot.pay.bitcoin._
 import scala.language.postfixOps
 
 class Bolt11Test extends FunSuite {

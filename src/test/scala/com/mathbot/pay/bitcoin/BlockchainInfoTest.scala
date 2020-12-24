@@ -1,6 +1,5 @@
 package com.mathbot.pay.bitcoin
 
-import com.mathbot.pay.lightning.DecodePayResponse
 import com.mathbot.pay.utils.ResourceHelper
 import org.scalatest.FunSuite
 

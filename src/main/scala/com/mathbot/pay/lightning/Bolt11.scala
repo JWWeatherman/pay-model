@@ -3,8 +3,6 @@ package com.mathbot.pay.lightning
 import com.mathbot.pay.bitcoin.MilliSatoshi
 import play.api.libs.json._
 
-import scala.util.{Failure, Success, Try}
-
 case class Bolt11(private val _bolt11: String) extends LightningJson {
 
   val bolt11: String = Bolt11.trimPrefix(_bolt11)

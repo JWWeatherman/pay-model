@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import play.api.libs.json.Json
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 object Scanning {
   implicit val formatScanning = Json.format[Scanning]

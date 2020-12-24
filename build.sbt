@@ -1,6 +1,5 @@
-import sbt._
-
 import Dependencies._
+import sbt._
 
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
 // object defined in the /pay/project or /math-bot/project directory.

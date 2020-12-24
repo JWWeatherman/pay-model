@@ -1,19 +1,7 @@
 package com.mathbot.pay.ws
 
 import com.github.dwickern.macros.NameOf.nameOf
-import play.api.libs.json.{
-  Format,
-  JsDefined,
-  JsError,
-  JsNull,
-  JsObject,
-  JsPath,
-  JsResult,
-  JsUndefined,
-  JsValue,
-  Json,
-  OFormat
-}
+import play.api.libs.json._
 
 case class WsError(errors: Seq[(String, Seq[String])])
 
