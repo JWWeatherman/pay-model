@@ -4,6 +4,8 @@ import java.text.DecimalFormat
 
 import play.api.libs.json._
 
+import scala.util.{Failure, Success, Try}
+
 sealed trait BtcAmount
 
 object Satoshi {
@@ -134,8 +136,13 @@ object MilliSatoshi {
   lazy implicit val formatMSatoshi: Format[MilliSatoshi] = new Format[MilliSatoshi] {
     override def writes(o: MilliSatoshi): JsValue = JsNumber(o.toLong)
     override def reads(json: JsValue): JsResult[MilliSatoshi] = json match {
+      case JsString(satStr) =>
+        Try(satStr.toLong) match {
+          case Failure(exception) => JsError(s"Unable to convert to long $exception")
+          case Success(value) => JsSuccess(MilliSatoshi(value))
+        }
       case JsNumber(sat) => JsSuccess(MilliSatoshi(sat.toLong))
-      case _ => JsError()
+      case _ => JsError("Invalid format")
     }
   }
 
