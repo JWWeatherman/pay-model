@@ -12,19 +12,6 @@ package object bitcoin {
     BitcoinNetwork.testnet -> "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
   )
 
-  implicit object NumericSatoshi extends Numeric[Satoshi] {
-    override def plus(x: Satoshi, y: Satoshi): Satoshi = (x.toLong + y.toLong) satoshi
-    override def toDouble(x: Satoshi): Double = x.toLong
-    override def toFloat(x: Satoshi): Float = x.toLong
-    override def toInt(x: Satoshi): Int = x.toLong.toInt
-    override def negate(x: Satoshi): Satoshi = Satoshi(-x.toLong)
-    override def fromInt(x: Int): Satoshi = Satoshi(x.toLong)
-    override def toLong(x: Satoshi): Long = x.toLong
-    override def times(x: Satoshi, y: Satoshi): Satoshi = (x.toLong * y.toLong) satoshi
-    override def minus(x: Satoshi, y: Satoshi): Satoshi = (x.toLong - y.toLong) satoshi
-    override def compare(x: Satoshi, y: Satoshi): Int = x.compare(y)
-  }
-
   implicit final class SatoshiLong(private val n: Long) extends AnyVal {
     def satoshi: Satoshi = Satoshi(n)
   }
