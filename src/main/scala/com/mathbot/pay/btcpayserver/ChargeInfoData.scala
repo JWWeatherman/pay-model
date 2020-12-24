@@ -33,27 +33,28 @@ case class ChargeInfoData(
 
 object ChargeInfoData extends PlayJsonSupport {
 
+  // we use a custom reads for 'exceptionStatus' uniqueness
   implicit val readsChargeInfoData: Reads[ChargeInfoData] = (
-    (__ \ 'url).read[String] and
-    (__ \ 'status).read[String].map(i => CreditStatus.withName(i)) and
-    (__ \ 'cryptoInfo).read[Seq[CryptoInfo]] and
-    (__ \ 'price).read[Double] and
-    (__ \ 'id).read[String] and
-    (__ \ 'invoiceTime).read[Instant] and
-    (__ \ 'expirationTime).read[Instant] and
-    (__ \ 'btcPaid).read[Btc] and
-    (__ \ 'rate).read[Double] and
-    (__ \ 'refundAddressRequestPending).read[Boolean] and
-    (__ \ 'bitcoinAddress).read[BtcAddress] and
-    (__ \ 'paymentTotals).read[PaymentSubtotals] and
-    (__ \ 'amountPaid).read[Btc] and
-    (__ \ 'addresses).read[PaymentAddresses] and
-    (__ \ 'buyer).read[Buyer] and
-    (__ \ 'currency).read[String] and
-    (__ \ 'itemDesc).readWithDefault[String]("") and
-    (__ \ 'exceptionStatus)
+    (__ \ "url").read[String] and
+    (__ \ "status").read[CreditStatus] and
+    (__ \ "cryptoInfo").read[Seq[CryptoInfo]] and
+    (__ \ "price").read[Double] and
+    (__ \ "id").read[String] and
+    (__ \ "invoiceTime").read[Instant] and
+    (__ \ "expirationTime").read[Instant] and
+    (__ \ "btcPaid").read[Btc] and
+    (__ \ "rate").read[Double] and
+    (__ \ "refundAddressRequestPending").read[Boolean] and
+    (__ \ "bitcoinAddress").read[BtcAddress] and
+    (__ \ "paymentTotals").read[PaymentSubtotals] and
+    (__ \ "amountPaid").read[Btc] and
+    (__ \ "addresses").read[PaymentAddresses] and
+    (__ \ "buyer").read[Buyer] and
+    (__ \ "currency").read[String] and
+    (__ \ "itemDesc").readWithDefault[String]("") and
+    (__ \ "exceptionStatus")
       .read[String]
-      .orElse((__ \ 'exceptionStatus).read[Boolean].map(_.toString))
+      .orElse((__ \ "exceptionStatus").read[Boolean].map(_.toString))
       .map {
         case "false" => None
         case exception => Some(InvoiceException.withName(exception))

@@ -21,6 +21,8 @@ object Satoshi {
     override def times(x: Satoshi, y: Satoshi): Satoshi = (x.toLong * y.toLong) satoshi
     override def minus(x: Satoshi, y: Satoshi): Satoshi = (x.toLong - y.toLong) satoshi
     override def compare(x: Satoshi, y: Satoshi): Int = x.compare(y)
+
+    override def parseString(str: String): Option[Satoshi] = ???
   }
 
   lazy implicit val formatSatoshi: Format[Satoshi] = new Format[Satoshi] {

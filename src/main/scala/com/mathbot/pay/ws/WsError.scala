@@ -10,8 +10,8 @@ object WsError {
   def apply(jsError: JsError): WsError =
     WsError(
       jsError.errors.map { t =>
-        t._1.toString() -> t._2.map(jve => jve.message)
-      }
+        t._1.toString() -> t._2.map(jve => jve.message).toSeq
+      }.toSeq
     )
 
   def apply(msg: String): WsError = {

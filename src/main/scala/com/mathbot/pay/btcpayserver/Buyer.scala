@@ -8,8 +8,10 @@ case class Buyer(
     address1: Option[String] = None,
     address2: Option[String] = None,
     locality: Option[String] = None,
+    city: Option[String] = None,
+    state: Option[String] = None,
     region: Option[String] = None,
-    postalCode: Option[String] = None,
+    zip: Option[String] = None,
     country: Option[String] = None,
     phone: Option[String] = None,
     sessionId: Option[String] = None

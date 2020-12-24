@@ -7,11 +7,5 @@ object CreditStatus extends Enumeration {
 
   val `new`, paid, confirmed, complete, expired, failed, underpaid, processing, invalid = Value
 
-  implicit val formatCreditStats: Format[CreditStatus] = new Format[CreditStatus] {
-    override def reads(json: JsValue): JsResult[CreditStatus] = json match {
-      case JsString(v) => JsSuccess(CreditStatus.withName(v))
-      case _ => JsError("Invalid credit status")
-    }
-    override def writes(o: CreditStatus): JsValue = JsString(o.toString)
-  }
+  implicit val formatCreditStatus = Json.formatEnum(this)
 }
