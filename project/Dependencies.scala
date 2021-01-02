@@ -15,22 +15,6 @@ object Dependencies {
   lazy val playJson = "com.typesafe.play" %% "play-json" % playJsonV
   lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
 
-
-  val commonSettings = Seq(
-    resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
-    resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/",
-    scalacOptions ++= Seq(
-      "-language:postfixOps",
-      "-language:implicitConversions",
-      "-Ywarn-numeric-widen",
-      "-Xlint", //  enables a bunch of compiler warnings https://docs.scala-lang.org/overviews/compiler-options/index.html#Warning_Settings
-      "-deprecation",
-      "-feature", // Emit warning and location for usages of features that should be imported explicitly.
-      "-unchecked" // Generated code depends on assumptions.
-      //  "-Xfatal-warnings", // causes the compiler to fail if there are any warnings
-    )
-  )
-
 }
 
 
