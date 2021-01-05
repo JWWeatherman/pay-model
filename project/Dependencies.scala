@@ -3,12 +3,13 @@ import sbt._
 // the Dependencies object defined in its ./project directory instead
 
 object Dependencies {
-  val scalaV = "2.11.11"
-  lazy val playJsonV = "2.7.3"
+  val scalaV = "2.13.1"
+  lazy val playJsonV = "2.8.0"
   lazy val scalaTestV = "3.0.8"
   lazy val akkaVersion = "2.5.26"
+  lazy val nameofV = "2.0.0"
 
-  lazy val nameof = "com.github.dwickern" %% "scala-nameof" % "1.0.3"
+  lazy val nameof = "com.github.dwickern" %% "scala-nameof" % nameofV
   lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % "1.1.3"
   lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % "0.15.2"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % scalaTestV % "test"
@@ -16,5 +17,3 @@ object Dependencies {
   lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
 
 }
-
-
