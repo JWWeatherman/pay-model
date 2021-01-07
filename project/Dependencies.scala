@@ -6,7 +6,7 @@ object Dependencies {
   val scalaV = "2.11.11"
   lazy val playJsonV = "2.7.3"
   lazy val scalaTestV = "3.0.8"
-  lazy val akkaVersion = "2.5.26"
+  lazy val akkaVersion = "2.5.32"
 
   lazy val nameof = "com.github.dwickern" %% "scala-nameof" % "1.0.3"
   lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % "1.1.3"
