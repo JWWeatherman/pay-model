@@ -10,7 +10,7 @@ object Dependencies {
 
   lazy val nameof = "com.github.dwickern" %% "scala-nameof" % "1.0.3"
   lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % "1.1.3"
-  lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % "0.15.2"
+  lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % "0.15.9"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % scalaTestV % "test"
   lazy val playJson = "com.typesafe.play" %% "play-json" % playJsonV
   lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
