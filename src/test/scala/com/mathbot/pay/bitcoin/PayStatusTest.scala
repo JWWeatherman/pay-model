@@ -1,10 +1,10 @@
 package com.mathbot.pay.bitcoin
 
 import com.mathbot.pay.lightning.PayStatus.PayStatus
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class PayStatusTest extends FunSuite {
+class PayStatusTest extends AnyFunSuite {
 
   val c = s"""{"status": "complete"}"""
   val f = s"""{"status": "failed"}"""

@@ -1,9 +1,9 @@
 package com.mathbot.pay.lightning
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class PaymentTest extends FunSuite {
+class PaymentTest extends AnyFunSuite {
 
   val stream = getClass.getResourceAsStream("/payments.json")
   val lines = io.Source.fromInputStream(stream).getLines

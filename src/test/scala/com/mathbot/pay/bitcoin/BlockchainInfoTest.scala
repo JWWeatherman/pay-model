@@ -1,9 +1,9 @@
 package com.mathbot.pay.bitcoin
 
 import com.mathbot.pay.utils.ResourceHelper
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class BlockchainInfoTest extends FunSuite {
+class BlockchainInfoTest extends AnyFunSuite {
   test("decode main") {
     val js = ResourceHelper.read("/blockchainInfo.json")
     val decodePay = js("result").validate[BlockchainInfo]

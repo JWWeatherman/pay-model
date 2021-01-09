@@ -1,9 +1,9 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class RpcResponseErrorTest extends FunSuite {
+class RpcResponseErrorTest extends AnyFunSuite {
   test("json") {
     val msg = "Loading block index..."
     val json =

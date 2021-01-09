@@ -1,9 +1,9 @@
 package com.mathbot.pay.lightning
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class GetInfoResponseTest extends FunSuite {
+class GetInfoResponseTest extends AnyFunSuite {
   test("getinfo") {
     val str =
       """{"jsonrpc":"2.0","id":0,"result":{"id":"ss","alias":"dfdf","color":"039023","num_peers":54,"num_pending_channels":1,

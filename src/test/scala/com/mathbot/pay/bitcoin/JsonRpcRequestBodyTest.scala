@@ -1,9 +1,9 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class JsonRpcRequestBodyTest extends FunSuite {
+class JsonRpcRequestBodyTest extends AnyFunSuite {
 
   test("format getbalance") {
     val json1 = s"""{"method":"getbalance","params":[],"jsonrpc":"1.0","id":"scala-jsonrpc"}"""

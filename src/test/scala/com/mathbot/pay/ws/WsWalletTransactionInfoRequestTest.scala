@@ -2,10 +2,11 @@ package com.mathbot.pay.ws
 
 import akka.actor.ActorPaths
 import com.mathbot.pay.bitcoin.TxId
-import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.{JsNull, Json}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class WsWalletTransactionInfoRequestTest extends FunSuite with Matchers {
+class WsWalletTransactionInfoRequestTest extends AnyFunSuite with Matchers {
 
   val txId = TxId("f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16")
   test("json serialization") {
