@@ -5,7 +5,7 @@ import sbt._
 object Dependencies {
   val scalaV = "2.11.11"
   lazy val playJsonV = "2.7.3"
-  lazy val scalaTestV = "3.0.8"
+  lazy val scalaTestV = "3.0.9"
   lazy val akkaVersion = "2.5.26"
 
   lazy val nameof = "com.github.dwickern" %% "scala-nameof" % "1.0.3"
