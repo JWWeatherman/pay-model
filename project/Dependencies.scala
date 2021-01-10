@@ -35,6 +35,6 @@ object Dependencies {
     "com.softwaremill.macwire" %% "util" % macwireVersion,
     "com.softwaremill.macwire" %% "proxy" % macwireVersion
   )
-  lazy val mockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.2.0" % "test"
+  lazy val mockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.3.0" % "test"
 
 }
