@@ -3,18 +3,38 @@ import sbt._
 // the Dependencies object defined in its ./project directory instead
 
 object Dependencies {
-  val scalaV = "2.11.11"
   lazy val playJsonV = "2.7.4"
   lazy val scalaTestV = "3.2.3"
   lazy val akkaVersion = "2.5.32"
+  lazy val sttpVersion = "2.0.2"
+  lazy val alpakkaSocketV = "1.1.2"
+  lazy val macwireVersion = "2.3.3"
 
+  lazy val sttp = Seq(
+    "com.softwaremill.sttp.client" %% "core" % sttpVersion,
+    "com.softwaremill.sttp.client" %% "akka-http-backend" % sttpVersion,
+    "com.softwaremill.sttp.client" %% "play-json" % sttpVersion
+  )
+  lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it,test"
+  lazy val akkaTestkit =
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it,test"
+  lazy val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
+  lazy val unixSocket = "com.lightbend.akka" %% "akka-stream-alpakka-unix-domain-socket" % alpakkaSocketV
   lazy val nameof = "com.github.dwickern" %% "scala-nameof" % "1.0.3"
   lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % "1.1.4"
   lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % "0.15.9"
+
   lazy val scalaTest = "org.scalatest" %% "scalatest" % scalaTestV % "test"
+  lazy val scalactic = "org.scalactic" %% "scalactic" % scalaTestV
+
   lazy val playJson = "com.typesafe.play" %% "play-json" % playJsonV
   lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
+  lazy val macwire = Seq(
+    "com.softwaremill.macwire" %% "macros" % macwireVersion % "provided",
+    "com.softwaremill.macwire" %% "macrosakka" % macwireVersion % "provided",
+    "com.softwaremill.macwire" %% "util" % macwireVersion,
+    "com.softwaremill.macwire" %% "proxy" % macwireVersion
+  )
+  lazy val mockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.2.0" % "test"
 
 }
-
-

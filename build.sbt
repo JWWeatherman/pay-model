@@ -1,6 +1,6 @@
 import Dependencies._
 import sbt._
-
+val scalaV = "2.11.11"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
 // object defined in the /pay/project or /math-bot/project directory.
 val commonSettings = Seq(
@@ -30,6 +30,12 @@ lazy val paymodel = (project in file("."))
       sttpModel,
       nameof,
       scalaTest,
-      akkaActor
-    )
+      akkaActor,
+      unixSocket,
+      akkaStream,
+      akkaStreamTestkit,
+      akkaTestkit,
+      scalactic,
+      mockito
+    ) ++ sttp ++ macwire
   )
