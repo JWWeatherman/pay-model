@@ -3,10 +3,10 @@ package com.mathbot.pay.lightning
 import java.time.Instant
 
 import com.mathbot.pay.utils.ResourceHelper
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class ListPaysResponseTest extends FunSuite {
+class ListPaysResponseTest extends AnyFunSuite {
 
   test("json") {
     val json =

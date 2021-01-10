@@ -1,11 +1,11 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin._
-import org.scalatest.FunSuite
 
 import scala.language.postfixOps
+import org.scalatest.funsuite.AnyFunSuite
 
-class Bolt11Test extends FunSuite {
+class Bolt11Test extends AnyFunSuite {
 
   test("apply") {
     val bitrefillBolt11 =

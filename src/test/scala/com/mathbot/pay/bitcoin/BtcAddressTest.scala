@@ -1,8 +1,8 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class BtcAddressTest extends FunSuite {
+class BtcAddressTest extends AnyFunSuite {
   test("create class") {
     val address = "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
     val r = BtcAddress(address)

@@ -1,11 +1,11 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
 
 import scala.language.{implicitConversions, postfixOps}
+import org.scalatest.funsuite.AnyFunSuite
 
-class BtcDebitRequestTest extends FunSuite {
+class BtcDebitRequestTest extends AnyFunSuite {
   test("json") {
     val btcAddress = "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
     val amount = 100

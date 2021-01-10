@@ -1,9 +1,9 @@
 package com.mathbot.pay.webhook
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class DebitWebhookResponseTest extends FunSuite {
+class DebitWebhookResponseTest extends AnyFunSuite {
 
   test("json") {
 
