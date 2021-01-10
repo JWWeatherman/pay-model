@@ -25,7 +25,7 @@ object Dependencies {
   lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % "0.15.9"
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % scalaTestV % "test"
-  lazy val scalactic = "org.scalactic" %% "scalactic" % scalaTestV
+  lazy val scalactic = "org.scalactic" %% "scalactic" % scalaTestV % "test"
 
   lazy val playJson = "com.typesafe.play" %% "play-json" % playJsonV
   lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
