@@ -15,9 +15,9 @@ object Dependencies {
     "com.softwaremill.sttp.client" %% "akka-http-backend" % sttpVersion,
     "com.softwaremill.sttp.client" %% "play-json" % sttpVersion
   )
-  lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it,test"
+  lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "test"
   lazy val akkaTestkit =
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it,test"
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test"
   lazy val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
   lazy val unixSocket = "com.lightbend.akka" %% "akka-stream-alpakka-unix-domain-socket" % alpakkaSocketV
   lazy val nameof = "com.github.dwickern" %% "scala-nameof" % "1.0.3"
