@@ -8,7 +8,7 @@ object Dependencies {
   lazy val akkaVersion = "2.5.32"
   lazy val sttpVersion = "2.0.9"
   lazy val alpakkaSocketV = "1.1.2"
-  lazy val macwireVersion = "2.3.3"
+  lazy val macwireVersion = "2.3.7"
 
   lazy val sttp = Seq(
     "com.softwaremill.sttp.client" %% "core" % sttpVersion,
