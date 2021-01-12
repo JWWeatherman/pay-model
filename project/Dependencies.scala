@@ -6,9 +6,9 @@ object Dependencies {
   lazy val playJsonV = "2.7.4"
   lazy val scalaTestV = "3.2.3"
   lazy val akkaVersion = "2.5.32"
-  lazy val sttpVersion = "2.0.2"
-  lazy val alpakkaSocketV = "2.0.2"
-  lazy val macwireVersion = "2.3.3"
+  lazy val sttpVersion = "2.0.9"
+  lazy val alpakkaSocketV = "1.1.2"
+  lazy val macwireVersion = "2.3.7"
 
   lazy val sttp = Seq(
     "com.softwaremill.sttp.client" %% "core" % sttpVersion,
@@ -25,7 +25,7 @@ object Dependencies {
   lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % "0.15.9"
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % scalaTestV % "test"
-  lazy val scalactic = "org.scalactic" %% "scalactic" % scalaTestV
+  lazy val scalactic = "org.scalactic" %% "scalactic" % scalaTestV % "test"
 
   lazy val playJson = "com.typesafe.play" %% "play-json" % playJsonV
   lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
@@ -35,6 +35,6 @@ object Dependencies {
     "com.softwaremill.macwire" %% "util" % macwireVersion,
     "com.softwaremill.macwire" %% "proxy" % macwireVersion
   )
-  lazy val mockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.2.0" % "test"
+  lazy val mockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.3.0" % "test"
 
 }
