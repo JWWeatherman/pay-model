@@ -21,7 +21,7 @@ object Dependencies {
   lazy val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
   lazy val unixSocket = "com.lightbend.akka" %% "akka-stream-alpakka-unix-domain-socket" % alpakkaSocketV
   lazy val nameof = "com.github.dwickern" %% "scala-nameof" % "1.0.3"
-  lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % "1.1.4"
+  lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % "1.2.0"
   lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % "0.15.9"
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % scalaTestV % "test"
