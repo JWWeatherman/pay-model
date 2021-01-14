@@ -4,3 +4,24 @@
 
 
 models and services for bitcoin and lightning rpc
+
+
+### Usage
+
+To include this as a sub-project
+
+1. add the project in build.sbt:
+
+  ```
+  // specify a commit or a tag
+  lazy val payModelTag = "9ba3ae817789448f67df140ea9663136d90a6dee"
+
+  lazy val paymodel = RootProject(uri(s"https://github.com/JWWeatherman/pay-model.git#$payModelTag"))
+
+  ```
+  latest builds for scala version:
+  2.11 = 9ba3ae817789448f67df140ea9663136d90a6dee
+
+  2.13 = a23cb864b873bb2d859dde6b0f3d476f5862490e
+  
+1. include the dependencies from `project/Dependencies.scala` into main project dependencies
