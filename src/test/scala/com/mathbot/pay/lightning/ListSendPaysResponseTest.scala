@@ -1,9 +1,9 @@
 package com.mathbot.pay.lightning
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class ListSendPaysResponseTest extends FunSuite {
+class ListSendPaysResponseTest extends AnyFunSuite {
 
   test("json") {
 

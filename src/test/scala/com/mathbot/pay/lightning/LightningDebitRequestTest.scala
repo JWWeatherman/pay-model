@@ -1,10 +1,10 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.webhook.CallbackURL
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class LightningDebitRequestTest extends FunSuite {
+class LightningDebitRequestTest extends AnyFunSuite {
   test("json") {
 
     val d = LightningDebitRequest(

@@ -10,21 +10,6 @@ sealed trait BtcAmount
 
 object Satoshi {
 
-  implicit object NumericSatoshi extends Numeric[Satoshi] {
-    override def plus(x: Satoshi, y: Satoshi): Satoshi = (x.toLong + y.toLong) satoshi
-    override def toDouble(x: Satoshi): Double = x.toLong
-    override def toFloat(x: Satoshi): Float = x.toLong
-    override def toInt(x: Satoshi): Int = x.toLong.toInt
-    override def negate(x: Satoshi): Satoshi = Satoshi(-x.toLong)
-    override def fromInt(x: Int): Satoshi = Satoshi(x.toLong)
-    override def toLong(x: Satoshi): Long = x.toLong
-    override def times(x: Satoshi, y: Satoshi): Satoshi = (x.toLong * y.toLong) satoshi
-    override def minus(x: Satoshi, y: Satoshi): Satoshi = (x.toLong - y.toLong) satoshi
-    override def compare(x: Satoshi, y: Satoshi): Int = x.compare(y)
-
-    override def parseString(str: String): Option[Satoshi] = Try(Satoshi(str.toLong)).toOption
-  }
-
   lazy implicit val formatSatoshi: Format[Satoshi] = new Format[Satoshi] {
     override def writes(o: Satoshi): JsValue = JsNumber(o.toLong)
     override def reads(json: JsValue): JsResult[Satoshi] = json match {
@@ -89,10 +74,11 @@ case class MilliBtc(private val underlying: BigDecimal) extends BtcAmount with O
   def toLong: Long = underlying.toLong
 }
 object Btc {
-  def stringify(btc: Btc) = {
-    val btcFormat = new DecimalFormat("0.########")
-    btcFormat.format(btc.toDouble)
-  }
+
+  private val btcFormat = new DecimalFormat("0.########")
+
+  def stringify(btc: Btc): String = btcFormat.format(btc.underlying)
+
   lazy implicit val formatBtc: Format[Btc] = new Format[Btc] {
     override def writes(o: Btc): JsValue = JsString(stringify(o))
     override def reads(json: JsValue): JsResult[Btc] = json match {

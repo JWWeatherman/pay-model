@@ -1,9 +1,9 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.utils.ResourceHelper
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class DecodePayResponseTest extends FunSuite {
+class DecodePayResponseTest extends AnyFunSuite {
 
   test("decode") {
     val js = ResourceHelper.read("/decodePayResponse.json")

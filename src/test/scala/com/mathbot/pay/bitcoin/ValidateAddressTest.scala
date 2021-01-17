@@ -1,9 +1,9 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class ValidateAddressTest extends FunSuite {
+class ValidateAddressTest extends AnyFunSuite {
   test("json") {
     val address = "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"
     val isscript = false

@@ -1,9 +1,9 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class ResponseErrorTest extends FunSuite {
+class ResponseErrorTest extends AnyFunSuite {
   test("json") {
     val message = "random message"
     val code = 1

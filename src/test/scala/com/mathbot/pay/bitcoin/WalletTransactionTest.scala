@@ -1,9 +1,9 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
 import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
 
-class WalletTransactionTest extends FunSuite {
+class WalletTransactionTest extends AnyFunSuite {
 
   test("json parsing confirmed tx") {
 

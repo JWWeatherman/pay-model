@@ -1,8 +1,9 @@
 package com.mathbot.pay.btcpayserver
 
 import play.api.libs.json.{JsResultException, Json}
+import org.scalatest
 
-class ChargeInfoResponseTest extends org.scalatest.FunSuite {
+class ChargeInfoResponseTest extends scalatest.funsuite.AnyFunSuite {
 
   test("json parse") {
 

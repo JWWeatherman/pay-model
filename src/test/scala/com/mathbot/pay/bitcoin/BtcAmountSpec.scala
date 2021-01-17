@@ -1,8 +1,10 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class BtcAmountSpec extends FunSuite {
+import com.mathbot.pay.bitcoin._
+
+class BtcAmountSpec extends AnyFunSuite {
 
   test("btc/millibtc/satoshi/milliSatoshi conversions") {
     val x = 12.34567 btc

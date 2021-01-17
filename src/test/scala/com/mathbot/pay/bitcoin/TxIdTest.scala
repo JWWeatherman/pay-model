@@ -1,8 +1,8 @@
 package com.mathbot.pay.bitcoin
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class TxIdTest extends FunSuite {
+class TxIdTest extends AnyFunSuite {
   test("ToString") {
     val txId = "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16"
 
