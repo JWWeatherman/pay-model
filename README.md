@@ -16,3 +16,10 @@ To include this as a sub-project
   // specify a commit or a tag
   lazy val payModelTag = "9ba3ae817789448f67df140ea9663136d90a6dee"
   lazy val paymodel = RootProject(uri(s"https://github.com/JWWeatherman/pay-model.git#$payModelTag"))
+  
+  and aggregate in your root project
+  
+  lazy val root = (project in file("."))
+      .aggregate(paymodel)
+      .dependsOn(paymodel)
+  ```
