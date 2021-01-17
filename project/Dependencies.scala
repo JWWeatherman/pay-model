@@ -14,6 +14,9 @@ object Dependencies {
   lazy val bitcoinjV = "0.15.9"
   lazy val mockitoV = "3.2.3.0"
 
+  lazy val nameofV2 = "2.0.0"
+
+  lazy val nameof2 = "com.github.dwickern" %% "scala-nameof" % nameofV2
   lazy val sttp = Seq(
     "com.softwaremill.sttp.client" %% "core" % sttpVersion,
     "com.softwaremill.sttp.client" %% "akka-http-backend" % sttpVersion,

@@ -2,6 +2,8 @@ package com.mathbot.pay.bitcoin
 
 import org.scalatest.funsuite.AnyFunSuite
 
+import com.mathbot.pay.bitcoin._
+
 class BtcAmountSpec extends AnyFunSuite {
 
   test("btc/millibtc/satoshi/milliSatoshi conversions") {

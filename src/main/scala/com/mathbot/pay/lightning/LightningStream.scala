@@ -13,14 +13,15 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 /**
- *
  * @param system operating in
  * @param ec to run
  * @param lightingFlow Flow i.e. json -> unix socket -> json
  */
-class LightningStream(system: ActorSystem,
-                      ec: ExecutionContext,
-                      lightingFlow: Flow[LightningJson, LightningJson, NotUsed]) {
+class LightningStream(
+    system: ActorSystem,
+    ec: ExecutionContext,
+    lightingFlow: Flow[LightningJson, LightningJson, NotUsed]
+) {
 
   private implicit val as = system
   private implicit val mat = ActorMaterializer()
@@ -61,8 +62,10 @@ class LightningStream(system: ActorSystem,
         case QueueOfferResult.Failure(t) =>
           logger.error(s"failure adding request to queue $lightning")
           finish(
-            LightningRequestError(error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t"),
-                                  bolt11 = None)
+            LightningRequestError(
+              error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t"),
+              bolt11 = None
+            )
           )
       }(ec)
 
@@ -110,9 +113,9 @@ object LightningStream {
       case Success(js) =>
         logger.debug(s"Response ${js.toString()}")
         val success = js.asOpt[ListPaysResponse] orElse
-        js.asOpt[PayResponse] orElse
-        js.asOpt[GetInfoResponse] orElse
-        js.asOpt[LightningRequestError]
+          js.asOpt[PayResponse] orElse
+          js.asOpt[GetInfoResponse] orElse
+          js.asOpt[LightningRequestError]
         success getOrElse {
           val message = s"Unknown response from lightning node $js"
           logger.error(message)

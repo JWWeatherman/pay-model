@@ -15,13 +15,14 @@ object CallbackURL extends PlayJsonSupport {
 
     override def writes(o: CallbackURL): JsValue = JsString(o.callbackURL.toString())
 
-    override def reads(json: JsValue): JsResult[CallbackURL] = json match {
-      case JsString(v) =>
-        Try(CallbackURL.apply(v))
-          .map(_ => JsSuccess(CallbackURL(v)))
-          .getOrElse(JsError(s"Invalid uri: $v"))
-      case _ => JsError()
-    }
+    override def reads(json: JsValue): JsResult[CallbackURL] =
+      json match {
+        case JsString(v) =>
+          Try(CallbackURL.apply(v))
+            .map(_ => JsSuccess(CallbackURL(v)))
+            .getOrElse(JsError(s"Invalid uri: $v"))
+        case _ => JsError()
+      }
   }
   def apply(callbackURL: String): CallbackURL =
     CallbackURL(Uri.parse(callbackURL).right.get)

@@ -1,6 +1,9 @@
 import Dependencies._
 import sbt._
-val scalaV = "2.11.11"
+
+// todo: 2.12
+val scala211 = "2.11.11"
+val scala213 = "2.13.1"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
 // object defined in the /pay/project or /math-bot/project directory.
 val commonSettings = Seq(
@@ -17,25 +20,46 @@ val commonSettings = Seq(
     //  "-Xfatal-warnings", // causes the compiler to fail if there are any warnings
   )
 )
+
+
+val commonDeps = Seq(
+  playJson,
+  bitcoinj,
+  sttpModel,
+  scalaTest,
+  akkaActor,
+  unixSocket,
+  akkaStream,
+  akkaStreamTestkit,
+  akkaTestkit,
+  scalactic,
+  mockito
+) ++ sttp ++ macwire
+
+val scala211Deps = nameof :: Nil
+val scala213Deps = nameof2 :: Nil
+
+libraryDependencies := {
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 11)) => commonDeps ++ scala211Deps
+    case Some((2, 13)) => commonDeps ++ scala213Deps
+    case _ => Seq()
+  }
+}
+
+
+
 lazy val paymodel = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
     name := "pay-model",
     version := "0.0.1",
     organization := "com.mathbot",
-    scalaVersion := scalaV,
-    libraryDependencies ++= Seq(
-      playJson,
-      bitcoinj,
-      sttpModel,
-      nameof,
-      scalaTest,
-      akkaActor,
-      unixSocket,
-      akkaStream,
-      akkaStreamTestkit,
-      akkaTestkit,
-      scalactic,
-      mockito
-    ) ++ sttp ++ macwire
+    scalaVersion := scala213,
+    crossScalaVersions := scala211 :: scala213 :: Nil
   )
+
+def addCommandsAlias(name: String, cmds: Seq[String]) =
+  addCommandAlias(name, cmds.mkString(";", ";", ""))
+
+addCommandsAlias("testAll", "compile":: "test:compile" :: "scalafmtCheckAll":: Nil)

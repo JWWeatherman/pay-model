@@ -7,12 +7,13 @@ import com.mathbot.pay.json.PlayJsonSupport
 import com.mathbot.pay.webhook.CallbackURL
 import play.api.libs.json._
 
-case class WsBtcDebitRequest(btcAddress: BtcAddress,
-                             amount: Satoshi,
-                             callbackURL: CallbackURL,
-                             id: String,
-                             onBehalfOf: ActorPath)
-    extends WebsocketMessage
+case class WsBtcDebitRequest(
+    btcAddress: BtcAddress,
+    amount: Satoshi,
+    callbackURL: CallbackURL,
+    id: String,
+    onBehalfOf: ActorPath
+) extends WebsocketMessage
 
 object WsBtcDebitRequest extends PlayJsonSupport {
   implicit val formatter: Format[WsBtcDebitRequest] = new Format[WsBtcDebitRequest] {
