@@ -9,7 +9,6 @@ import com.mathbot.pay.lightning.PayStatus.PayStatus
 import play.api.libs.json._
 
 /**
- *
  * @param amount_msat
  * @param amount_sent_msat
  * @param created_at

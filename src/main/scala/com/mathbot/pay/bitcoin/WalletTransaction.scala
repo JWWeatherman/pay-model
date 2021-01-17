@@ -46,13 +46,15 @@ import play.api.libs.json.{Json, OFormat}
  * @param details
  * @param hex
  */
-case class WalletTransaction(amount: Btc,
-                             confirmations: Int,
-                             txid: TxId,
-                             time: Instant,
-                             timereceived: Instant,
-                             details: Option[Seq[Detail]],
-                             hex: Option[String])
+case class WalletTransaction(
+    amount: Btc,
+    confirmations: Int,
+    txid: TxId,
+    time: Instant,
+    timereceived: Instant,
+    details: Option[Seq[Detail]],
+    hex: Option[String]
+)
 
 object WalletTransaction extends PlayJsonSupport with EpochSecondInstantFormatter {
   implicit val formatWalletTransactionPlay: OFormat[WalletTransaction] = Json.format[WalletTransaction]

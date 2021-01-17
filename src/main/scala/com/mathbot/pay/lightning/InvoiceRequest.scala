@@ -14,10 +14,12 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
  * @param description
  * @param expiry
  */
-case class InvoiceRequest(msatoshi: MilliSatoshi,
-                          label: String,
-                          description: String,
-                          expiry: Option[FiniteDuration] = Some(Duration("7 days").asInstanceOf[FiniteDuration]))
+case class InvoiceRequest(
+    msatoshi: MilliSatoshi,
+    label: String,
+    description: String,
+    expiry: Option[FiniteDuration] = Some(Duration("7 days").asInstanceOf[FiniteDuration])
+)
 //                          fallbacks: Option[String] = None,
 //                          preimage: Option[String] = None,
 //                          exposeprivatechannels: Option[String] = None)

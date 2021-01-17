@@ -47,6 +47,8 @@ libraryDependencies := {
   }
 }
 
+
+
 lazy val paymodel = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
@@ -56,3 +58,8 @@ lazy val paymodel = (project in file("."))
     scalaVersion := scala213,
     crossScalaVersions := scala211 :: scala213 :: Nil
   )
+
+def addCommandsAlias(name: String, cmds: Seq[String]) =
+  addCommandAlias(name, cmds.mkString(";", ";", ""))
+
+addCommandsAlias("testAll", "compile":: "test:compile" :: "scalafmtCheckAll":: Nil)

@@ -13,25 +13,26 @@ import sttp.model.MediaType
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{ExecutionContext, Future}
 
-case class BitcoinJsonRpcClient(config: BitcoinJsonRpcConfig,
-                                ec: ExecutionContext,
-                                backend: SttpBackend[Future, Nothing, NothingT],
-                                logger: Logger = LoggerFactory.getLogger("BitcoinJsonRpcClient")) {
+case class BitcoinJsonRpcClient(
+    config: BitcoinJsonRpcConfig,
+    ec: ExecutionContext,
+    backend: SttpBackend[Future, Nothing, NothingT],
+    logger: Logger = LoggerFactory.getLogger("BitcoinJsonRpcClient")
+) {
   private implicit val _ec: ExecutionContext = ec
   implicit val sttpBackend: SttpBackend[Future, Nothing, NothingT] = backend
   private val idGen = new AtomicInteger(1)
   private def id = idGen.getAndIncrement()
 
   /**
-   *
    * @param method to call eg getbalance, createpsbt...
    * @param params arguments to send
    * @param jsonReader json formatter for the response [[T]]
    * @tparam T the expected response from a successful call
    * @return Error or the method's expected response object
    */
-  def send[T](method: String, params: JsValueWrapper*)(
-      implicit jsonReader: Reads[T]
+  def send[T](method: String, params: JsValueWrapper*)(implicit
+      jsonReader: Reads[T]
   ): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
@@ -111,40 +112,48 @@ case class BitcoinJsonRpcClient(config: BitcoinJsonRpcConfig,
    * @param btc
    * @return
    */
-  def sendtoaddress(address: BtcAddress,
-                    btc: Btc,
-                    comment: Option[String] = None,
-                    comment_to: Option[String] = None,
-                    subtractfeefromamount: Option[Boolean] = None,
-                    replaceable: Option[Boolean] = None,
-                    conf_target: Option[Int] = None,
-                    estimate_mode: Option[EstimateFeeMode] = None,
-                    avoid_reuse: Option[Boolean] = None): Future[Either[RpcResponseError, TxId]] = {
-    send[TxId](method = "sendtoaddress",
-               address,
-               btc,
-               comment,
-               comment_to,
-               subtractfeefromamount,
-               replaceable,
-               conf_target,
-               estimate_mode,
-               avoid_reuse)
+  def sendtoaddress(
+      address: BtcAddress,
+      btc: Btc,
+      comment: Option[String] = None,
+      comment_to: Option[String] = None,
+      subtractfeefromamount: Option[Boolean] = None,
+      replaceable: Option[Boolean] = None,
+      conf_target: Option[Int] = None,
+      estimate_mode: Option[EstimateFeeMode] = None,
+      avoid_reuse: Option[Boolean] = None
+  ): Future[Either[RpcResponseError, TxId]] = {
+    send[TxId](
+      method = "sendtoaddress",
+      address,
+      btc,
+      comment,
+      comment_to,
+      subtractfeefromamount,
+      replaceable,
+      conf_target,
+      estimate_mode,
+      avoid_reuse
+    )
   }
 
   def getreceivedbyaddress(address: BtcAddress, minconf: Option[Int] = None) =
     send[JsValue]("getreceivedbyaddress", address, minconf)
   def getreceivedbylabel(label: String, minconf: Option[Int] = None) =
     send[JsValue]("getreceivedbylabel", label, minconf)
-  def listreceivedbyaddress(minconf: Option[Int] = None,
-                            include_empty: Option[Boolean] = None,
-                            include_watchonly: Option[Boolean] = None,
-                            address_filter: Option[BtcAddress] = None) =
+  def listreceivedbyaddress(
+      minconf: Option[Int] = None,
+      include_empty: Option[Boolean] = None,
+      include_watchonly: Option[Boolean] = None,
+      address_filter: Option[BtcAddress] = None
+  ) =
     send[Seq[ListReceivedByAddress]]("listreceivedbyaddress", minconf, include_empty, include_watchonly, address_filter)
 
-  def listreceivedbylabel(minconf: Option[Int] = None,
-                          include_empty: Option[Boolean] = None,
-                          include_watchonly: Option[Boolean] = None) =
+  def listreceivedbylabel(
+      minconf: Option[Int] = None,
+      include_empty: Option[Boolean] = None,
+      include_watchonly: Option[Boolean] = None
+  ) =
     send[JsValue]("listreceivedbylabel", minconf, include_empty, include_watchonly)
 
   def getbalance: Future[Either[RpcResponseError, Btc]] =
@@ -203,10 +212,12 @@ case class BitcoinJsonRpcClient(config: BitcoinJsonRpcConfig,
    * @param outputs
    * @return
    */
-  def createpsbt(inputs: Seq[Input],
-                 outputs: Map[BtcAddress, Btc],
-                 locktime: Option[Int] = None,
-                 replaceable: Option[Boolean] = None): Future[Either[RpcResponseError, String]] =
+  def createpsbt(
+      inputs: Seq[Input],
+      outputs: Map[BtcAddress, Btc],
+      locktime: Option[Int] = None,
+      replaceable: Option[Boolean] = None
+  ): Future[Either[RpcResponseError, String]] =
     send[String]("createpsbt", inputs, outputs.map { case (a, b) => a.address -> stringify(b) }, locktime, replaceable)
 
   def getblockcount: Future[Either[RpcResponseError, Int]] =
@@ -225,8 +236,10 @@ case class BitcoinJsonRpcClient(config: BitcoinJsonRpcConfig,
   def gettransaction(txId: TxId): Future[Either[RpcResponseError, WalletTransaction]] =
     send[WalletTransaction](method = "gettransaction", txId)
 
-  def getnewaddress(label: Option[String] = None,
-                    addressType: Option[AddressType] = None): Future[Either[RpcResponseError, BtcAddress]] =
+  def getnewaddress(
+      label: Option[String] = None,
+      addressType: Option[AddressType] = None
+  ): Future[Either[RpcResponseError, BtcAddress]] =
     send[BtcAddress](method = "getnewaddress", label, addressType)
 
   def sendrawtransaction(transaction: String): Future[Either[RpcResponseError, String]] =
@@ -291,10 +304,12 @@ case class BitcoinJsonRpcClient(config: BitcoinJsonRpcConfig,
    * @param bip32derivs
    * @return
    */
-  def walletprocesspsbt(psbt: String,
-                        sign: Option[Boolean] = None,
-                        sighashType: Option[SigHashType] = None,
-                        bip32derivs: Option[Boolean] = None): Future[Either[RpcResponseError, PsbtInfo]] =
+  def walletprocesspsbt(
+      psbt: String,
+      sign: Option[Boolean] = None,
+      sighashType: Option[SigHashType] = None,
+      bip32derivs: Option[Boolean] = None
+  ): Future[Either[RpcResponseError, PsbtInfo]] =
     send[PsbtInfo]("walletprocesspsbt", psbt, sign, sighashType, bip32derivs)
   def analyzepsbt(psbt: String): Future[Either[RpcResponseError, AnalyzePsbt]] = send[AnalyzePsbt]("analyzepsbt", psbt)
   def combinepsbt(psbt: String*): Future[Either[RpcResponseError, String]] = send[String]("combinepsbt", psbt)
@@ -354,9 +369,11 @@ case class BitcoinJsonRpcClient(config: BitcoinJsonRpcConfig,
    * @param keys
    * @return
    */
-  def createmultisig(nrequired: Int,
-                     keys: Seq[String],
-                     address_type: Option[AddressType] = None): Future[Either[RpcResponseError, AddMultisigSuccess]] =
+  def createmultisig(
+      nrequired: Int,
+      keys: Seq[String],
+      address_type: Option[AddressType] = None
+  ): Future[Either[RpcResponseError, AddMultisigSuccess]] =
     send[AddMultisigSuccess]("createmultisig", nrequired, keys, address_type)
 
   def dumpprivkey(address: BtcAddress): Future[Either[RpcResponseError, String]] =
@@ -407,10 +424,12 @@ case class BitcoinJsonRpcClient(config: BitcoinJsonRpcConfig,
    * @param p2sh
    * @return
    */
-  def importaddress(address: BtcAddress,
-                    label: Option[String] = None,
-                    rescan: Option[Boolean] = None,
-                    p2sh: Option[Boolean] = None): Future[Either[RpcResponseError, JsValue]] =
+  def importaddress(
+      address: BtcAddress,
+      label: Option[String] = None,
+      rescan: Option[Boolean] = None,
+      p2sh: Option[Boolean] = None
+  ): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("importaddress", address, label, rescan, p2sh)
 
   def importpubkey(publicKey: String, label: Option[String] = None, rescan: Option[Boolean] = None) =

@@ -25,10 +25,11 @@ object Bolt11 {
   lazy implicit val formatBolt11: Format[Bolt11] = new Format[Bolt11] {
     override def writes(o: Bolt11): JsValue = JsString(o.bolt11)
 
-    override def reads(json: JsValue): JsResult[Bolt11] = json match {
-      case JsString(bolt11) =>
-        JsSuccess(Bolt11(bolt11))
-    }
+    override def reads(json: JsValue): JsResult[Bolt11] =
+      json match {
+        case JsString(bolt11) =>
+          JsSuccess(Bolt11(bolt11))
+      }
   }
 
   def trimPrefix(bolt11: String) = if (bolt11.startsWith("lightning:")) bolt11.replace("lightning:", "") else bolt11

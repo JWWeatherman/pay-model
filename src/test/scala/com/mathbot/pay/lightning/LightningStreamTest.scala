@@ -45,7 +45,7 @@ class LightningStreamTest(_system: ActorSystem)
       val bolt11 = Bolt11(
         "lnbc22435140n1p0zxgcupp5hkn3lnlkk6kmq0670a9u2xd8reuefc7dw704pwe7dqqm06nnzpcsdz2gf5hgun9ve5kcmpqv9jx2v3e8pjkgtf5xaskxtf5venxvttp8pjrvttrvgerzvm9x93r2dehxgfppjue4tflpg2hule862xylcsnu0p0mrjvmnxqrp9s2xnqfz900f0mq36dnkseqped68nzjm2nvh85uxw4nkhezkd4zzlymw93q96mf9glupqxrfd46rps7dztqm5rerusxpx77curwrpal9qqenm4p0"
       )
-      lightningStream.enqueue(bolt11)((result) => {
+      lightningStream.enqueue(bolt11)(result => {
         assert(result == bolt11)
       })
     }
@@ -66,7 +66,7 @@ class LightningStreamTest(_system: ActorSystem)
       val bolt11 = Bolt11(
         "lnbc22435140n1p0zxgcupp5hkn3lnlkk6kmq0670a9u2xd8reuefc7dw704pwe7dqqm06nnzpcsdz2gf5hgun9ve5kcmpqv9jx2v3e8pjkgtf5xaskxtf5venxvttp8pjrvttrvgerzvm9x93r2dehxgfppjue4tflpg2hule862xylcsnu0p0mrjvmnxqrp9s2xnqfz900f0mq36dnkseqped68nzjm2nvh85uxw4nkhezkd4zzlymw93q96mf9glupqxrfd46rps7dztqm5rerusxpx77curwrpal9qqenm4p0"
       )
-      lightningStream.enqueue(bolt11)((result) => {
+      lightningStream.enqueue(bolt11)(result => {
         assert(result.isInstanceOf[LightningRequestError])
       })
     }
