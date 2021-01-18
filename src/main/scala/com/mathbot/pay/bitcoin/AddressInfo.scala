@@ -31,5 +31,5 @@ case class AddressInfo(
     pubkeys: Option[List[String]],
     label: Option[String],
     ischange: Boolean,
-    labels: List[AddressLabels]
+    labels: List[String]
 )

@@ -139,9 +139,8 @@ case class BitcoinJsonRpcClient(
     )
   }
 
-  def getreceivedbyaddress(address: BtcAddress,
-                           minconf: Option[Int] = None): Future[Either[RpcResponseError, JsValue]] =
-    send[JsValue]("getreceivedbyaddress", address, minconf)
+  def getreceivedbyaddress(address: BtcAddress, minconf: Option[Int] = None): Future[Either[RpcResponseError, Btc]] =
+    send[Btc]("getreceivedbyaddress", address, minconf)
   def getreceivedbylabel(label: String, minconf: Option[Int] = None): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("getreceivedbylabel", label, minconf)
   def listreceivedbyaddress(
@@ -310,8 +309,8 @@ case class BitcoinJsonRpcClient(
    */
   def walletprocesspsbt(
       psbt: String,
-      sign: Option[Boolean] = None,
-      sighashType: Option[SigHashType] = None,
+      sign: Boolean = true,
+      sighashType: SigHashType = SigHashType.ALL,
       bip32derivs: Option[Boolean] = None
   ): Future[Either[RpcResponseError, PsbtInfo]] =
     send[PsbtInfo]("walletprocesspsbt", psbt, sign, sighashType, bip32derivs)
@@ -480,5 +479,55 @@ case class BitcoinJsonRpcClient(
    * @return list of wallet names
    */
   def listwallets: Future[Either[RpcResponseError, Seq[String]]] = send[Seq[String]]("listwallets")
+
+  /**
+   * Set or generate a new HD wallet seed. Non-HD wallets will not be upgraded to being a HD wallet. Wallets that are already
+   * HD will have a new HD seed set so that new keys added to the keypool will be derived from this new seed.
+   *
+   * Note that you will need to MAKE A NEW BACKUP of your wallet after setting the HD wallet seed.
+   *
+   * Arguments:
+   * 1. newkeypool    (boolean, optional, default=true) Whether to flush old unused addresses, including change addresses, from the keypool and regenerate it.
+   * If true, the next address from getnewaddress and change address from getrawchangeaddress will be from this new seed.
+   * If false, addresses (including change addresses if the wallet already had HD Chain Split enabled) from the existing
+   * keypool will be used until it has been depleted.
+   * 2. seed          (string, optional, default=random seed) The WIF private key to use as the new HD seed.
+   * The seed value can be retrieved using the dumpwallet command. It is the private key marked hdseed=1
+   *
+   * @param seed
+   * @return
+   */
+  def sethdseed(newkeypool: Boolean = true, seed: Option[String] = None) =
+    seed match {
+      case Some(s) => send[JsValue]("sethdseed", newkeypool, s)
+      case None => send[JsValue]("sethdseed", newkeypool)
+    }
+
+  /**
+   * Creates and loads a new wallet.
+   *
+   * Arguments:
+   * 1. wallet_name             (string, required) The name for the new wallet. If this is a path, the wallet will be created at the path location.
+   * 2. disable_private_keys    (boolean, optional, default=false) Disable the possibility of private keys (only watchonlys are possible in this mode).
+   * 3. blank                   (boolean, optional, default=false) Create a blank wallet. A blank wallet has no keys or HD seed. One can be set using sethdseed.
+   * 4. passphrase              (string) Encrypt the wallet with this passphrase.
+   * 5. avoid_reuse             (boolean, optional, default=false) Keep track of coin reuse, and treat dirty and clean coins differently with privacy considerations in mind.
+   *
+   * Result:
+   * {
+   * "name" :    <wallet_name>,        (string) The wallet name if created successfully. If the wallet was created using a full path, the wallet_name will be the full path.
+   * "warning" : <warning>,            (string) Warning message if wallet was not loaded cleanly.
+   * }
+   *
+   * @return
+   */
+  def createwallet(wallet_name: String,
+                   disable_private_keys: Boolean = false,
+                   blank: Boolean = false,
+                   passphrase: String = "",
+                   avoid_reuse: Boolean = false) =
+    send[JsValue]("createwallet", wallet_name, disable_private_keys, blank, passphrase, avoid_reuse)
+
+  def dumpwallet(file: String) = send[JsValue]("dumpwallet", file)
 
 }
