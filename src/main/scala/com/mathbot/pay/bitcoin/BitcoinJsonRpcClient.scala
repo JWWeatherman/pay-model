@@ -475,4 +475,10 @@ case class BitcoinJsonRpcClient(
   def getdescriptorinfo(descriptor: String): Future[Either[RpcResponseError, DescriptorInfo]] =
     send[DescriptorInfo]("getdescriptorinfo", descriptor)
 
+  /**
+   *
+   * @return list of wallet names
+   */
+  def listwallets: Future[Either[RpcResponseError, Seq[String]]] = send[Seq[String]]("listwallets")
+
 }
