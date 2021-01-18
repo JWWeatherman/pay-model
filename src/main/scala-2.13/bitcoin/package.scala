@@ -59,4 +59,6 @@ package object bitcoin {
 
   implicit def millisatoshi2millibtc(input: MilliSatoshi): MilliBtc = input.toMilliBtc
 
+  implicit def string2Address(addr: String) = BtcAddress(addr)
+
 }
