@@ -1,5 +1,8 @@
 package com.mathbot.pay.bitcoin
 
+import java.time.Instant
+import java.util.concurrent.atomic.AtomicInteger
+
 import com.mathbot.pay.bitcoin.AddressType.AddressType
 import com.mathbot.pay.bitcoin.Btc.stringify
 import com.mathbot.pay.bitcoin.EstimateFeeMode.EstimateFeeMode
@@ -10,9 +13,9 @@ import play.api.libs.json._
 import sttp.client._
 import sttp.model.MediaType
 
-import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{ExecutionContext, Future}
 
+//noinspection SpellCheckingInspection
 case class BitcoinJsonRpcClient(
     config: BitcoinJsonRpcConfig,
     ec: ExecutionContext,
@@ -32,8 +35,7 @@ case class BitcoinJsonRpcClient(
    * @return Error or the method's expected response object
    */
   def send[T](method: String, params: JsValueWrapper*)(implicit
-      jsonReader: Reads[T]
-  ): Future[Either[RpcResponseError, T]] = {
+                                                       jsonReader: Reads[T]): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
       .toJson(JsonRpcRequestBody(method = method, params = Json.arr(params: _*), jsonrpc = config.jsonRpc, id = ID))
@@ -137,23 +139,24 @@ case class BitcoinJsonRpcClient(
     )
   }
 
-  def getreceivedbyaddress(address: BtcAddress, minconf: Option[Int] = None) =
+  def getreceivedbyaddress(address: BtcAddress,
+                           minconf: Option[Int] = None): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("getreceivedbyaddress", address, minconf)
-  def getreceivedbylabel(label: String, minconf: Option[Int] = None) =
+  def getreceivedbylabel(label: String, minconf: Option[Int] = None): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("getreceivedbylabel", label, minconf)
   def listreceivedbyaddress(
       minconf: Option[Int] = None,
       include_empty: Option[Boolean] = None,
       include_watchonly: Option[Boolean] = None,
       address_filter: Option[BtcAddress] = None
-  ) =
+  ): Future[Either[RpcResponseError, Seq[ListReceivedByAddress]]] =
     send[Seq[ListReceivedByAddress]]("listreceivedbyaddress", minconf, include_empty, include_watchonly, address_filter)
 
   def listreceivedbylabel(
       minconf: Option[Int] = None,
       include_empty: Option[Boolean] = None,
       include_watchonly: Option[Boolean] = None
-  ) =
+  ): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("listreceivedbylabel", minconf, include_empty, include_watchonly)
 
   def getbalance: Future[Either[RpcResponseError, Btc]] =
@@ -170,6 +173,9 @@ case class BitcoinJsonRpcClient(
 
   def getblockchaininfo: Future[Either[RpcResponseError, BlockchainInfo]] =
     send[BlockchainInfo]("getblockchaininfo")
+
+  def deriveaddresses(description: String, start: Int, end: Int): Future[Either[RpcResponseError, List[BtcAddress]]] =
+    send[List[BtcAddress]]("deriveaddresses", description, Seq(start, end))
 
   // todo: create json writes for outputs
   /**
@@ -212,12 +218,10 @@ case class BitcoinJsonRpcClient(
    * @param outputs
    * @return
    */
-  def createpsbt(
-      inputs: Seq[Input],
-      outputs: Map[BtcAddress, Btc],
-      locktime: Option[Int] = None,
-      replaceable: Option[Boolean] = None
-  ): Future[Either[RpcResponseError, String]] =
+  def createpsbt(inputs: Seq[Input],
+                 outputs: Map[BtcAddress, Btc],
+                 locktime: Option[Int] = None,
+                 replaceable: Option[Boolean] = None): Future[Either[RpcResponseError, String]] =
     send[String]("createpsbt", inputs, outputs.map { case (a, b) => a.address -> stringify(b) }, locktime, replaceable)
 
   def getblockcount: Future[Either[RpcResponseError, Int]] =
@@ -269,7 +273,7 @@ case class BitcoinJsonRpcClient(
    * @return
    */
   // todo: descriptors
-  def utxoupdatepsbt(psbt: String) = send[String]("utxoupdatepsbt", psbt)
+  def utxoupdatepsbt(psbt: String): Future[Either[RpcResponseError, String]] = send[String]("utxoupdatepsbt", psbt)
   def finalizepsbt(psbt: String): Future[Either[RpcResponseError, FinalizedPsbtResponse]] =
     send[FinalizedPsbtResponse]("finalizepsbt", psbt)
 
@@ -432,22 +436,43 @@ case class BitcoinJsonRpcClient(
   ): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("importaddress", address, label, rescan, p2sh)
 
-  def importpubkey(publicKey: String, label: Option[String] = None, rescan: Option[Boolean] = None) =
+  def importpubkey(publicKey: String,
+                   label: Option[String] = None,
+                   rescan: Option[Boolean] = None): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("importpubkey", publicKey, label, rescan)
 
-  def importprivkey(privateKey: String, label: Option[String] = None, rescan: Option[Boolean] = None) =
+  def importprivkey(privateKey: String,
+                    label: Option[String] = None,
+                    rescan: Option[Boolean] = None): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("importprivkey", privateKey, label, rescan)
 
   def getaddressinfo(address: BtcAddress): Future[Either[RpcResponseError, AddressInfo]] =
     send[AddressInfo]("getaddressinfo", address)
 
-  def importmulti = ???
+  def importmulti(description: String,
+                  start: Int,
+                  end: Int,
+                  watchonly: Boolean,
+                  timestamp: Option[Instant]): Future[Either[RpcResponseError, Seq[Success]]] =
+    send[Seq[Success]](
+      method = "importmulti",
+      Seq(
+        ImportMulti(desc = description,
+                    range = Seq(start, end),
+                    watchonly = watchonly,
+                    timestamp = timestamp.map(_.getEpochSecond.toString).getOrElse("now"))
+      )
+    )
 
   def getmempoolinfo: Future[Either[RpcResponseError, MempoolInfo]] = send[MempoolInfo]("getmempoolinfo")
 
-  def rescanblockchain(start_height: Option[Int] = None, stop_height: Option[Int] = None) =
+  def rescanblockchain(start_height: Option[Int] = None,
+                       stop_height: Option[Int] = None): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("rescanblockchain", start_height, stop_height)
 
   def getwalletinfo: Future[Either[RpcResponseError, WalletInfo]] = send[WalletInfo]("getwalletinfo")
+
+  def getdescriptorinfo(descriptor: String): Future[Either[RpcResponseError, DescriptorInfo]] =
+    send[DescriptorInfo]("getdescriptorinfo", descriptor)
 
 }
