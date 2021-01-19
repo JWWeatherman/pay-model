@@ -71,11 +71,11 @@ case class WalletInfo(
     hdseedid: String,
     private_keys_enabled: Boolean,
     avoid_reuse: Boolean,
-    scanning: Option[Scanning],
+//    scanning: Option[Scanning], // fixme can be false when not scanning
     unlocked_until: Option[Int]
 ) {
-  val isScanning = scanning match {
-    case Some(x) => x.progress < 0.999
-    case None => false
-  }
+//  val isScanning = scanning match {
+//    case Some(x) => x.progress < 0.999
+//    case None => false
+//  }
 }
