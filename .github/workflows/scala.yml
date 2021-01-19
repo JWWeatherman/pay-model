@@ -35,5 +35,7 @@ jobs:
       run: "sbt test:compile"
     - name: Run tests
       run: sbt test
+    - name: formatting
+      run: sbt scalafmtCheckAll
 #    - name: Codecov
 #        uses: codecov/codecov-action@v1

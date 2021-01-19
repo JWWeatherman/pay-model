@@ -35,7 +35,8 @@ case class BitcoinJsonRpcClient(
    * @return Error or the method's expected response object
    */
   def send[T](method: String, params: JsValueWrapper*)(implicit
-                                                       jsonReader: Reads[T]): Future[Either[RpcResponseError, T]] = {
+      jsonReader: Reads[T]
+  ): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
       .toJson(JsonRpcRequestBody(method = method, params = Json.arr(params: _*), jsonrpc = config.jsonRpc, id = ID))
@@ -217,10 +218,12 @@ case class BitcoinJsonRpcClient(
    * @param outputs
    * @return
    */
-  def createpsbt(inputs: Seq[Input],
-                 outputs: Map[BtcAddress, Btc],
-                 locktime: Option[Int] = None,
-                 replaceable: Option[Boolean] = None): Future[Either[RpcResponseError, String]] =
+  def createpsbt(
+      inputs: Seq[Input],
+      outputs: Map[BtcAddress, Btc],
+      locktime: Option[Int] = None,
+      replaceable: Option[Boolean] = None
+  ): Future[Either[RpcResponseError, String]] =
     send[String]("createpsbt", inputs, outputs.map { case (a, b) => a.address -> stringify(b) }, locktime, replaceable)
 
   def getblockcount: Future[Either[RpcResponseError, Int]] =
@@ -435,38 +438,48 @@ case class BitcoinJsonRpcClient(
   ): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("importaddress", address, label, rescan, p2sh)
 
-  def importpubkey(publicKey: String,
-                   label: Option[String] = None,
-                   rescan: Option[Boolean] = None): Future[Either[RpcResponseError, JsValue]] =
+  def importpubkey(
+      publicKey: String,
+      label: Option[String] = None,
+      rescan: Option[Boolean] = None
+  ): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("importpubkey", publicKey, label, rescan)
 
-  def importprivkey(privateKey: String,
-                    label: Option[String] = None,
-                    rescan: Option[Boolean] = None): Future[Either[RpcResponseError, JsValue]] =
+  def importprivkey(
+      privateKey: String,
+      label: Option[String] = None,
+      rescan: Option[Boolean] = None
+  ): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("importprivkey", privateKey, label, rescan)
 
   def getaddressinfo(address: BtcAddress): Future[Either[RpcResponseError, AddressInfo]] =
     send[AddressInfo]("getaddressinfo", address)
 
-  def importmulti(description: String,
-                  start: Int,
-                  end: Int,
-                  watchonly: Boolean,
-                  timestamp: Option[Instant]): Future[Either[RpcResponseError, Seq[Success]]] =
+  def importmulti(
+      description: String,
+      start: Int,
+      end: Int,
+      watchonly: Boolean,
+      timestamp: Option[Instant]
+  ): Future[Either[RpcResponseError, Seq[Success]]] =
     send[Seq[Success]](
       method = "importmulti",
       Seq(
-        ImportMulti(desc = description,
-                    range = Seq(start, end),
-                    watchonly = watchonly,
-                    timestamp = timestamp.map(_.getEpochSecond.toString).getOrElse("now"))
+        ImportMulti(
+          desc = description,
+          range = Seq(start, end),
+          watchonly = watchonly,
+          timestamp = timestamp.map(_.getEpochSecond.toString).getOrElse("now")
+        )
       )
     )
 
   def getmempoolinfo: Future[Either[RpcResponseError, MempoolInfo]] = send[MempoolInfo]("getmempoolinfo")
 
-  def rescanblockchain(start_height: Option[Int] = None,
-                       stop_height: Option[Int] = None): Future[Either[RpcResponseError, JsValue]] =
+  def rescanblockchain(
+      start_height: Option[Int] = None,
+      stop_height: Option[Int] = None
+  ): Future[Either[RpcResponseError, JsValue]] =
     send[JsValue]("rescanblockchain", start_height, stop_height)
 
   def getwalletinfo: Future[Either[RpcResponseError, WalletInfo]] = send[WalletInfo]("getwalletinfo")
@@ -475,7 +488,6 @@ case class BitcoinJsonRpcClient(
     send[DescriptorInfo]("getdescriptorinfo", descriptor)
 
   /**
-   *
    * @return list of wallet names
    */
   def listwallets: Future[Either[RpcResponseError, Seq[String]]] = send[Seq[String]]("listwallets")
@@ -521,11 +533,13 @@ case class BitcoinJsonRpcClient(
    *
    * @return
    */
-  def createwallet(wallet_name: String,
-                   disable_private_keys: Boolean = false,
-                   blank: Boolean = false,
-                   passphrase: String = "",
-                   avoid_reuse: Boolean = false) =
+  def createwallet(
+      wallet_name: String,
+      disable_private_keys: Boolean = false,
+      blank: Boolean = false,
+      passphrase: String = "",
+      avoid_reuse: Boolean = false
+  ) =
     send[JsValue]("createwallet", wallet_name, disable_private_keys, blank, passphrase, avoid_reuse)
 
   def dumpwallet(file: String) = send[JsValue]("dumpwallet", file)
