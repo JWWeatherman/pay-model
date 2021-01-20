@@ -53,12 +53,14 @@ libraryDependencies := {
 
 lazy val paymodel = (project in file("."))
   .settings(commonSettings: _*)
+  .configs(IntegrationTest)
   .settings(
     name := "pay-model",
     version := "0.0.1",
     organization := "com.mathbot",
     scalaVersion := scala213,
-    crossScalaVersions := scala211 :: scala212 :: scala213 :: Nil
+    crossScalaVersions := scala211 :: scala212 :: scala213 :: Nil,
+    Defaults.itSettings,
   )
 
 def addCommandsAlias(name: String, cmds: Seq[String]) =
