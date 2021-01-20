@@ -461,8 +461,8 @@ case class BitcoinJsonRpcClient(
       end: Int,
       watchonly: Boolean,
       timestamp: Option[Instant]
-  ): Future[Either[RpcResponseError, Seq[Success]]] =
-    send[Seq[Success]](
+  ): Future[Either[RpcResponseError, Seq[RpcSuccess]]] =
+    send[Seq[RpcSuccess]](
       method = "importmulti",
       Seq(
         ImportMulti(
