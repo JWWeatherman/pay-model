@@ -49,8 +49,7 @@ class BitcoinJsonRpcClientTest extends AsyncWordSpec with MockitoSugar with Eith
           time = Instant.now(),
           timereceived = Instant.now(),
           details = None,
-          hex = None,
-          category = TransactionCategory.send
+          hex = None
         )
       val be = SttpBackendStub.asynchronousFuture
         .whenRequestMatches(request => {
