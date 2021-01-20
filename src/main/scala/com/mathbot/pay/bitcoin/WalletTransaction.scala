@@ -2,6 +2,7 @@ package com.mathbot.pay.bitcoin
 
 import java.time.Instant
 
+import com.mathbot.pay.bitcoin.TransactionCategory.TransactionCategory
 import com.mathbot.pay.json.{EpochSecondInstantFormatter, PlayJsonSupport}
 import play.api.libs.json.{Json, OFormat}
 
@@ -53,7 +54,8 @@ case class WalletTransaction(
     time: Instant,
     timereceived: Instant,
     details: Option[Seq[Detail]],
-    hex: Option[String]
+    hex: Option[String],
+    category: TransactionCategory
 )
 
 object WalletTransaction extends PlayJsonSupport with EpochSecondInstantFormatter {
