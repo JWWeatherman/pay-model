@@ -1,16 +1,14 @@
 package com.mathbot.pay.ws
 
-import akka.actor.{Actor, ActorRef, Props}
-import com.mathbot.pay.bitcoin.{BtcAddress, Satoshi}
-import com.mathbot.pay.lightning.Bolt11
+import akka.actor.{Actor, ActorRef}
+import com.mathbot.pay.BaseIntegrationTest
 import com.mathbot.pay.ws.SocketMessageFactoryTypes.{InboundMessageFactory, OutboundMessageFactory}
 import com.softwaremill.tagging.Tagger
 import play.api.libs.json.{JsValue, Json}
-import sttp.client.akkahttp.AkkaHttpBackend
 
 import scala.concurrent.duration._
 
-class WebsocketServiceTest extends BaseActorTest {
+class WebsocketServiceTest extends BaseIntegrationTest {
 
   class TestMessageFactory(inbound: ActorRef) extends MessageFactory {
     override def inboundFactories: InboundMessageFactory = {
@@ -33,7 +31,6 @@ class WebsocketServiceTest extends BaseActorTest {
   val echoServer = "wss://echo.websocket.org"
   val prodUrl = "wss://btcdebits.mathbot.com/socket"
   val localUrl = "ws://localhost:9000/socket"
-  val backend = AkkaHttpBackend.usingActorSystem(system)
 
   sealed trait OUTBOUND
 
@@ -44,7 +41,7 @@ class WebsocketServiceTest extends BaseActorTest {
 
       val factory = new TestMessageFactory(testActor)
       val socket = new WebsocketService[OUTBOUND](
-        config = WebsocketServiceConfig(baseUrl = echoServer, username = "test10", password = "secret"),
+        config = WebsocketServiceConfig(baseUrl = echoServer, username = "who", password = "what"),
         outboundActor = outbound,
         inboundMessageFactories = Set(factory.inboundFactories),
         outboundMessageFactories = Set(factory.outboundFactories),

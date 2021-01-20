@@ -24,11 +24,13 @@ class WebsocketService[Tag](
     inboundMessageFactories: Set[InboundMessageFactory],
     outboundMessageFactories: Set[OutboundMessageFactory],
     system: ActorSystem,
-    backend: SttpBackend[Future,
-                         Source[ByteString, Any],
-                         ({
-                           type λ[NotUsed] = Flow[Message, TextMessage.Strict, NotUsed]
-                         })#λ]
+    backend: SttpBackend[
+      Future,
+      Source[ByteString, Any],
+      ({
+        type λ[NotUsed] = Flow[Message, TextMessage.Strict, NotUsed]
+      })#λ
+    ]
 ) {
   implicit lazy val s = system
   implicit lazy val b = backend
@@ -93,15 +95,14 @@ class WebsocketService[Tag](
 
   def openWebsocket(): Future[WebSocketResponse[NotUsed]] = {
     val sink: Sink[Message, NotUsed] = Flow[Message]
-    // Extract incoming message string
+      // Extract incoming message string
       .map(msg => msg.asTextMessage.getStrictText)
       // parse string into json
       .map(Json.parse)
       // find the message handler for the json and convert it into a message
-      .map(
-        js =>
-          inboundFactories
-            .applyOrElse(js, (unknownJs: JsValue) => (JsError("No matching inbound handler"), outboundActor))
+      .map(js =>
+        inboundFactories
+          .applyOrElse(js, (unknownJs: JsValue) => (JsError("No matching inbound handler"), outboundActor))
       )
       .map {
         case (JsSuccess(msg, _), destination) =>
@@ -132,14 +133,15 @@ class WebsocketService[Tag](
     // todo: config
     lazy val source = Source
       .actorRef[AnyRef](bufferSize = 10, overflowStrategy = OverflowStrategy.dropHead)
-      .map(
-        m =>
-          outboundFactories
-            .applyOrElse(m,
-                         (unmatchedMsg: AnyRef) =>
-                           Json.toJson(
-                             WsError(s"No output message handler for type ${unmatchedMsg.getClass.getCanonicalName}")
-                         ))
+      .map(m =>
+        outboundFactories
+          .applyOrElse(
+            m,
+            (unmatchedMsg: AnyRef) =>
+              Json.toJson(
+                WsError(s"No output message handler for type ${unmatchedMsg.getClass.getCanonicalName}")
+              )
+          )
       )
       .map(_.toString)
       .map(TextMessage(_))
