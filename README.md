@@ -7,6 +7,8 @@ shared models and services for bitcoin and lightning
 
 ### Usage
 
+requires: 2.13
+
 To include this as a sub-project
 
 1. add the project in build.sbt:
@@ -25,3 +27,10 @@ To include this as a sub-project
       .aggregate(paymodel)
       .dependsOn(paymodel)
   ```
+## Test
+
+`sbt test`
+
+## Integration Tests
+
+`sbt it:test`
