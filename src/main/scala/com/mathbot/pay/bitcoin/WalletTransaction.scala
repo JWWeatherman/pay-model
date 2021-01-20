@@ -54,8 +54,7 @@ case class WalletTransaction(
     time: Instant,
     timereceived: Instant,
     details: Option[Seq[Detail]],
-    hex: Option[String],
-    category: TransactionCategory
+    hex: Option[String]
 )
 
 object WalletTransaction extends PlayJsonSupport with EpochSecondInstantFormatter {
