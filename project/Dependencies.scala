@@ -2,6 +2,7 @@ import sbt._
 // This object is only used when running sbt from the pay-model directory, a project like pay or mathbot will use
 // the Dependencies object defined in its ./project directory instead
 
+//noinspection SpellCheckingInspection
 object Dependencies {
   lazy val playJsonV = "2.7.4"
   lazy val scalaTestV = "3.2.3"

@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef}
 import com.mathbot.pay.BaseIntegrationTest
 import com.mathbot.pay.ws.SocketMessageFactoryTypes.{InboundMessageFactory, OutboundMessageFactory}
 import com.softwaremill.tagging.Tagger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.concurrent.duration._
 
@@ -12,7 +12,7 @@ class WebsocketServiceTest extends BaseIntegrationTest {
 
   class TestMessageFactory(inbound: ActorRef) extends MessageFactory {
     override def inboundFactories: InboundMessageFactory = {
-      case r => (r.validate[JsValue], inbound)
+      case r => (r.validate[JsObject], inbound)
     }
     override def outboundFactories: OutboundMessageFactory = {
       case a => Json.obj("result" -> a.toString)
@@ -29,8 +29,6 @@ class WebsocketServiceTest extends BaseIntegrationTest {
     }
   }
   val echoServer = "wss://echo.websocket.org"
-  val prodUrl = "wss://btcdebits.mathbot.com/socket"
-  val localUrl = "ws://localhost:9000/socket"
 
   sealed trait OUTBOUND
 
@@ -52,12 +50,12 @@ class WebsocketServiceTest extends BaseIntegrationTest {
         _ <- socket.openWebsocket()
       } yield {
         println("connected to websocket")
-        socket.websocketRequestActor ! Json.obj("si" -> "no")
-        socket.websocketRequestActor ! Json.obj("si" -> "yes")
-        socket.websocketRequestActor ! Json.obj("si" -> "maybe")
-        socket.websocketRequestActor ! Json.obj("si" -> "so")
-        val r = receiveN(4, 30.seconds)
-        r foreach println
+        val messages = "Bearly Awake" :: "Tally Ho!" :: Nil
+        val expectedResponses = messages.map(m => Json.obj("result" -> m))
+        messages foreach (socket.websocketRequestActor ! _)
+        // messages routed to testActor
+        expectMsgAllOf(expectedResponses: _*)
+        assert(true)
         assert(true)
       }
     }

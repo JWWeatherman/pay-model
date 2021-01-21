@@ -5,9 +5,9 @@ import com.softwaremill.macwire.wire
 
 class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {
 
-  val config = BitcoinJsonRpcConfig(baseUrl = "http://localhost:43782",
-                                    username = "mathbotPayments",
-                                    password = "fiddleryeeryding")
+  val config = BitcoinJsonRpcConfig(baseUrl = sys.env("BITCOIN_HOST"),
+                                    username = sys.env("BITCOIN_RPC_USER"),
+                                    password = sys.env("BITCOIN_RPC_PASS"))
   val service = wire[BitcoinJsonRpcClient]
   "BitcoinJsonRpcClientTest" should {
     "getblockchaininfo" in {
