@@ -38,4 +38,4 @@ jobs:
     - name: formatting
       run: sbt scalafmtCheckAll
     - name: Codecov
-        uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v1
