@@ -8,7 +8,6 @@ class BTCPayServerServiceTest extends BaseIntegrationTest {
   val config = BTCPayServerConfig(baseUrl = sys.env("BTCPAYSERVER_BASE_URL"), apiKey = sys.env("BTCPAYSERVER_API_KEY"))
   val invoiceId = sys.env.getOrElse("BTCPAYSERVER_TEST_INVOICE_ID", "")
   val apiService = wire[BTCPayServerService]
-  println(config)
   "Btcpayserver" should {
 
     s"get invoice by id: $invoiceId" in {

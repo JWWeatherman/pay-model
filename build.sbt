@@ -66,4 +66,4 @@ lazy val paymodel = (project in file("."))
 def addCommandsAlias(name: String, cmds: Seq[String]) =
   addCommandAlias(name, cmds.mkString(";", ";", ""))
 
-addCommandsAlias("testAll", "compile":: "test:compile" :: "scalafmtCheckAll":: Nil)
+addCommandsAlias("testAll", "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)

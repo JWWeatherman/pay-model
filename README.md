@@ -33,4 +33,6 @@ To include this as a sub-project
 
 ## Integration Tests
 
+copy .env.template .env
+
 `sbt it:test`
