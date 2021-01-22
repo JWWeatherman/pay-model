@@ -40,7 +40,7 @@ val scala211Deps = nameof :: Nil
 val scala212Deps = nameof2 :: Nil
 val scala213Deps = nameof2 :: Nil
 
-libraryDependencies := {
+libraryDependencies ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 11)) => commonDeps ++ scala211Deps
     case Some((2, 12)) => commonDeps ++ scala212Deps
@@ -57,6 +57,9 @@ lazy val paymodel = (project in file("."))
   .settings(
     name := "pay-model",
     version := "0.0.1",
+    coverageMinimum := 70,
+    coverageFailOnMinimum := false,
+    coverageHighlighting := true,
     organization := "com.mathbot",
     scalaVersion := scala213,
     crossScalaVersions := scala211 :: scala212 :: scala213 :: Nil,
@@ -66,4 +69,6 @@ lazy val paymodel = (project in file("."))
 def addCommandsAlias(name: String, cmds: Seq[String]) =
   addCommandAlias(name, cmds.mkString(";", ";", ""))
 
-addCommandsAlias("testAll", "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
+addCommandsAlias("validate", "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
+addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
+addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)

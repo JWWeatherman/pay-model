@@ -35,8 +35,9 @@ case class BitcoinJsonRpcClient(
     .auth
     .basic(user = config.username, password = config.password)
 
-  private def asRpcResult[T](id: String)(implicit
-                                         jsonReader: Reads[T]): ResponseAs[Either[RpcResponseError, T], Nothing] =
+  private def asRpcResult[T](
+      id: String
+  )(implicit jsonReader: Reads[T]): ResponseAs[Either[RpcResponseError, T], Nothing] =
     asString.map {
       case Left(value) => Left(RpcResponseError(id, ResponseError(500, value)))
       case Right(value) =>
@@ -77,7 +78,8 @@ case class BitcoinJsonRpcClient(
    * @return Error or the method's expected response object
    */
   def send[T](method: String, params: JsValueWrapper*)(implicit
-                                                       jsonReader: Reads[T]): Future[Either[RpcResponseError, T]] = {
+      jsonReader: Reads[T]
+  ): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
       .toJson(JsonRpcRequestBody(method = method, params = Json.arr(params: _*), jsonrpc = config.jsonRpc, id = ID))
