@@ -9,21 +9,70 @@ class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {
                                     username = sys.env("BITCOIN_RPC_USER"),
                                     password = sys.env("BITCOIN_RPC_PASS"))
   val service = wire[BitcoinJsonRpcClient]
+
+  def validateRight[T](value: Either[RpcResponseError, T]) = {
+    assert(value.isRight)
+  }
+
   "BitcoinJsonRpcClientTest" should {
     "getblockchaininfo" in {
-      service.getblockchaininfo.map(r => {
-        assert(r.isRight)
-      })
+      service.getblockchaininfo.map(validateRight)
     }
     "getbalances" in {
-      service.getbalances.map(r => {
-        assert(r.isRight)
-      })
+      service.getbalances.map(validateRight)
     }
     "getbalance" in {
-      service.getbalance.map(r => {
-        assert(r.isRight)
-      })
+      service.getbalance.map(validateRight)
     }
+    "sendtoaddress" in pending
+    "getreceivedbyaddress" in pending
+    "getreceivedbylabel" in pending
+    "listreceivedbyaddress" in pending
+    "listreceivedbylabel" in pending
+    "getblockhash" in pending
+    "getnetworkinfo" in {
+      service.listtransactions.map(validateRight)
+    }
+    "deriveaddresses" in pending
+    "createpsbt" in pending
+    "getblockcount" in {
+      service.getblockcount.map(validateRight)
+    }
+    "listtransactions" in {
+      service.listtransactions.map(validateRight)
+    }
+    "gettransaction" in pending
+    "getnewaddress" in pending
+    "sendrawtransaction" in pending
+    "utxoupdatepsbt" in pending
+    "finalizepsbt" in pending
+    "walletprocesspsbt" in pending
+    "analyzepsbt" in pending
+    "combinepsbt" in pending
+    "listunspent" in pending
+    "getaddressesbylabel" in pending
+    "addmultisigaddress" in pending
+    "createmultisig" in pending
+    "dumpprivkey" in pending
+    "settxfee" in pending
+    "pruneblockchain" in pending
+    "setlabel" in pending
+    "importaddress" in pending
+    "importpubkey" in pending
+    "importprivkey" in pending
+    "getaddressinfo" in pending
+    "importmulti" in pending
+    "getmempoolinfo" in pending
+    "rescanblockchain" in pending
+    "getwalletinfo" in {
+      service.getwalletinfo.map(validateRight)
+    }
+    "getdescriptorinfo" in pending
+    "listwallets" in {
+      service.listwallets.map(validateRight)
+    }
+    "sethdseed" in pending
+    "createwallet" in pending
+    "dumpwallet" in pending
   }
 }

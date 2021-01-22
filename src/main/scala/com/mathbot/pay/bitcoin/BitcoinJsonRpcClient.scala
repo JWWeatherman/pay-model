@@ -14,6 +14,7 @@ import sttp.client._
 import sttp.model.MediaType
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 //noinspection SpellCheckingInspection
 case class BitcoinJsonRpcClient(
@@ -27,6 +28,47 @@ case class BitcoinJsonRpcClient(
   private val idGen = new AtomicInteger(1)
   private def id = idGen.getAndIncrement()
 
+  private val baseRequest = basicRequest
+    .post(uri"${config.baseUrl}")
+    .contentType(MediaType.TextPlain)
+    .acceptEncoding(MediaType.ApplicationJson.toString)
+    .auth
+    .basic(user = config.username, password = config.password)
+
+  private def asRpcResult[T](id: String)(implicit
+                                         jsonReader: Reads[T]): ResponseAs[Either[RpcResponseError, T], Nothing] =
+    asString.map {
+      case Left(value) => Left(RpcResponseError(id, ResponseError(500, value)))
+      case Right(value) =>
+        Try(Json.parse(value)) match {
+          case Failure(exception) =>
+            Left(RpcResponseError(id, ResponseError(500, s"Failure parsing json body=$value, error=$exception")))
+          case Success(value) =>
+            val validResult = (value \ "result").validate[T]
+            val idJ = (value \ "id").validate[String]
+            val errorOpt = value \ "error" match {
+              case _: JsUndefined => None
+              case JsDefined(JsNull) => None
+              case JsDefined(e) => Some(e)
+            }
+            (validResult, idJ, errorOpt) match {
+
+              case (JsSuccess(value, _), JsSuccess(_, _), None) => Right(value)
+              case _ =>
+                value
+                  .validate[RpcResponseError] match {
+                  case JsSuccess(value, _) => Left(value)
+                  case JsError(_) =>
+                    val message = s"Unknown bitcoin rpc response = ${value}"
+                    logger.error(message)
+                    Left(
+                      RpcResponseError(id, error = ResponseError(code = 500, message = message))
+                    )
+                }
+            }
+        }
+    }
+
   /**
    * @param method to call eg getbalance, createpsbt...
    * @param params arguments to send
@@ -35,53 +77,17 @@ case class BitcoinJsonRpcClient(
    * @return Error or the method's expected response object
    */
   def send[T](method: String, params: JsValueWrapper*)(implicit
-      jsonReader: Reads[T]
-  ): Future[Either[RpcResponseError, T]] = {
+                                                       jsonReader: Reads[T]): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
       .toJson(JsonRpcRequestBody(method = method, params = Json.arr(params: _*), jsonrpc = config.jsonRpc, id = ID))
       .toString
-    val req = basicRequest
-      .post(uri"${config.baseUrl}")
-      .contentType(MediaType.TextPlain)
-      .acceptEncoding(MediaType.ApplicationJson.toString)
-      .auth
-      .basic(user = config.username, password = config.password)
+    val req = baseRequest
       .body(body)
-      .response(asStringAlways.map(Json.parse))
+      .response(asRpcResult(ID))
+
     logger.debug(req.toCurl)
-    (for {
-      response <- req.send()
-    } yield {
-      logger.debug(s"Response code = {} body = {}", response.code, response.body)
-      val validResult = (response.body \ "result").validate[T]
-      val idJ = (response.body \ "id").validate[String]
-      val errorOpt = response.body \ "error" match {
-        case _: JsUndefined => None
-        case JsDefined(JsNull) => None
-        case JsDefined(e) => Some(e)
-      }
-      (validResult, idJ, errorOpt) match {
-        case (JsSuccess(value, _), JsSuccess(_, _), None) => Right(value)
-        case _ =>
-          response.body
-            .validate[RpcResponseError] match {
-            case JsSuccess(value, _) => Left(value)
-            case JsError(_) =>
-              val message = s"Unknown bitcoin rpc response = ${response.body}"
-              logger.error(message)
-              Left(
-                RpcResponseError(ID, error = ResponseError(code = response.code.code, message = message))
-              )
-          }
-      }
-    }) recover {
-      case err =>
-        logger.error(s"Error in bitcoin rpc call $err")
-        Left(
-          RpcResponseError(id = ID, error = ResponseError(code = 500, message = "Internal server error"))
-        )
-    }
+    req.send().map(_.body)
   }
 
   /**

@@ -1,10 +1,9 @@
-addSbtPlugin("com.codecommit" % "sbt-github-actions" % "0.9.5")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.2")
 addSbtPlugin("com.github.cb372" % "sbt-explicit-dependencies" % "0.2.16")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 // loads .env file
-//addSbtPlugin("au.com.onegeek" %% "sbt-dotenv" % "2.1.146")
+addSbtPlugin("au.com.onegeek" %% "sbt-dotenv" % "2.1.146")
 
 //addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.5")
 //addSbtPlugin("com.github.tkawachi" % "sbt-doctest" % "0.9.8")

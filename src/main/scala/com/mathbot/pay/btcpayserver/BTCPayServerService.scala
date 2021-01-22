@@ -34,7 +34,7 @@ class BTCPayServerService(
     val request = baseRequest
       .get(uri"${config.baseUrl}/invoices/$id")
       .response(parseChargeInfo)
-    println(request.toCurl)
+    logger.info(request.toCurl)
     request.send()
   }
 

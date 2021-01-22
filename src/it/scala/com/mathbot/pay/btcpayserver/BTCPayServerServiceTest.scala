@@ -15,7 +15,7 @@ class BTCPayServerServiceTest extends BaseIntegrationTest {
       apiService
         .getInvoice(invoiceId)
         .map(i => {
-          println(i.code)
+          logger.info(i.code.toString())
           i.history.foreach(println)
           println(i.body.merge.toString.take(30))
           assert(i.body.isRight)
