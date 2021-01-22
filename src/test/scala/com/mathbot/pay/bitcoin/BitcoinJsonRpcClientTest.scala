@@ -63,7 +63,7 @@ class BitcoinJsonRpcClientTest extends AsyncWordSpec with MockitoSugar with Eith
             case _ => false
           }
         })
-        .thenRespond(Json.obj("result" -> walletTransaction, "id" -> "1"))
+        .thenRespond(Json.obj("result" -> walletTransaction, "id" -> "1", "error" -> null).toString())
       val client = BitcoinJsonRpcClient(config, executionContext, be)
       for {
         t <- client.gettransaction(txid)
