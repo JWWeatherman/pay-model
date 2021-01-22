@@ -69,6 +69,8 @@ lazy val paymodel = (project in file("."))
 def addCommandsAlias(name: String, cmds: Seq[String]) =
   addCommandAlias(name, cmds.mkString(";", ";", ""))
 
-addCommandsAlias("validate", "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
+addCommandsAlias("validate", "clean" :: "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
 addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
 addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
+
+addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))

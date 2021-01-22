@@ -29,17 +29,7 @@ jobs:
 #            ~/AppData/Local/Coursier/Cache/v1
 #            ~/Library/Caches/Coursier/v1
 #          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
-    - name: formatting
-      run: sbt scalafmtCheckAll
-    - name: coverage
-      run: sbt coverage
-    - name: compile
-      run: sbt compile
-    - name: test compile
-      run: "sbt test:compile"
-    - name: Run tests
-      run: sbt test
-    - name: coverage report
-      run: sbt coverageReport
+    - name: workflow
+      run: sbt githubWorkflow
     - name: Codecov
       uses: codecov/codecov-action@v1
