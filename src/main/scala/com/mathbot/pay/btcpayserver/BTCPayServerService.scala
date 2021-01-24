@@ -24,8 +24,9 @@ class BTCPayServerService(
 
   private val basic = s"Basic ${Base64.getEncoder.encodeToString(config.apiKey.getBytes())}"
 
-  private final val baseRequest = sttp.client.basicRequest
-    .header("Authorization", config.apiKey, true)
+  val baseRequest = sttp.client.basicRequest.auth
+    .basic(config.apiKey, "")
+//    .header("Authorization", config.apiKey, true)
     .contentType(MediaType.ApplicationJson)
     .readTimeout(Duration("30s"))
     .followRedirects(true)
@@ -34,7 +35,7 @@ class BTCPayServerService(
     val request = baseRequest
       .get(uri"${config.baseUrl}/invoices/$id")
       .response(parseChargeInfo)
-    logger.info(request.toCurl)
+    println(request.toCurl)
     request.send()
   }
 
@@ -44,7 +45,7 @@ class BTCPayServerService(
       .body(Json.toJson(inv).toString)
       .response(parseChargeInfo)
     val curl = request.toCurl
-    logger.debug(curl)
+    println(curl)
     request.send()
   }
 

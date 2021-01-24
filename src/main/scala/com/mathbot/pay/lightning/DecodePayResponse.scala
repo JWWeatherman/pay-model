@@ -6,5 +6,4 @@ case class DecodePayResponse(id: Long, jsonrpc: String, result: DecodePay) exten
 
 object DecodePayResponse {
   lazy implicit val decodePayResponse: OFormat[DecodePayResponse] = Json.format[DecodePayResponse]
-
 }
