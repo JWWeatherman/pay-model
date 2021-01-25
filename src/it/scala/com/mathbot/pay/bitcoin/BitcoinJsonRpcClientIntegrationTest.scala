@@ -3,6 +3,7 @@ package com.mathbot.pay.bitcoin
 import com.mathbot.pay.BaseIntegrationTest
 import com.softwaremill.macwire.wire
 
+//noinspection SpellCheckingInspection
 class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {
 
   val config = BitcoinJsonRpcConfig(baseUrl = sys.env("BITCOIN_HOST"),

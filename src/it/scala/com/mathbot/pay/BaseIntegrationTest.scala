@@ -19,10 +19,9 @@ abstract class BaseIntegrationTest
 
   override def afterAll(): Unit = TestKit.shutdownActorSystem(system)
   val backend =
-//    AkkaHttpBackend.usingActorSystem(system)
     new FollowRedirectsBackend(
       AkkaHttpBackend.usingActorSystem(system),
-      sensitiveHeaders = Set()
+      sensitiveHeaders = Set() // don't strip headers in case of redirect
     )
   val logger = LoggerFactory.getLogger("Spec")
 
