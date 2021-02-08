@@ -36,9 +36,10 @@ val commonDeps = Seq(
   mockito
 ) ++ sttp ++ macwire
 
-val scala211Deps = nameof :: Nil
-val scala212Deps = nameof2 :: Nil
-val scala213Deps = nameof2 :: Nil
+
+val scala211Deps =  "com.github.dwickern" %% "scala-nameof" % "1.0.3" % "provided" :: Nil
+val scala212Deps = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided" :: Nil
+val scala213Deps = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided" :: Nil
 
 libraryDependencies ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
