@@ -10,14 +10,10 @@ object Dependencies {
   lazy val sttpVersion = "2.2.9"
   lazy val alpakkaSocketV = "2.0.2"
   lazy val macwireVersion = "2.3.7"
-  lazy val nameofV = "1.0.3"
-  lazy val sttpModelV = "1.2.2"
+  lazy val sttpModelV = "1.2.0"
   lazy val bitcoinjV = "0.15.9"
   lazy val mockitoV = "3.2.3.0"
 
-  lazy val nameofV2 = "2.0.0"
-
-  lazy val nameof2 = "com.github.dwickern" %% "scala-nameof" % nameofV2
   lazy val sttp = Seq(
     "com.softwaremill.sttp.client" %% "core" % sttpVersion,
     "com.softwaremill.sttp.client" %% "akka-http-backend" % sttpVersion,
@@ -28,7 +24,6 @@ object Dependencies {
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it,test"
   lazy val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
   lazy val unixSocket = "com.lightbend.akka" %% "akka-stream-alpakka-unix-domain-socket" % alpakkaSocketV
-  lazy val nameof = "com.github.dwickern" %% "scala-nameof" % nameofV
   lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % sttpModelV
   lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % bitcoinjV
 
