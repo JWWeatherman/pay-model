@@ -37,7 +37,7 @@ val commonDeps = Seq(
 ) ++ sttp ++ macwire
 
 
-val scala211Deps =  "com.github.dwickern" %% "scala-nameof" % "1.0.3" % "provided" :: Nil
+val scala211Deps =  "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided" :: Nil
 val scala212Deps = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided" :: Nil
 val scala213Deps = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided" :: Nil
 
