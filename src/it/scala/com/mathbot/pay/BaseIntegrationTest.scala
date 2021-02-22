@@ -6,7 +6,6 @@ import org.scalatest.wordspec.AsyncWordSpecLike
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.mockito.MockitoSugar
 import org.slf4j.LoggerFactory
-import sttp.client.FollowRedirectsBackend
 import sttp.client.akkahttp.AkkaHttpBackend
 
 abstract class BaseIntegrationTest
@@ -18,12 +17,7 @@ abstract class BaseIntegrationTest
     with EitherValues {
 
   override def afterAll(): Unit = TestKit.shutdownActorSystem(system)
-  val backend =
-//    AkkaHttpBackend.usingActorSystem(system)
-    new FollowRedirectsBackend(
-      AkkaHttpBackend.usingActorSystem(system),
-      sensitiveHeaders = Set()
-    )
+  implicit lazy val backend = AkkaHttpBackend.usingActorSystem(system)
   val logger = LoggerFactory.getLogger("Spec")
 
 }

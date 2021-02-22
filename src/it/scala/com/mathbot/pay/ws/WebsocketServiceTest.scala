@@ -5,6 +5,7 @@ import com.mathbot.pay.BaseIntegrationTest
 import com.mathbot.pay.ws.SocketMessageFactoryTypes.{InboundMessageFactory, OutboundMessageFactory}
 import com.softwaremill.tagging.Tagger
 import play.api.libs.json.{JsObject, JsValue, Json}
+import sttp.client.akkahttp.AkkaHttpBackend
 
 import scala.concurrent.duration._
 
@@ -44,7 +45,7 @@ class WebsocketServiceTest extends BaseIntegrationTest {
         inboundMessageFactories = Set(factory.inboundFactories),
         outboundMessageFactories = Set(factory.outboundFactories),
         system = system,
-        backend = backend
+        backend = AkkaHttpBackend()
       )
       for {
         _ <- socket.openWebsocket()
