@@ -3,7 +3,7 @@ import sbt._
 
 val scala211 = "2.11.11"
 val scala212 = "2.12.10"
-val scala213 = "2.13.3"
+val scala213 = "2.13.5"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
 // object defined in the /pay/project or /math-bot/project directory.
 val commonSettings = Seq(
