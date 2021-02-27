@@ -10,15 +10,18 @@ object Dependencies {
   lazy val sttpVersion = "2.2.9"
   lazy val alpakkaSocketV = "2.0.2"
   lazy val macwireVersion = "2.3.7"
-  lazy val sttpModelV = "1.2.2"
-  lazy val bitcoinjV = "0.15.10"
-  lazy val mockitoV = "3.2.3.0"
+  lazy val sttpModelV = "1.3.3"
+  lazy val bitcoinjV = "0.15.9"
+  lazy val mockitoV = "3.2.5.0"
 
   lazy val sttp = Seq(
     "com.softwaremill.sttp.client" %% "core" % sttpVersion,
     "com.softwaremill.sttp.client" %% "akka-http-backend" % sttpVersion,
     "com.softwaremill.sttp.client" %% "play-json" % sttpVersion
   )
+  val requests = "com.lihaoyi" %% "requests" % "0.6.5"
+
+  lazy val okhttp = "com.softwaremill.sttp.client" %% "okhttp-backend" % sttpVersion
   lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it,test"
   lazy val akkaTestkit =
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it,test"

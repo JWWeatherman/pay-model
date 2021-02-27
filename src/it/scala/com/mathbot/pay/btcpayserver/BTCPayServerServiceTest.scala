@@ -1,66 +1,48 @@
 package com.mathbot.pay.btcpayserver
 
-import java.util.Base64
-
 import com.mathbot.pay.BaseIntegrationTest
-import com.softwaremill.macwire.wire
-import sttp.client.FollowRedirectsBackend
-import sttp.client.akkahttp.AkkaHttpBackend
 
 class BTCPayServerServiceTest extends BaseIntegrationTest {
 
   val config = BTCPayServerConfig(baseUrl = sys.env("BTCPAYSERVER_BASE_URL"), apiKey = sys.env("BTCPAYSERVER_API_KEY"))
   val invoiceId = sys.env.getOrElse("BTCPAYSERVER_TEST_INVOICE_ID", "")
 
-  val be = new FollowRedirectsBackend(
-    AkkaHttpBackend.usingActorSystem(system),
-    sensitiveHeaders = Set()
+//  val be = new FollowRedirectsBackend(
+//    AkkaHttpBackend.usingActorSystem(system),
+//    sensitiveHeaders = Set()
+//  )
+//  val apiService = new BTCPayServerService(backend, config, system.dispatcher)
+  val apiService = new BTCPayServerServiceV2(config)
+  val req = InvoiceRequest(
+    new Buyer(
+      email = "t@gmail.com",
+      name = "tester",
+      address1 = Some("1234 main street"),
+      city = Some("Philadelphia"),
+      state = Some("PA"),
+      zip = Some("19000"),
+      country = Some("country"),
+    ),
+    orderId = "orderId123445",
+    itemDesc = "itemDesc",
+    redirectUrl = None,
+    notificationUrl = "http://example.com",
+    price = 2
   )
-  val apiService = new BTCPayServerService(be, config, system.dispatcher)
   "Btcpayserver" should {
 
-//    "create invoice" in {
-//
-//      apiService.invoice(
-//        InvoiceRequest(
-//          new Buyer(
-//            email = "email",
-//            name = "name",
-//            address1 = Some("address1"),
-//            address2 = Some("address2"),
-//            locality = Some("locality"),
-//            city = Some("city"),
-//            state = Some("state"),
-//            region = Some("region"),
-//            zip = Some("zip"),
-//            country = Some("country"),
-//            phone = Some("phone"),
-//            sessionId = Some("sessionId"),
-//          ),
-//            orderId = "orderId",
-//            itemDesc = "itemDesc",
-//            redirectUrl = None,
-//            notificationUrl = "notificationUrl",
-//            price = 2,
-//            currency = "currency",
-//        )
-//      ).map(result => {
-//
-//        result
-//        assert(true)
-//      })
-//    }
+    "create invoice" in {
+      val (res, invOpt) = apiService.invoice(req)
+      println(res.statusCode)
+      println(invOpt.get.data.id)
+      assert(invOpt.isSuccess)
+    }
 
     s"get invoice by id: $invoiceId" in {
 
-      apiService
+      val (a, b) = apiService
         .getInvoice(invoiceId)
-        .map(i => {
-          logger.info(i.code.toString())
-          i.history.foreach(println)
-          println(i.body.merge.toString.take(30))
-          assert(i.body.isRight)
-        })
+      assert(b.isSuccess)
     }
   }
 }

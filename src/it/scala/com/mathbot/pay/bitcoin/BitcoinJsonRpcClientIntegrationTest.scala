@@ -2,12 +2,14 @@ package com.mathbot.pay.bitcoin
 
 import com.mathbot.pay.BaseIntegrationTest
 import com.softwaremill.macwire.wire
+import sttp.client.akkahttp.AkkaHttpBackend
 
 class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {
 
   val config = BitcoinJsonRpcConfig(baseUrl = sys.env("BITCOIN_HOST"),
                                     username = sys.env("BITCOIN_RPC_USER"),
                                     password = sys.env("BITCOIN_RPC_PASS"))
+  val be = AkkaHttpBackend()
   val service = wire[BitcoinJsonRpcClient]
 
   def validateRight[T](value: Either[RpcResponseError, T]) = {
@@ -15,8 +17,17 @@ class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {
   }
 
   "BitcoinJsonRpcClientTest" should {
+    "estimatesmartfee" in {
+      service.estimatesmartfee(1).onComplete(println)
+      service.estimatesmartfee(1).map(validateRight)
+    }
     "getblockchaininfo" in {
-      service.getblockchaininfo.map(validateRight)
+      service.getblockchaininfo
+        .map(validateRight)
+        .recover(e => {
+          val a = e
+          assert(false)
+        })
     }
     "getbalances" in {
       service.getbalances.map(validateRight)

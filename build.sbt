@@ -29,6 +29,7 @@ val commonDeps = Seq(
   scalaTest,
   akkaActor,
   unixSocket,
+  requests,
   akkaStream,
   akkaStreamTestkit,
   akkaTestkit,

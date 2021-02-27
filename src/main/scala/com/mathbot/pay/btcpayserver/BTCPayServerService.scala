@@ -12,6 +12,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+@deprecated("use BTCPayServerServiceV2 b/c of issues w/ basic auth w/ sttp", "2021-02-21")
 class BTCPayServerService(
     backend: SttpBackend[Future, Nothing, NothingT],
     config: BTCPayServerConfig,
@@ -24,9 +25,9 @@ class BTCPayServerService(
 
   private val basic = s"Basic ${Base64.getEncoder.encodeToString(config.apiKey.getBytes())}"
 
-  val baseRequest = sttp.client.basicRequest.auth
-    .basic(config.apiKey, "")
-//    .header("Authorization", config.apiKey, true)
+  val baseRequest = sttp.client.basicRequest
+//    .basic(config.apiKey, "")
+    .header("Authorization", config.apiKey, true)
     .contentType(MediaType.ApplicationJson)
     .readTimeout(Duration("30s"))
     .followRedirects(true)
@@ -35,7 +36,6 @@ class BTCPayServerService(
     val request = baseRequest
       .get(uri"${config.baseUrl}/invoices/$id")
       .response(parseChargeInfo)
-    println(request.toCurl)
     request.send()
   }
 
@@ -44,8 +44,6 @@ class BTCPayServerService(
       .post(uri"${config.baseUrl}/invoices")
       .body(Json.toJson(inv).toString)
       .response(parseChargeInfo)
-    val curl = request.toCurl
-    println(curl)
     request.send()
   }
 
