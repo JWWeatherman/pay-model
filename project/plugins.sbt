@@ -5,7 +5,7 @@ addSbtPlugin("com.github.cb372" % "sbt-explicit-dependencies" % "0.2.16")
 // sbt coverage test coverageReport
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 // loads .env file
-addSbtPlugin("au.com.onegeek" %% "sbt-dotenv" % "2.1.206")
+addSbtPlugin("au.com.onegeek" %% "sbt-dotenv" % "2.1.219")
 
 //addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.5")
 //addSbtPlugin("com.github.tkawachi" % "sbt-doctest" % "0.9.8")
