@@ -4,6 +4,7 @@ import com.mathbot.pay.BaseIntegrationTest
 import com.softwaremill.macwire.wire
 import sttp.client.akkahttp.AkkaHttpBackend
 
+//noinspection SpellCheckingInspection
 class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {
 
   val config = BitcoinJsonRpcConfig(baseUrl = sys.env("BITCOIN_HOST"),
