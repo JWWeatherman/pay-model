@@ -74,5 +74,4 @@ def addCommandsAlias(name: String, cmds: Seq[String]) =
 addCommandsAlias("validate", "clean" :: "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
 addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
 addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
-
 addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
