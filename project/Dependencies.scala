@@ -19,7 +19,7 @@ object Dependencies {
     "com.softwaremill.sttp.client" %% "akka-http-backend" % sttpVersion,
     "com.softwaremill.sttp.client" %% "play-json" % sttpVersion
   )
-  val requests = "com.lihaoyi" %% "requests" % "0.6.5"
+  val requests = "com.lihaoyi" %% "requests" % "0.6.6"
 
   lazy val okhttp = "com.softwaremill.sttp.client" %% "okhttp-backend" % sttpVersion
   lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it,test"
