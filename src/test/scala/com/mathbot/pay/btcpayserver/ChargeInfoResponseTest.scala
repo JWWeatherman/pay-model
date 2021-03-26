@@ -4,7 +4,6 @@ import org.scalatest
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.{JsResultException, Json}
 
-
 object ChargeInfoResponseTest {
 
   val newCharge: String =
