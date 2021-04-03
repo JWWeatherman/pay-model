@@ -6,7 +6,7 @@ import org.mockito.Mockito.when
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
-class SendGridServiceTest extends AsyncWordSpec with MockitoSugar {
+class SendGridServiceTesst extends AsyncWordSpec with MockitoSugar {
   val c = SendGridConfig("")
   val service = mock[SendGridService]
   "SendGridServiceTest" should {
