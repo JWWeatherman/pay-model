@@ -1,6 +1,11 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
+import play.api.libs.json.Json
+
+object Pay {
+  implicit val formatPay = Json.format[Pay]
+}
 
 /**
  * https://lightning.readthedocs.io/lightning-pay.7.html
