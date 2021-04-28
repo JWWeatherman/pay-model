@@ -2,6 +2,7 @@ package com.mathbot.pay.lightningcharge
 
 import com.mathbot.pay.bitcoin.{MilliSatoshi, Satoshi}
 import com.mathbot.pay.lightning.Bolt11
+import com.mathbot.pay.lightningcharge.LightningChargeInvoiceStatus.LightningChargeInvoiceStatus
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -16,7 +17,7 @@ case class LightningChargeInvoice(id: String,
                                   expires_at: Instant,
                                   created_at: Instant,
                                   status: LightningChargeInvoiceStatus,
-                                  pay_index: Long,
+                                  pay_index: Option[Long],
                                   quoted_currency: Option[String] = None,
                                   quoted_amount: Option[String] = None,
                                   paid_at: Option[Instant],
@@ -30,12 +31,6 @@ case class LightningChargeInvoice(id: String,
 
 object LightningChargeInvoice {
 
-  object status {
-    val unpaid = "unpaid"
-    val expired = "expired"
-    val paid = "paid"
-  }
-
   implicit val readsInvoiceResponse: Reads[LightningChargeInvoice] = (
     (__ \ "id").read[String] and
     (__ \ "msatoshi").readWithDefault[MilliSatoshi](MilliSatoshi(0)) and
@@ -45,7 +40,7 @@ object LightningChargeInvoice {
     (__ \ "expires_at").read[Long].map(d => Instant.ofEpochSecond(d)) and
     (__ \ "created_at").read[Long].map(d => Instant.ofEpochSecond(d)) and
     (__ \ "status").read[LightningChargeInvoiceStatus] and
-    (__ \ "pay_index").readWithDefault[Long](-1) and
+    (__ \ "pay_index").readNullable[Long] and
     (__ \ "quoted_currency").readNullable[String] and
     (__ \ "quoted_amount").readNullable[String] and
     (__ \ "paid_at")
