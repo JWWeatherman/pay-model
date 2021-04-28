@@ -18,12 +18,13 @@ object Pay {
  * @param maxdelay
  * @param exemptfee
  */
-case class Pay(bolt11: Bolt11,
-               msatoshi: Option[MilliSatoshi],
-               label: Option[String],
-               riskfactor: Option[String],
-               maxfeepercent: Option[String],
-               retry_for: Option[String],
-               maxdelay: Option[String],
-               exemptfee: Option[String],
+case class Pay(
+    bolt11: Bolt11,
+    msatoshi: Option[MilliSatoshi],
+    label: Option[String],
+    riskfactor: Option[String],
+    maxfeepercent: Option[String],
+    retry_for: Option[String],
+    maxdelay: Option[String],
+    exemptfee: Option[String]
 ) extends LightningJson

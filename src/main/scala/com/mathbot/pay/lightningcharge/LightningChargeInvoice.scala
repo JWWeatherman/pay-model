@@ -9,20 +9,22 @@ import play.api.libs.json._
 
 import java.time.Instant
 
-case class LightningChargeInvoice(id: String,
-                                  msatoshi: MilliSatoshi,
-                                  description: String,
-                                  rhash: String,
-                                  payreq: Bolt11,
-                                  expires_at: Instant,
-                                  created_at: Instant,
-                                  status: LightningChargeInvoiceStatus,
-                                  pay_index: Option[Long],
-                                  quoted_currency: Option[String] = None,
-                                  quoted_amount: Option[String] = None,
-                                  paid_at: Option[Instant],
-                                  msatoshi_received: Option[MilliSatoshi],
-                                  metadata: Option[JsValue]) {
+case class LightningChargeInvoice(
+    id: String,
+    msatoshi: MilliSatoshi,
+    description: String,
+    rhash: String,
+    payreq: Bolt11,
+    expires_at: Instant,
+    created_at: Instant,
+    status: LightningChargeInvoiceStatus,
+    pay_index: Option[Long],
+    quoted_currency: Option[String] = None,
+    quoted_amount: Option[String] = None,
+    paid_at: Option[Instant],
+    msatoshi_received: Option[MilliSatoshi],
+    metadata: Option[JsValue]
+) {
 
   lazy val bolt11: Bolt11 = payreq
   lazy val label: String = id
