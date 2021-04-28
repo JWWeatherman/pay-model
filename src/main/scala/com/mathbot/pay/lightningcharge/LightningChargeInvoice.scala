@@ -20,7 +20,7 @@ case class LightningChargeInvoice(
     status: LightningChargeInvoiceStatus,
     pay_index: Option[Long],
     quoted_currency: Option[String] = None,
-    quoted_amount: Option[String] = None,
+    quoted_amount: Option[BigDecimal] = None,
     paid_at: Option[Instant],
     msatoshi_received: Option[MilliSatoshi],
     metadata: Option[JsValue]
@@ -44,7 +44,7 @@ object LightningChargeInvoice {
     (__ \ "status").read[LightningChargeInvoiceStatus] and
     (__ \ "pay_index").readNullable[Long] and
     (__ \ "quoted_currency").readNullable[String] and
-    (__ \ "quoted_amount").readNullable[String] and
+    (__ \ "quoted_amount").readNullable[BigDecimal] and
     (__ \ "paid_at")
       .readNullable[Long]
       .map(_.map(d => Instant.ofEpochSecond(d))) and
