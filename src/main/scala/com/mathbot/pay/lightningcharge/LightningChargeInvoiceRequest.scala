@@ -1,6 +1,7 @@
 package com.mathbot.pay.lightningcharge
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
+import com.mathbot.pay.json.FiniteDurationToSecondsWriter
 import play.api.libs.json.{JsValue, Json, OFormat}
 
 import scala.concurrent.duration.FiniteDuration
@@ -14,29 +15,14 @@ import scala.concurrent.duration.FiniteDuration
 case class LightningChargeInvoiceRequest(
     webhook: Option[String],
     msatoshi: MilliSatoshi,
-    expiry: Long,
+    expiry: FiniteDuration,
     description: String,
     metadata: Option[JsValue]
 )
 
-object LightningChargeInvoiceRequest {
+object LightningChargeInvoiceRequest extends FiniteDurationToSecondsWriter {
 
-  implicit val formatInvoiceRequest: OFormat[LightningChargeInvoiceRequest] =
-    Json.format[LightningChargeInvoiceRequest]
-
-  def apply(
-      webhook: Option[String],
-      msatoshi: MilliSatoshi,
-      expiry: FiniteDuration,
-      description: String,
-      metadata: Option[JsValue]
-  ): LightningChargeInvoiceRequest =
-    LightningChargeInvoiceRequest(
-      webhook = webhook,
-      msatoshi = msatoshi,
-      expiry = expiry.toSeconds,
-      description = description,
-      metadata = metadata
-    )
+  implicit val writesLightningChargeInvoiceRequset =
+    Json.writes[LightningChargeInvoiceRequest]
 
 }

@@ -4,7 +4,8 @@ import com.mathbot.pay.BaseIntegrationTest
 
 class BTCPayServerServiceTest extends BaseIntegrationTest {
 
-  val config = BTCPayServerConfig(baseUrl = sys.env("BTCPAYSERVER_BASE_URL"), apiKey = sys.env("BTCPAYSERVER_API_KEY"))
+  val config =
+    BTCPayServerConfig(baseUrl = sys.env("BTCPAYSERVER_BASE_URL"), apiKey = sys.env("BTCPAYSERVER_API_KEY"), "fixme")
   val invoiceId = sys.env.getOrElse("BTCPAYSERVER_TEST_INVOICE_ID", "")
 
 //  val be = new FollowRedirectsBackend(
