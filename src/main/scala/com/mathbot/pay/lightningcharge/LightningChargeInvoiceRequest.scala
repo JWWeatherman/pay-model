@@ -11,7 +11,7 @@ import scala.concurrent.duration.FiniteDuration
  * @param expiry in seconds
  * @param description of the charge
  */
-case class InvoiceRequest(
+case class LightningChargeInvoiceRequest(
     webhook: Option[String],
     msatoshi: MilliSatoshi,
     expiry: Long,
@@ -19,10 +19,10 @@ case class InvoiceRequest(
     metadata: Option[JsValue]
 )
 
-object InvoiceRequest {
+object LightningChargeInvoiceRequest {
 
-  implicit val formatInvoiceRequest: OFormat[InvoiceRequest] =
-    Json.format[InvoiceRequest]
+  implicit val formatInvoiceRequest: OFormat[LightningChargeInvoiceRequest] =
+    Json.format[LightningChargeInvoiceRequest]
 
   def apply(
       webhook: Option[String],
@@ -30,8 +30,8 @@ object InvoiceRequest {
       expiry: FiniteDuration,
       description: String,
       metadata: Option[JsValue]
-  ): InvoiceRequest =
-    InvoiceRequest(
+  ): LightningChargeInvoiceRequest =
+    LightningChargeInvoiceRequest(
       webhook = webhook,
       msatoshi = msatoshi,
       expiry = expiry.toSeconds,

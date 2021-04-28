@@ -27,14 +27,20 @@ class LightningChargeService(
     .basic(config.username, config.password)
     .acceptEncoding(MediaType.ApplicationJson.toString())
 
-  def invoice(invoice: InvoiceRequest): Future[Response[Either[ResponseError[JsError], LightningChargeInvoice]]] = {
-    val req = base
-      .post(uri"${config.baseUrl}/invoice")
-      .contentType(MediaType.ApplicationJson)
-      .body(Json.toJson(invoice).toString)
-      .response(asJson[LightningChargeInvoice])
-    req.send()
-  }
+  private final val baseInvoiceRequest = base
+    .post(uri"${config.baseUrl}/invoice")
+    .contentType(MediaType.ApplicationJson)
+    .response(asJson[LightningChargeInvoice])
+
+  def invoice(
+      invoice: LightningChargeInvoiceRequest
+  ): Future[Response[Either[ResponseError[JsError], LightningChargeInvoice]]] =
+    baseInvoiceRequest.body(Json.toJson(invoice).toString).send()
+
+  def invoice(
+      invoice: LightningChargeInvoiceRequestByCurrency
+  ): Future[Response[Either[ResponseError[JsError], LightningChargeInvoice]]] =
+    baseInvoiceRequest.body(Json.toJson(invoice).toString).send()
 
   /*
     https://github.com/ElementsProject/lightning-charge#get-invoiceidwaittimeoutsec
