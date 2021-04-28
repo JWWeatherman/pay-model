@@ -12,7 +12,7 @@ object Dependencies {
   lazy val macwireVersion = "2.3.7"
   lazy val sttpModelV = "1.3.4"
   lazy val bitcoinjV = "0.15.10"
-  lazy val mockitoV = "3.2.7.0"
+  lazy val mockitoV = "3.2.8.0"
 
   lazy val sttp = Seq(
     "com.softwaremill.sttp.client" %% "core" % sttpVersion,
