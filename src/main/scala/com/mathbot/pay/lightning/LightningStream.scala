@@ -88,7 +88,7 @@ object LightningStream {
         (getinfo, Json.obj())
       case DecodePayRequest(bolt11) =>
         (decodepay, Json.obj("bolt11" -> bolt11.bolt11))
-      case i: InvoiceRequest =>
+      case i: LightningInvoice =>
         (invoice, Json.obj("msatoshi" -> i.msatoshi.toLong, "label" -> i.label, "description" -> i.description))
       case i: MultiFundChannel => ??? // todo implement
       case s: SetChannelFee =>
@@ -114,9 +114,9 @@ object LightningStream {
       case Success(js) =>
         logger.debug(s"Response ${js.toString()}")
         val success = js.asOpt[ListPaysResponse] orElse
-          js.asOpt[PayResponse] orElse
-          js.asOpt[GetInfoResponse] orElse
-          js.asOpt[LightningRequestError]
+        js.asOpt[PayResponse] orElse
+        js.asOpt[GetInfoResponse] orElse
+        js.asOpt[LightningRequestError]
         success getOrElse {
           val message = s"Unknown response from lightning node $js"
           logger.error(message)
