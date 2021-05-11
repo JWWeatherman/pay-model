@@ -1,22 +1,32 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
-import play.api.libs.json.Json
+import com.mathbot.pay.json.FiniteDurationToSecondsWriter
+import play.api.libs.json._
 
-object Pay {
+import scala.concurrent.duration.{Duration, FiniteDuration}
+
+object Pay extends FiniteDurationToSecondsWriter {
+  implicit val readsRetryFo: Reads[FiniteDuration] = {
+    case JsString(value) =>
+      JsSuccess(Duration(value).asInstanceOf[FiniteDuration])
+    case _ => JsError("Not a FiniteDuration")
+  }
   implicit val formatPay = Json.format[Pay]
+
 }
 
 /**
  * https://lightning.readthedocs.io/lightning-pay.7.html
  * @param bolt11
- * @param msatoshi
- * @param label
+ * @param msatoshi  If the bolt11 does not contain an amount, msatoshi is required, otherwise if it is specified it must be null.
+ * @param label The label field is used to attach a label to payments, and is returned in lightning-listpays(7)
  * @param riskfactor
- * @param maxfeepercent
+ * @param maxfeepercent  limits the money paid in fees, and defaults to 0.5.
  * @param retry_for
  * @param maxdelay
- * @param exemptfee
+ * @param exemptfee The [[exemptfee]] option can be used for tiny payments which would be dominated by the fee leveraged by forwarding nodes.
+ *                  setting [[exemptfee]] allows the [[maxfeepercent]] check to be skipped on fees that are smaller than [[exemptfee]]
  */
 case class Pay(
     bolt11: Bolt11,
@@ -24,7 +34,7 @@ case class Pay(
     label: Option[String],
     riskfactor: Option[String],
     maxfeepercent: Option[String],
-    retry_for: Option[String],
-    maxdelay: Option[String],
+    retry_for: Option[FiniteDuration],
+    maxdelay: Option[Int],
     exemptfee: Option[String]
 ) extends LightningJson

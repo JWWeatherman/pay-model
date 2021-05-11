@@ -83,7 +83,7 @@ object LightningStream {
       case _: ListAllPays =>
         (listpays, Json.obj())
       case x: LightningDebitRequest =>
-        (pay, Json.obj("bolt11" -> x.bolt11.bolt11))
+        (pay, Json.toJsObject(x.pay))
       case _: LightningGetInfoRequest =>
         (getinfo, Json.obj())
       case DecodePayRequest(bolt11) =>
@@ -114,9 +114,9 @@ object LightningStream {
       case Success(js) =>
         logger.debug(s"Response ${js.toString()}")
         val success = js.asOpt[ListPaysResponse] orElse
-        js.asOpt[PayResponse] orElse
-        js.asOpt[GetInfoResponse] orElse
-        js.asOpt[LightningRequestError]
+          js.asOpt[PayResponse] orElse
+          js.asOpt[GetInfoResponse] orElse
+          js.asOpt[LightningRequestError]
         success getOrElse {
           val message = s"Unknown response from lightning node $js"
           logger.error(message)
