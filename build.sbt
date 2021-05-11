@@ -8,7 +8,7 @@ addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "c
 addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
 
 
-val scala211 = "2.11.11"
+val scala211 = "2.11.12"
 val scala212 = "2.12.10"
 val scala213 = "2.13.3"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
