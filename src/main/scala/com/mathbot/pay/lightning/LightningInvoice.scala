@@ -14,7 +14,7 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
  * @param description
  * @param expiry
  */
-case class InvoiceRequest(
+case class LightningInvoice(
     msatoshi: MilliSatoshi,
     label: String,
     description: String,

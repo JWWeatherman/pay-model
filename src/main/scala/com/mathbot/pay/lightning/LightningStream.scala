@@ -77,17 +77,18 @@ object LightningStream {
   def convertToString(lj: LightningJson, idGen: AtomicInteger): String = {
     import LightningRequestMethods._
     val (method, params) = lj match {
+      case p: Pay => (pay, Json.toJsObject(p))
       case x: ListPaysRequest =>
         (listpays, Json.obj("bolt11" -> x.bolt11.bolt11))
       case _: ListAllPays =>
         (listpays, Json.obj())
       case x: LightningDebitRequest =>
-        (pay, Json.obj("bolt11" -> x.bolt11.bolt11))
+        (pay, Json.toJsObject(x.pay))
       case _: LightningGetInfoRequest =>
         (getinfo, Json.obj())
       case DecodePayRequest(bolt11) =>
         (decodepay, Json.obj("bolt11" -> bolt11.bolt11))
-      case i: InvoiceRequest =>
+      case i: LightningInvoice =>
         (invoice, Json.obj("msatoshi" -> i.msatoshi.toLong, "label" -> i.label, "description" -> i.description))
       case i: MultiFundChannel => ??? // todo implement
       case s: SetChannelFee =>

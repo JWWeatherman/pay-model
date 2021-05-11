@@ -1,7 +1,14 @@
 import Dependencies._
 import sbt._
 
-val scala211 = "2.11.12"
+
+addCommandsAlias("validate", "clean" :: "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
+addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
+addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
+addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
+
+
+val scala211 = "2.11.11"
 val scala212 = "2.12.10"
 val scala213 = "2.13.3"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
@@ -70,9 +77,3 @@ lazy val paymodel = (project in file("."))
 
 def addCommandsAlias(name: String, cmds: Seq[String]) =
   addCommandAlias(name, cmds.mkString(";", ";", ""))
-
-addCommandsAlias("validate", "clean" :: "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
-addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
-addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
-
-addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
