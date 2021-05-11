@@ -83,7 +83,7 @@ object LightningStream {
       case _: ListAllPays =>
         (listpays, Json.obj())
       case x: LightningDebitRequest =>
-        (pay, Json.obj("bolt11" -> x.bolt11.bolt11))
+        (pay, Json.toJsObject(x.pay))
       case _: LightningGetInfoRequest =>
         (getinfo, Json.obj())
       case DecodePayRequest(bolt11) =>
