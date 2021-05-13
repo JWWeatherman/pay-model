@@ -7,7 +7,7 @@ import com.mathbot.pay.lightning.Pay
 import com.mathbot.pay.webhook.CallbackURL
 import play.api.libs.json._
 
-case class WsLightningDebitRequest(pay: Pay, callbackURL: CallbackURL, onBehalfOf: ActorPath, id: String)
+case class WsLightningDebitRequest(pay: Pay, callbackURL: Option[CallbackURL], onBehalfOf: ActorPath, id: String)
     extends WebsocketMessage
 
 object WsLightningDebitRequest extends PlayJsonSupport {

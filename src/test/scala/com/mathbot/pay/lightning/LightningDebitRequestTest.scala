@@ -21,7 +21,7 @@ class LightningDebitRequestTest extends AnyFunSuite {
         maxdelay = None,
         exemptfee = None
       ),
-      CallbackURL("http://example.com")
+      Some(CallbackURL("http://example.com"))
     )
     val j = Json.toJson(d)
     assert(d.pay.bolt11.milliSatoshi === MilliSatoshi(1000000))
