@@ -30,11 +30,11 @@ object Pay extends FiniteDurationToSecondsWriter {
  */
 case class Pay(
     bolt11: Bolt11,
-    msatoshi: Option[MilliSatoshi],
-    label: Option[String],
-    riskfactor: Option[String],
-    maxfeepercent: Option[String],
-    retry_for: Option[FiniteDuration],
-    maxdelay: Option[Int],
-    exemptfee: Option[String]
+    msatoshi: Option[MilliSatoshi] = None,
+    label: Option[String] = None,
+    riskfactor: Option[String] = None,
+    maxfeepercent: Option[String] = None,
+    retry_for: Option[FiniteDuration] = None,
+    maxdelay: Option[Int] = None,
+    exemptfee: Option[String] = None
 ) extends LightningJson
