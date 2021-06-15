@@ -78,8 +78,7 @@ case class BitcoinJsonRpcClient(
    * @return Error or the method's expected response object
    */
   def send[T](method: String, params: JsValueWrapper*)(implicit
-      jsonReader: Reads[T]
-  ): Future[Either[RpcResponseError, T]] = {
+                                                       jsonReader: Reads[T]): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
       .toJson(JsonRpcRequestBody(method = method, params = Json.arr(params: _*), jsonrpc = config.jsonRpc, id = ID))
@@ -552,6 +551,6 @@ case class BitcoinJsonRpcClient(
 
   def dumpwallet(file: String) = send[JsValue]("dumpwallet", file)
 
-  def estimatesmartfee(blocks: Int) = send[JsValue]("estimatesmartfee", blocks)
+  def estimatesmartfee(blocks: Int) = send[EstimateSmartFeeResponse]("estimatesmartfee", blocks)
 
 }
