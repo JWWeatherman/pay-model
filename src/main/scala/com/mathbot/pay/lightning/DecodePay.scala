@@ -11,7 +11,7 @@ case class DecodePay(
     amount_msat: Option[String],
     description: String,
     min_final_cltv_expiry: Long,
-    routes: Option[Seq[Seq[Route]]],
+    routes: Option[Seq[Seq[LightningPaymentRoute]]],
     fallbacks: Option[Seq[Fallback]],
     payment_hash: String,
     signature: String
