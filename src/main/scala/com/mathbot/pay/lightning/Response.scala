@@ -1,6 +1,6 @@
 package com.mathbot.pay.lightning
 
-trait Response[T] {
+trait Response[T] extends LightningJson {
 
   def id: Long
   def jsonrpc: String
