@@ -1,6 +1,7 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.{MilliSatoshi, Satoshi}
+import play.api.libs.json.Json
 
 /**
  * https://github.com/ElementsProject/lightning/blob/master/doc/lightning-setchannelfee.7.md
@@ -13,3 +14,7 @@ import com.mathbot.pay.bitcoin.{MilliSatoshi, Satoshi}
  * @param ppm
  */
 case class SetChannelFee(id: String = "all", base: Option[MilliSatoshi], ppm: Option[Satoshi])
+
+object SetChannelFee {
+  implicit val formatSetChannelFee = Json.format[SetChannelFee]
+}
