@@ -19,7 +19,7 @@ object Dependencies {
     "com.softwaremill.sttp.client" %% "akka-http-backend" % sttpVersion,
     "com.softwaremill.sttp.client" %% "play-json" % sttpVersion
   )
-  val requests = "com.lihaoyi" %% "requests" % "0.6.7"
+  val requests = "com.lihaoyi" %% "requests" % "0.6.9"
   val bitcoinLib = "fr.acinq" %% "bitcoin-lib" % "0.19"
   val scodec = "org.scodec" %% "scodec-core" % "1.11.7"
 
