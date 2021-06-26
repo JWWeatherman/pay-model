@@ -20,6 +20,8 @@ object Dependencies {
     "com.softwaremill.sttp.client" %% "play-json" % sttpVersion
   )
   val requests = "com.lihaoyi" %% "requests" % "0.6.7"
+  val bitcoinLib = "fr.acinq" %% "bitcoin-lib" % "0.19"
+  val scodec = "org.scodec" %% "scodec-core" % "1.11.7"
 
   lazy val okhttp = "com.softwaremill.sttp.client" %% "okhttp-backend" % sttpVersion
   lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it,test"
