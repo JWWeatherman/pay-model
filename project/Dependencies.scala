@@ -8,7 +8,7 @@ object Dependencies {
   lazy val scalaTestV = "3.2.8"
   lazy val akkaVersion = "2.5.32"
   lazy val sttpVersion = "2.2.9"
-  lazy val alpakkaSocketV = "2.0.2"
+  lazy val alpakkaSocketV = "3.0.1"
   lazy val macwireVersion = "2.3.7"
   lazy val sttpModelV = "1.3.4"
   lazy val bitcoinjV = "0.15.10"
