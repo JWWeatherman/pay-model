@@ -4,7 +4,7 @@ import sbt._
 
 //noinspection SpellCheckingInspection
 object Dependencies {
-  lazy val playJsonV = "2.7.4"
+  lazy val playJsonV = "2.9.2"
   lazy val scalaTestV = "3.2.8"
   lazy val akkaVersion = "2.5.32"
   lazy val sttpVersion = "2.2.9"
