@@ -1,24 +1,6 @@
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "currency": "bc",
-    "created_at": 1579361052,
-    "expiry": 1200,
-    "payee": "0254ff808f53b2f8c45e74b70430f336c6c76ba2f4af289f48d6086ae6e60462d3",
-    "msatoshi": 2243514000,
-    "amount_msat": "2243514000msat",
-    "description": "Bitrefill ade298ed-47ac-4fff-a8d6-cb213e1b5772",
-    "min_final_cltv_expiry": 9,
-    "features": "",
-    "fallbacks": [
-      {
-        "type": "P2SH",
-        "addr": "3NhMAo5G451n3GjeG2heHezxA4KFb14PbM",
-        "hex": "a914e66ab4fc2855f9fc9f4a313f884f8f0bf639337387"
-      }
-    ],
-    "payment_hash": "bda71fcff6b6adb03f5e7f4bc519a71e7994e3cd779f50bb3e6801b7ea731071",
-    "signature": "3044022051a60488af7a5fb0474d9da190072dd1e6296d5365cf4e19d59daf9159b510be02204db8b10175b4951fe04061a5b5d0c30f344b06e83c8f90304def638370c3df94"
-  }
-}
+{"jsonrpc":"2.0","id":3,"result":{"currency":"bc","created_at":1586697965,"expiry":18000,
+  "payee":"03902356d26efdc0812726c31a1a2e0d721f26063dd252ac89ded8280037e9ece8","msatoshi":1000,
+  "amount_msat":"1000msat","description":"⚡","min_final_cltv_expiry":10,
+  "payment_secret":"8aad2f375c11eec8538d532fb7b2d440a2e6655b98921cba092819be73a71cff","features":"028200","routes":[[{"pubkey":"03de7f5fa97bc87f048e977533fdc0484bf4e0a5b5ca6e55f7baf32b533cbac3f7","short_channel_id":"593125x1217x0","fee_base_msat":850,"fee_proportional_millionths":10,"cltv_expiry_delta":14}]],
+  "payment_hash":"020fc7f608ab2759907bc0f5559987ab53f2924746a4d13c93844f255c094c2f",
+  "signature":"304402205afbf2bddc3c50ecc5d3d5a43c884ea82e45d38130cb995bb01f18bd3e7f0585022059d1f08f69dec7677922a66a05d814adff20c250f8504b16eedd330828650951"}}

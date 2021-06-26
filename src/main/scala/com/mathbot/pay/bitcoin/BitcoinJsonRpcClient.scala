@@ -552,6 +552,6 @@ case class BitcoinJsonRpcClient(
 
   def dumpwallet(file: String) = send[JsValue]("dumpwallet", file)
 
-  def estimatesmartfee(blocks: Int) = send[JsValue]("estimatesmartfee", blocks)
+  def estimatesmartfee(blocks: Int) = send[EstimateSmartFeeResponse]("estimatesmartfee", blocks)
 
 }

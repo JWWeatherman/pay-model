@@ -2,7 +2,7 @@ package com.mathbot.pay.lightningcharge
 
 import play.api.libs.json.{JsError, Json}
 import sttp.client.playJson.asJson
-import sttp.client.{SttpBackend, _}
+import sttp.client.{SttpBackend, basicRequest, _}
 import sttp.model.{MediaType, StatusCode}
 
 import scala.concurrent.duration._
@@ -53,7 +53,7 @@ class LightningChargeService(
     val params = Map("timeout" -> timeout.toSeconds)
     val req = base
       .get(uri"${config.baseUrl}/invoice/$id/wait?$params")
-      .readTimeout(timeout.plus(1.second))
+      .readTimeout(timeout.plus(3.seconds))
       .response(asJson[LightningChargeInvoice])
     req.send()
 
