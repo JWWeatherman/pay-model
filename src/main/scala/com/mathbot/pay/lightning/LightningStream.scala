@@ -77,7 +77,7 @@ object LightningStream {
   def convertToString(lj: LightningJson, idGen: AtomicInteger): String = {
     val (method, params) = lj match {
       case l: ListInvoicesRequest => ("listinvoices", Json.toJsObject(l))
-      case WaitAnyInvoice => ("waitanyinvoice", Json.obj())
+      case w: WaitAnyInvoice => ("waitanyinvoice", Json.toJsObject(w))
       case p: Pay => ("pay", Json.toJsObject(p))
       case x: ListPaysRequest =>
         ("listpays", Json.obj("bolt11" -> x.bolt11.bolt11))
@@ -115,11 +115,11 @@ object LightningStream {
       case Success(js) =>
         logger.debug(s"Response ${js.toString()}")
         val success = js.asOpt[ListPaysResponse] orElse
-          js.asOpt[PayResponse] orElse
-          js.asOpt[GetInfoResponse] orElse
-          js.asOpt[ListInvoicesResponse] orElse
-          js.asOpt[ListInvoice] orElse
-          js.asOpt[LightningRequestError]
+        js.asOpt[PayResponse] orElse
+        js.asOpt[GetInfoResponse] orElse
+        js.asOpt[ListInvoicesResponse] orElse
+        js.asOpt[ListInvoice] orElse
+        js.asOpt[LightningRequestError]
         success getOrElse {
           val message = s"Unknown response from lightning node $js"
           logger.error(message)
