@@ -14,7 +14,8 @@ case class ListInvoice(
     amount_received_msat: Option[String],
     paid_at: Option[Long],
     description: String,
-    expires_at: Long
+    expires_at: Long,
+    bolt12: Option[Bolt12]
 ) extends LightningJson
 
 object ListInvoice {
