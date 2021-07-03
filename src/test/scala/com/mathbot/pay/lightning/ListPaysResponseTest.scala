@@ -1,7 +1,8 @@
 package com.mathbot.pay.lightning
 
-import java.time.Instant
+import com.mathbot.pay.bitcoin.MilliSatoshi
 
+import java.time.Instant
 import com.mathbot.pay.utils.ResourceHelper
 import play.api.libs.json.Json
 import org.scalatest.funsuite.AnyFunSuite

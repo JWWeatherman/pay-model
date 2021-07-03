@@ -75,30 +75,30 @@ object LightningStream {
   val logger = LoggerFactory.getLogger("LightningStream")
 
   def convertToString(lj: LightningJson, idGen: AtomicInteger): String = {
-    import LightningRequestMethods._
     val (method, params) = lj match {
-      case WaitAnyInvoice => (waitanyinvoice, Json.obj())
-      case p: Pay => (pay, Json.toJsObject(p))
+      case l: ListInvoicesRequest => ("listinvoices", Json.toJsObject(l))
+      case WaitAnyInvoice => ("waitanyinvoice", Json.obj())
+      case p: Pay => ("pay", Json.toJsObject(p))
       case x: ListPaysRequest =>
-        (listpays, Json.obj("bolt11" -> x.bolt11.bolt11))
+        ("listpays", Json.obj("bolt11" -> x.bolt11.bolt11))
       case _: ListAllPays =>
-        (listpays, Json.obj())
+        ("listpays", Json.obj())
       case x: LightningDebitRequest =>
-        (pay, Json.toJsObject(x.pay))
+        ("pay", Json.toJsObject(x.pay))
       case _: LightningGetInfoRequest =>
-        (getinfo, Json.obj())
+        ("getinfo", Json.obj())
       case DecodePayRequest(bolt11) =>
-        (decodepay, Json.obj("bolt11" -> bolt11.bolt11))
+        ("decodepay", Json.obj("bolt11" -> bolt11.bolt11))
       case i: LightningInvoice =>
-        (invoice, Json.obj("msatoshi" -> i.msatoshi.toLong, "label" -> i.label, "description" -> i.description))
+        ("invoice", Json.obj("msatoshi" -> i.msatoshi.toLong, "label" -> i.label, "description" -> i.description))
       case i: MultiFundChannel => ??? // todo implement
       case s: SetChannelFee =>
-        (setchannelfee, Json.obj("id" -> s.id, "base" -> s.base.map(_.toLong), "ppm" -> s.ppm.map(_.toLong)))
+        ("setchannelfee", Json.obj("id" -> s.id, "base" -> s.base.map(_.toLong), "ppm" -> s.ppm.map(_.toLong)))
       case i: NewAddressRequest =>
-        (newaddr, Json.obj("addresstype" -> i.addresstype.toString))
+        ("newaddr", Json.obj("addresstype" -> i.addresstype.toString))
     }
     val request =
-      Request(method = method.toString, id = idGen.getAndIncrement(), params = params, jsonrpc = Request.json2)
+      Request(method = method, id = idGen.getAndIncrement(), params = params, jsonrpc = Request.json2)
     logger.debug(s"Request $request")
     Json.toJson(request).toString
   }
@@ -115,9 +115,11 @@ object LightningStream {
       case Success(js) =>
         logger.debug(s"Response ${js.toString()}")
         val success = js.asOpt[ListPaysResponse] orElse
-        js.asOpt[PayResponse] orElse
-        js.asOpt[GetInfoResponse] orElse
-        js.asOpt[LightningRequestError]
+          js.asOpt[PayResponse] orElse
+          js.asOpt[GetInfoResponse] orElse
+          js.asOpt[ListInvoicesResponse] orElse
+          js.asOpt[ListInvoice] orElse
+          js.asOpt[LightningRequestError]
         success getOrElse {
           val message = s"Unknown response from lightning node $js"
           logger.error(message)

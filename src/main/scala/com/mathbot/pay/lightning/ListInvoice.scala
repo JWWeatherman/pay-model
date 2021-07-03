@@ -15,7 +15,7 @@ case class ListInvoice(
     paid_at: Option[Long],
     description: String,
     expires_at: Long
-)
+) extends LightningJson
 
 object ListInvoice {
   lazy implicit val formatListInvoice: OFormat[ListInvoice] = Json.format[ListInvoice]

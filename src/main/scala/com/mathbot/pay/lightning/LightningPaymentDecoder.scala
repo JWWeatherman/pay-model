@@ -7,7 +7,7 @@ object LightningPaymentDecoder {
   @throws(classOf[RuntimeException])
   def parseAmount(bolt11: String): MilliSatoshi = {
     val idx = bolt11.lastIndexOf("1")
-    val regex = s"${LightningPrefix.mainNet.name}|${LightningPrefix.testNet.name}".r
+    val regex = s"${LightningPrefix.mainNet.name}|${LightningPrefix.testNet.name}|lni".r
     val raw = regex.replaceAllIn(bolt11.take(idx), "")
     raw.toLowerCase match {
       case empty if raw.isEmpty => MilliSatoshi(0)

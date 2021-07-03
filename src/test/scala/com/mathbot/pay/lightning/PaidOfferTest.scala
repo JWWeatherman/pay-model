@@ -5,6 +5,13 @@ import org.scalatest.funsuite.AnyFunSuite
 import play.api.libs.json.Json
 
 class PaidOfferTest extends AnyFunSuite {
+
+  val bolt12 =
+    "lni1qsspltcw4ug6lxyq75pq4d8u7fkkunls3rxh897kyrngxwtee0l998sgqgp7szsagejk2epqgd5xjcmtv4h8xgzqypcx7mrvdanx2ety9e3k7mgvpkqqqqqqqqqqqqqqqqpgyqq7yzgzx4kjdm7upqf8ymp35x3wp4ep7fsx8hf99tyfmmvzsqpha8kwsf3quw5uhu40l2zwuw5fhp0lztgx9h602j3nu5k62rpr33wcwxydfz9jsprqmvxmj23q2y77xgdgraadcz3mez4mv0qrenj44d34rl8srvd5axrtc47s7x5zuqgjxgg9sy7k8tql4ax0map6j6zvys67euzqnewrn4nln6g7me9srnl4pz9d9sg5gmts27kglhuhevx0decrn7xf642ct2kxttt2k2txptvxqlap60uhgsw205n6gu0ez08lqr9hdas"
+
+  Bolt11(bolt12)
+  Bolt11(bolt12)
+
   test("response") {
     val json =
       """
