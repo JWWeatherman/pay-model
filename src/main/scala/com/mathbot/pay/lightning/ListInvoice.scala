@@ -1,13 +1,14 @@
 package com.mathbot.pay.lightning
 
+import com.mathbot.pay.bitcoin.MilliSatoshi
 import play.api.libs.json.{Json, OFormat}
 
 case class ListInvoice(
     label: String,
     bolt11: Option[String],
     payment_hash: String,
-    msatoshi: Long,
-    amount_msat: String,
+    msatoshi: Option[MilliSatoshi],
+    amount_msat: Option[String],
     status: String,
     pay_index: Option[Long],
     msatoshi_received: Option[Long],
