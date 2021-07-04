@@ -119,6 +119,7 @@ object LightningStream {
         js.asOpt[GetInfoResponse] orElse
         js.asOpt[ListInvoicesResponse] orElse
         js.asOpt[ListInvoice] orElse
+        js.asOpt[ListInvoiceResponse] orElse
         js.asOpt[LightningRequestError]
         success getOrElse {
           val message = s"Unknown response from lightning node $js"
