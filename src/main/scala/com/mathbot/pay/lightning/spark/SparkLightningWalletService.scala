@@ -62,8 +62,15 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
 
   override def pay(pay: Pay): Future[Either[LightningRequestError, Payment]] = ???
 
-  override def waitAnyInvoice(w: WaitAnyInvoice): Future[Either[LightningRequestError, ListInvoice]] =
-    FastFuture.successful(Left(LightningRequestError(ErrorMsg(500, "Not implemented"))))
+  override def waitAnyInvoice(w: WaitAnyInvoice): Future[Either[LightningRequestError, ListInvoice]] = {
+    val r = base
+      .post(uri"${config.baseUrl}")
+      .body(makeBody("waitanyinvoice", Json.toJson(w)))
+      .response(
+        asJson[ListInvoice].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
+      )
+    r.send().map(_.body)
+  }
 
   override def listOffers(
       req: LightningListOffersRequest
