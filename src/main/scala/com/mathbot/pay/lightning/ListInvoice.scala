@@ -15,7 +15,7 @@ case class ListInvoice(
     paid_at: Option[Long],
     description: String,
     expires_at: Long,
-    bolt12: Option[Bolt12],
+    bolt12: Option[String],
     local_offer_id: Option[String]
 ) extends LightningJson
 
