@@ -76,6 +76,7 @@ object LightningStream {
 
   def convertToString(lj: LightningJson, idGen: AtomicInteger): String = {
     val (method, params) = lj match {
+      case l: LightningListOffersRequest => ("listoffers", Json.toJsObject(l))
       case l: LightningOfferRequest => ("offer", Json.toJsObject(l))
       case l: ListInvoicesRequest => ("listinvoices", Json.toJsObject(l))
       case w: WaitAnyInvoice => ("waitanyinvoice", Json.toJsObject(w))
@@ -117,6 +118,7 @@ object LightningStream {
         js.asOpt[PayResponse] orElse
         js.asOpt[GetInfoResponse] orElse
         js.asOpt[ListInvoicesResponse] orElse
+        js.asOpt[LightningListOffersResponse] orElse
         js.asOpt[ListInvoice] orElse
         js.asOpt[ListInvoiceResponse] orElse
         js.asOpt[LightningRequestError]

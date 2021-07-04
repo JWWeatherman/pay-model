@@ -2,7 +2,7 @@ package com.mathbot.pay.lightning.lightningcharge
 
 import com.mathbot.pay.bitcoin.{MilliSatoshi, Satoshi}
 import com.mathbot.pay.lightning.Bolt11
-import com.mathbot.pay.lightning.LightningInvoiceStatus.LightningChargeInvoiceStatus
+import com.mathbot.pay.lightning.LightningInvoiceStatus.LightningInvoiceStatus
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -17,7 +17,7 @@ case class LightningChargeInvoice(
     payreq: Bolt11,
     expires_at: Instant,
     created_at: Instant,
-    status: LightningChargeInvoiceStatus,
+    status: LightningInvoiceStatus,
     pay_index: Option[Long],
     quoted_currency: Option[String] = None,
     quoted_amount: Option[BigDecimal] = None,
@@ -41,7 +41,7 @@ object LightningChargeInvoice {
     (__ \ "payreq").read[Bolt11] and
     (__ \ "expires_at").read[Long].map(d => Instant.ofEpochSecond(d)) and
     (__ \ "created_at").read[Long].map(d => Instant.ofEpochSecond(d)) and
-    (__ \ "status").read[LightningChargeInvoiceStatus] and
+    (__ \ "status").read[LightningInvoiceStatus] and
     (__ \ "pay_index").readNullable[Long] and
     (__ \ "quoted_currency").readNullable[String] and
     (__ \ "quoted_amount").readNullable[BigDecimal] and

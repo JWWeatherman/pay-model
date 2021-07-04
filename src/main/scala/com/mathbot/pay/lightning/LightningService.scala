@@ -11,4 +11,7 @@ trait LightningService {
   ): Future[Either[LightningRequestError, Invoices]]
 
   def waitAnyInvoice(w: WaitAnyInvoice): Future[Either[LightningRequestError, ListInvoice]]
+
+  def listOffers(r: LightningListOffersRequest): Future[Either[LightningRequestError, Seq[LightningOffer]]]
+
 }
