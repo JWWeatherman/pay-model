@@ -4,7 +4,7 @@ import play.api.libs.json.{Json, OFormat}
 
 case class ListInvoice(
     label: String,
-    bolt11: String,
+    bolt11: Option[String],
     payment_hash: String,
     msatoshi: Long,
     amount_msat: String,
@@ -15,7 +15,8 @@ case class ListInvoice(
     paid_at: Option[Long],
     description: String,
     expires_at: Long,
-    bolt12: Option[Bolt12]
+    bolt12: Option[Bolt12],
+    local_offer_id: Option[String]
 ) extends LightningJson
 
 object ListInvoice {
