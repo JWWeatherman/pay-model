@@ -1,8 +1,8 @@
-package com.mathbot.pay.lightningcharge
+package com.mathbot.pay.lightning.lightningcharge
 
 import com.mathbot.pay.bitcoin.{MilliSatoshi, Satoshi}
 import com.mathbot.pay.lightning.Bolt11
-import com.mathbot.pay.lightningcharge.LightningChargeInvoiceStatus.LightningChargeInvoiceStatus
+import com.mathbot.pay.lightning.LightningInvoiceStatus.LightningChargeInvoiceStatus
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._

@@ -1,4 +1,4 @@
-package com.mathbot.pay.lightningcharge
+package com.mathbot.pay.lightning.lightningcharge
 
 import play.api.libs.json.{JsError, Json}
 import sttp.client.playJson.asJson
