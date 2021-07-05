@@ -8,7 +8,7 @@ import com.mathbot.pay.lightning._
 import play.api.libs.json.{JsValue, Json}
 import sttp.client
 import sttp.client.playJson.asJson
-import sttp.client.{asStreamAlways, basicRequest, SttpBackend, UriContext}
+import sttp.client.{asStreamAlways, asStringAlways, basicRequest, SttpBackend, UriContext}
 import sttp.model.MediaType
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -80,7 +80,9 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
       .post(uri"${config.baseUrl}")
       .body(makeBody("listoffers", Json.toJson(req)))
       .response(
-        asJson[Seq[LightningOffer]].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
+        asJson[LightningOffers]
+          .mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
+          .mapRight(_.offers)
       )
     r.send().map(_.body)
   }
@@ -99,6 +101,14 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
       .response(
         asJson[DecodePay].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
       )
+    r.send().map(_.body)
+  }
+
+  override def createOffer(offerRequest: LightningOfferRequest): Future[String] = {
+    val r = base
+      .post(uri"${config.baseUrl}")
+      .body(makeBody("offer", Json.toJson(offerRequest)))
+      .response(asStringAlways)
     r.send().map(_.body)
   }
 }
