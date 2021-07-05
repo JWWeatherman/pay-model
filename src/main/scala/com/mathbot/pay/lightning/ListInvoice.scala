@@ -6,7 +6,7 @@ import play.api.libs.json.{Json, OFormat}
 
 case class ListInvoice(
     label: String,
-    bolt11: Option[String],
+    bolt11: Option[Bolt11],
     payment_hash: String,
     msatoshi: Option[MilliSatoshi],
     amount_msat: Option[String],
