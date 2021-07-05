@@ -6,6 +6,7 @@ import scala.concurrent.{Future, Promise}
 
 class LightningStreamService(lightningStream: LightningStream) extends LightningService {
 
+  val logger = LoggerFactory.getLogger("LightningStreamService")
   override def listPays(
       l: ListPaysRequest = ListPaysRequest(None, None)
   ): Future[Either[LightningRequestError, Pays]] = {
@@ -20,7 +21,6 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
     p.future
   }
 
-  val logger = LoggerFactory.getLogger("LightnintStreamService")
   def waitAnyInvoice(w: WaitAnyInvoice): Future[Either[LightningRequestError, ListInvoice]] = {
     val p = Promise[Either[LightningRequestError, ListInvoice]]()
     lightningStream.enqueue(w) {
@@ -95,7 +95,7 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
       case err: LightningRequestError =>
         p.success(Left(err))
       case lp: LightningListOffersResponse =>
-        p.success(Right(lp.result))
+        p.success(Right(lp.result.offers))
     }
     p.future
 
