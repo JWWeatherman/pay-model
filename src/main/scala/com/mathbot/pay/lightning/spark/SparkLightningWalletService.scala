@@ -6,8 +6,9 @@ import akka.stream.scaladsl.{Flow, Source}
 import akka.util.ByteString
 import com.mathbot.pay.lightning._
 import play.api.libs.json.{JsValue, Json}
+import sttp.client
 import sttp.client.playJson.asJson
-import sttp.client.{basicRequest, SttpBackend, UriContext}
+import sttp.client.{asStreamAlways, basicRequest, SttpBackend, UriContext}
 import sttp.model.MediaType
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -83,21 +84,21 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
       )
     r.send().map(_.body)
   }
-}
 
-//object SpasrkApp extends App {
-//  val SPARK_URL_BASE = "https://btcpal.online/spark/btc/rpc"
-//  val SPARK_ACCESS_KEY = "pWzDtFPUpmNZLqXDWkDVMMPsVpgxuasHBfgqfT7DA"
-//  val logger = LoggerFactory.getLogger("PayApplication")
-//  implicit val system = ActorSystem("PayApplication")
-//  implicit val ec: ExecutionContext = system.dispatcher
-//  implicit lazy val backend = Slf4jTimingBackend(AkkaHttpBackend.usingActorSystem(system))
-//  val c = SparkLightningWalletServiceConfig(SPARK_URL_BASE, SPARK_ACCESS_KEY)
-//  val s = new SparkLightningWalletService(c)
-//
-//  s.listInvoices().onComplete {
-//    case res =>
-//      logger.info(s"get info $res")
-//      sys.exit()
-//  }
-//}
+  def stream: Future[client.Response[Source[ByteString, Any]]] = {
+    basicRequest
+      .get(uri"${config.baseUrl.replace("/rpc", "/stream")}")
+      .response(asStreamAlways[Source[ByteString, Any]])
+      .send()
+  }
+
+  override def decodePay(b: Bolt11): Future[Either[LightningRequestError, DecodePay]] = {
+    val r = base
+      .post(uri"${config.baseUrl}")
+      .body(makeBody("decodepay", Json.obj("bolt11" -> b.toString)))
+      .response(
+        asJson[DecodePay].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
+      )
+    r.send().map(_.body)
+  }
+}

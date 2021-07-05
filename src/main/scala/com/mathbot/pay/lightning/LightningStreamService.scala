@@ -57,10 +57,12 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
       }
     p.future
   }
-  def decodePay(bolt11: Bolt11) = {
-    val p = Promise[LightningJson]()
-    lightningStream.enqueue(DecodePayRequest(bolt11)) { l: LightningJson =>
-      p.success(l)
+  override def decodePay(bolt11: Bolt11): Future[Either[LightningRequestError, DecodePay]] = {
+    val p = Promise[Either[LightningRequestError, DecodePay]]()
+    lightningStream.enqueue(DecodePayRequest(bolt11)) {
+      case err: LightningRequestError =>
+        p.success(Left(err))
+      case d: DecodePayResponse => p.success(Right(d.result))
     }
     p.future
   }

@@ -14,4 +14,6 @@ trait LightningService {
 
   def listOffers(r: LightningListOffersRequest): Future[Either[LightningRequestError, Seq[LightningOffer]]]
 
+  def decodePay(r: Bolt11): Future[Either[LightningRequestError, DecodePay]]
+
 }
