@@ -101,9 +101,16 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
 
   }
 
-  override def createOffer(offerRequest: LightningOfferRequest): Future[LightningJson] = {
-    val p = Promise[LightningJson]()
-    lightningStream.enqueue(offerRequest)(r => p.success(r))
+  override def createOffer(
+      offerRequest: LightningOfferRequest
+  ): Future[Either[LightningRequestError, LightningOffer]] = {
+    val p = Promise[Either[LightningRequestError, LightningOffer]]()
+    lightningStream.enqueue(offerRequest) {
+      case err: LightningRequestError =>
+        p.success(Left(err))
+      case lp: LightningOffer =>
+        p.success(Right(lp))
+    }
     p.future
   }
 }

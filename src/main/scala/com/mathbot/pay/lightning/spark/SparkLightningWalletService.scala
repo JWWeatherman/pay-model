@@ -5,10 +5,10 @@ import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.{Flow, Source}
 import akka.util.ByteString
 import com.mathbot.pay.lightning._
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsValue, Json, Reads}
 import sttp.client
 import sttp.client.playJson.asJson
-import sttp.client.{asStreamAlways, asStringAlways, basicRequest, SttpBackend, UriContext}
+import sttp.client.{asStreamAlways, asStringAlways, basicRequest, ResponseAs, SttpBackend, UriContext}
 import sttp.model.MediaType
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,6 +26,9 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
     .headers(Map("X-Access" -> config.accessKey))
     .contentType(MediaType.ApplicationJson)
 
+  private def toBody[T](implicit reads: Reads[T]): ResponseAs[Either[LightningRequestError, T], Nothing] =
+    asJson[T].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
+
   private def makeBody(method: String, params: JsValue) = {
     Json.obj("method" -> method, "params" -> params).toString()
   }
@@ -36,7 +39,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("listpays", Json.toJson(l)))
-      .response(asJson[Pays].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None)))
+      .response(toBody[Pays])
 
     r.send().map(_.body)
 
@@ -46,7 +49,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("getinfo", Json.obj()))
-      .response(asJson[InfoResponse].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None)))
+      .response(toBody[InfoResponse])
     r.send()
       .map(_.body)
   }
@@ -56,7 +59,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("listinvoices", Json.toJson(listInvoicesRequest)))
-      .response(asJson[Invoices].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None)))
+      .response(toBody[Invoices])
     r.send().map(_.body)
 
   }
@@ -67,9 +70,8 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("waitanyinvoice", Json.toJson(w)))
-      .response(
-        asJson[ListInvoice].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
-      )
+      .response(toBody[ListInvoice])
+
     r.send().map(_.body)
   }
 
@@ -79,11 +81,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("listoffers", Json.toJson(req)))
-      .response(
-        asJson[LightningOffers]
-          .mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
-          .mapRight(_.offers)
-      )
+      .response(toBody[LightningOffers].mapRight(_.offers))
     r.send().map(_.body)
   }
 
@@ -98,17 +96,17 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("decodepay", Json.obj("bolt11" -> b.toString)))
-      .response(
-        asJson[DecodePay].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
-      )
+      .response(toBody[DecodePay])
     r.send().map(_.body)
   }
 
-  override def createOffer(offerRequest: LightningOfferRequest): Future[String] = {
+  override def createOffer(
+      offerRequest: LightningOfferRequest
+  ): Future[Either[LightningRequestError, LightningOffer]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("offer", Json.toJson(offerRequest)))
-      .response(asStringAlways)
+      .response(toBody[LightningOffer])
     r.send().map(_.body)
   }
 }
