@@ -86,7 +86,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
   }
 
   def stream: Future[client.Response[Source[ByteString, Any]]] = {
-    basicRequest
+    base
       .get(uri"${config.baseUrl.replace("/rpc", "/stream")}")
       .response(asStreamAlways[Source[ByteString, Any]])
       .send()
