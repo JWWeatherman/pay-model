@@ -115,14 +115,14 @@ object LightningStream {
       case Success(js) =>
         logger.debug(s"Response ${js.toString()}")
         val success = js.asOpt[ListPaysResponse] orElse
-        js.asOpt[PayResponse] orElse
-        js.asOpt[GetInfoResponse] orElse
-        js.asOpt[ListInvoicesResponse] orElse
-        js.asOpt[LightningListOffersResponse] orElse
-        js.asOpt[ListInvoice] orElse
-        js.asOpt[ListInvoiceResponse] orElse
-        js.asOpt[DecodePayResponse] orElse
-        js.asOpt[LightningRequestError]
+          js.asOpt[PayResponse] orElse
+          js.asOpt[GetInfoResponse] orElse
+          js.asOpt[ListInvoicesResponse] orElse
+          js.asOpt[LightningListOffersResponse] orElse
+          js.asOpt[ListInvoice] orElse
+          js.asOpt[ListInvoiceResponse] orElse
+          js.asOpt[DecodePayResponse] orElse
+          js.asOpt[LightningRequestError]
         success getOrElse {
           val message = s"Unknown response from lightning node $js"
           logger.error(message)

@@ -3,7 +3,6 @@ package com.mathbot.pay.lightning
 import play.api.libs.json.Json
 
 /**
- *
  * Wait for the next invoice to be paid, after {lastpay_index} (if supplied).
  * If {timeout} seconds is reached while waiting, fail with an error.
  *

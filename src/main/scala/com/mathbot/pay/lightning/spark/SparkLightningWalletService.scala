@@ -13,13 +13,15 @@ import sttp.model.MediaType
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(
-    implicit ec: ExecutionContext,
-    backend: SttpBackend[Future,
-                         Source[ByteString, Any],
-                         ({
-                           type λ[γ$3$] = Flow[Message, Message, γ$3$]
-                         })#λ]
+class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(implicit
+    ec: ExecutionContext,
+    backend: SttpBackend[
+      Future,
+      Source[ByteString, Any],
+      ({
+        type λ[γ$3$] = Flow[Message, Message, γ$3$]
+      })#λ
+    ]
 ) extends LightningService {
 
   private val base = basicRequest

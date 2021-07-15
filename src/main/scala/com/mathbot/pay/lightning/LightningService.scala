@@ -17,5 +17,7 @@ trait LightningService {
   def decodePay(r: Bolt11): Future[Either[LightningRequestError, DecodePay]]
 
   def createOffer(offerRequest: LightningOfferRequest): Future[Either[LightningRequestError, LightningOffer]]
+// todo: invoice
+  //  def invoice()
 
 }

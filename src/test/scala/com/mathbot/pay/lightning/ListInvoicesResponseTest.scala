@@ -1,6 +1,5 @@
 package com.mathbot.pay.lightning
 
-import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.funsuite.AnyFunSuite
 import play.api.libs.json.Json
 
