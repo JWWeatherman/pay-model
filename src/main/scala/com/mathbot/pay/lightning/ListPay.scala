@@ -10,6 +10,7 @@ import play.api.libs.json.{Json, OFormat}
 case class ListPay(
     bolt11: Option[Bolt11],
     status: PayStatus,
+    amount_msat: String,
     amount_sent_msat: String,
     created_at: Option[Instant] = None,
     preimage: Option[String] = None,
@@ -19,15 +20,4 @@ case class ListPay(
 
 object ListPay extends EpochSecondInstantFormatter {
   lazy implicit val formatListPay: OFormat[ListPay] = Json.format[ListPay]
-  def apply(bolt11: Bolt11, payment: Payment): ListPay = {
-    ListPay(
-      bolt11 = Some(bolt11),
-      status = payment.status,
-      amount_sent_msat = payment.amount_sent_msat,
-      created_at = Some(payment.created_at),
-      preimage = Some(payment.payment_preimage),
-      payment_hash = Some(payment.payment_hash),
-      label = payment.label
-    )
-  }
 }
