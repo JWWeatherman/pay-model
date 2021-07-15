@@ -1,7 +1,8 @@
 package com.mathbot.pay.lightning
 
-import java.time.Instant
+import com.mathbot.pay.bitcoin.MilliSatoshi
 
+import java.time.Instant
 import com.mathbot.pay.json.EpochSecondInstantFormatter
 import com.mathbot.pay.lightning.PayStatus.PayStatus
 import play.api.libs.json.{Json, OFormat}
@@ -10,13 +11,16 @@ import play.api.libs.json.{Json, OFormat}
 case class ListPay(
     bolt11: Option[Bolt11],
     status: PayStatus,
-    amount_msat: String,
+    amount_msat: Option[String],
     amount_sent_msat: String,
-    created_at: Option[Instant] = None,
+    created_at: Instant,
     preimage: Option[String] = None,
     payment_hash: Option[String] = None,
     label: Option[String] = None
-)
+) {
+  lazy val amountMsat = amount_msat.map(a => MilliSatoshi(a.replace("msat", "").toLong))
+  lazy val amountSentMsat = MilliSatoshi(amount_sent_msat.replace("msat", "").toLong)
+}
 
 object ListPay extends EpochSecondInstantFormatter {
   lazy implicit val formatListPay: OFormat[ListPay] = Json.format[ListPay]
