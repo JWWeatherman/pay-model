@@ -14,15 +14,16 @@ import sttp.model.MediaType
 import scala.concurrent.{ExecutionContext, Future}
 
 class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(implicit
-    ec: ExecutionContext,
-    backend: SttpBackend[
-      Future,
-      Source[ByteString, Any],
-      ({
-        type λ[γ$3$] = Flow[Message, Message, γ$3$]
-      })#λ
-    ]
-) extends LightningService {
+                                                                             ec: ExecutionContext,
+                                                                             backend: SttpBackend[
+                                                                               Future,
+                                                                               Source[ByteString, Any],
+                                                                               ({
+                                                                                 type λ[γ$3$] =
+                                                                                   Flow[Message, Message, γ$3$]
+                                                                               })#λ
+                                                                             ])
+    extends LightningService {
 
   private val base = basicRequest
     .headers(Map("X-Access" -> config.accessKey))
@@ -47,11 +48,11 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(imp
 
   }
 
-  override def getInfo: Future[Either[LightningRequestError, InfoResponse]] = {
+  override def getInfo: Future[Either[LightningRequestError, LightningNodeInfo]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("getinfo", Json.obj()))
-      .response(toBody[InfoResponse])
+      .response(toBody[LightningNodeInfo])
     r.send()
       .map(_.body)
   }
@@ -109,6 +110,14 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(imp
       .post(uri"${config.baseUrl}")
       .body(makeBody("offer", Json.toJson(offerRequest)))
       .response(toBody[LightningOffer])
+    r.send().map(_.body)
+  }
+
+  override def invoice(inv: LightningInvoice): Future[Either[LightningRequestError, LightningCreateInvoice]] = {
+    val r = base
+      .post(uri"${config.baseUrl}")
+      .body(makeBody("offer", Json.toJson(inv)))
+      .response(toBody[LightningCreateInvoice])
     r.send().map(_.body)
   }
 }

@@ -1,7 +1,8 @@
 package com.mathbot.pay.bitcoin
 
-import java.text.DecimalFormat
+import com.github.dwickern.macros.NameOf.nameOf
 
+import java.text.DecimalFormat
 import play.api.libs.json._
 
 import scala.util.{Failure, Success, Try}
@@ -134,12 +135,13 @@ object MilliSatoshi {
     override def reads(json: JsValue): JsResult[MilliSatoshi] =
       json match {
         case JsString(satStr) =>
-          Try(satStr.toLong) match {
-            case Failure(exception) => JsError(s"Unable to convert to long $exception")
+          Try(satStr.replace("msat", "").toLong) match {
+            case Failure(exception) =>
+              JsError(s"Not a ${nameOf(MilliSatoshi)} Unable to convert string to long $exception")
             case Success(value) => JsSuccess(MilliSatoshi(value))
           }
         case JsNumber(sat) => JsSuccess(MilliSatoshi(sat.toLong))
-        case _ => JsError("Invalid format")
+        case _ => JsError(s"Not a ${nameOf(MilliSatoshi)} Invalid format")
       }
   }
 

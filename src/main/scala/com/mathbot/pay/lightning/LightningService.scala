@@ -4,7 +4,7 @@ import scala.concurrent.Future
 
 trait LightningService {
   def listPays(l: ListPaysRequest = ListPaysRequest(None, None)): Future[Either[LightningRequestError, Pays]]
-  def getInfo: Future[Either[LightningRequestError, InfoResponse]]
+  def getInfo: Future[Either[LightningRequestError, LightningNodeInfo]]
   def pay(pay: Pay): Future[Either[LightningRequestError, Payment]]
   def listInvoices(
       l: ListInvoicesRequest = ListInvoicesRequest(None, None, None)
@@ -17,7 +17,6 @@ trait LightningService {
   def decodePay(r: Bolt11): Future[Either[LightningRequestError, DecodePay]]
 
   def createOffer(offerRequest: LightningOfferRequest): Future[Either[LightningRequestError, LightningOffer]]
-// todo: invoice
-  //  def invoice()
 
+  def invoice(inv: LightningInvoice): Future[Either[LightningRequestError, LightningCreateInvoice]]
 }

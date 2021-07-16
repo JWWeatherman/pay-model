@@ -45,8 +45,8 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
     p.future
   }
 
-  def getInfo: Future[Either[LightningRequestError, InfoResponse]] = {
-    val p = Promise[Either[LightningRequestError, InfoResponse]]()
+  def getInfo: Future[Either[LightningRequestError, LightningNodeInfo]] = {
+    val p = Promise[Either[LightningRequestError, LightningNodeInfo]]()
     lightningStream
       .enqueue(LightningGetInfoRequest()) {
         case g: GetInfoResponse => p.success(Right(g.result))
@@ -110,6 +110,17 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
         p.success(Left(err))
       case lp: LightningOffer =>
         p.success(Right(lp))
+    }
+    p.future
+  }
+
+  override def invoice(inv: LightningInvoice): Future[Either[LightningRequestError, LightningCreateInvoice]] = {
+    val p = Promise[Either[LightningRequestError, LightningCreateInvoice]]()
+    lightningStream.enqueue(inv) {
+      case err: LightningRequestError =>
+        p.success(Left(err))
+      case lp: LightningCreateInvoiceResponse =>
+        p.success(Right(lp.result))
     }
     p.future
   }
