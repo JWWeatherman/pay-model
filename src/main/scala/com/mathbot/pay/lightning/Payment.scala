@@ -23,8 +23,8 @@ import play.api.libs.json._
  * @param label attached to the payment
  */
 case class Payment(
-    amount_msat: String,
-    amount_sent_msat: String,
+    amount_msat: MilliSatoshi,
+    amount_sent_msat: MilliSatoshi,
     created_at: Instant,
     destination: String,
     msatoshi: MilliSatoshi,
@@ -42,7 +42,7 @@ case class Payment(
   // require(validPaymentHash, s"Invalid payment $hashedPreimage, $payment_hash")
 }
 
-object Payment extends PlayJsonSupport with EpochSecondInstantFormatter {
+object Payment extends EpochSecondInstantFormatter {
   implicit val formatPayment: OFormat[Payment] = Json.format[Payment]
   lazy val sha256 = Hashing.sha256()
 }
