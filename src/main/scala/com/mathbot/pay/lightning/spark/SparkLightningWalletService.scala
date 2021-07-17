@@ -1,14 +1,13 @@
 package com.mathbot.pay.lightning.spark
 
 import akka.http.scaladsl.model.ws.Message
-import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.{Flow, Source}
 import akka.util.ByteString
 import com.mathbot.pay.lightning._
 import play.api.libs.json.{JsValue, Json, Reads}
 import sttp.client
 import sttp.client.playJson.asJson
-import sttp.client.{asStreamAlways, asStringAlways, basicRequest, ResponseAs, SttpBackend, UriContext}
+import sttp.client.{asStreamAlways, basicRequest, ResponseAs, SttpBackend, UriContext}
 import sttp.model.MediaType
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,54 +37,55 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(imp
 
   override def listPays(
       l: ListPaysRequest = ListPaysRequest(None, None)
-  ): Future[Either[LightningRequestError, Pays]] = {
+  ): Future[client.Response[Either[LightningRequestError, Pays]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("listpays", Json.toJson(l)))
       .response(toBody[Pays])
 
-    r.send().map(_.body)
+    r.send()
 
   }
 
-  override def getInfo: Future[Either[LightningRequestError, LightningNodeInfo]] = {
+  override def getInfo: Future[client.Response[Either[LightningRequestError, LightningNodeInfo]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("getinfo", Json.obj()))
       .response(toBody[LightningNodeInfo])
     r.send()
-      .map(_.body)
   }
   override def listInvoices(
       listInvoicesRequest: ListInvoicesRequest
-  ): Future[Either[LightningRequestError, Invoices]] = {
+  ): Future[client.Response[Either[LightningRequestError, Invoices]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("listinvoices", Json.toJson(listInvoicesRequest)))
       .response(toBody[Invoices])
-    r.send().map(_.body)
+    r.send()
 
   }
 
-  override def pay(pay: Pay): Future[Either[LightningRequestError, Payment]] = ???
+  override def pay(pay: Pay): Future[client.Response[Either[LightningRequestError, Payment]]] = ???
 
-  override def waitAnyInvoice(w: WaitAnyInvoice): Future[Either[LightningRequestError, ListInvoice]] = {
+  override def waitAnyInvoice(
+      w: WaitAnyInvoice
+  ): Future[client.Response[Either[LightningRequestError, ListInvoice]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("waitanyinvoice", Json.toJson(w)))
       .response(toBody[ListInvoice])
 
-    r.send().map(_.body)
+    r.send()
   }
 
   override def listOffers(
       req: LightningListOffersRequest
-  ): Future[Either[LightningRequestError, Seq[LightningOffer]]] = {
+  ): Future[client.Response[Either[LightningRequestError, Seq[LightningOffer]]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("listoffers", Json.toJson(req)))
       .response(toBody[LightningOffers].mapRight(_.offers))
-    r.send().map(_.body)
+    r.send()
   }
 
   def stream: Future[client.Response[Source[ByteString, Any]]] = {
@@ -95,29 +95,31 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig)(imp
       .send()
   }
 
-  override def decodePay(b: Bolt11): Future[Either[LightningRequestError, DecodePay]] = {
+  override def decodePay(b: Bolt11): Future[client.Response[Either[LightningRequestError, DecodePay]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("decodepay", Json.obj("bolt11" -> b.toString)))
       .response(toBody[DecodePay])
-    r.send().map(_.body)
+    r.send()
   }
 
   override def createOffer(
       offerRequest: LightningOfferRequest
-  ): Future[Either[LightningRequestError, LightningOffer]] = {
+  ): Future[client.Response[Either[LightningRequestError, LightningOffer]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("offer", Json.toJson(offerRequest)))
       .response(toBody[LightningOffer])
-    r.send().map(_.body)
+    r.send()
   }
 
-  override def invoice(inv: LightningInvoice): Future[Either[LightningRequestError, LightningCreateInvoice]] = {
+  override def invoice(
+      inv: LightningInvoice
+  ): Future[client.Response[Either[LightningRequestError, LightningCreateInvoice]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("offer", Json.toJson(inv)))
       .response(toBody[LightningCreateInvoice])
-    r.send().map(_.body)
+    r.send()
   }
 }

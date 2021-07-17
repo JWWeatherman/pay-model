@@ -1,12 +1,12 @@
 package com.mathbot.pay.lightning
 
-import java.time.Instant
-
 import com.google.common.hash.Hashing
 import com.mathbot.pay.bitcoin.MilliSatoshi
-import com.mathbot.pay.json.{EpochSecondInstantFormatter, PlayJsonSupport}
+import com.mathbot.pay.json.EpochSecondInstantFormatter
 import com.mathbot.pay.lightning.PayStatus.PayStatus
 import play.api.libs.json._
+
+import java.time.Instant
 
 /**
  * @param amount_msat
@@ -35,12 +35,7 @@ case class Payment(
     parts: Option[Int] = None,
     error: Option[String] = None,
     label: Option[String] = None
-) {
-
-  lazy val hashedPreimage = Payment.sha256.hashBytes(BigInt(payment_preimage, 16).toByteArray)
-  def validPaymentHash: Boolean = hashedPreimage.toString == payment_hash
-  // require(validPaymentHash, s"Invalid payment $hashedPreimage, $payment_hash")
-}
+)
 
 object Payment extends EpochSecondInstantFormatter {
   implicit val formatPayment: OFormat[Payment] = Json.format[Payment]
