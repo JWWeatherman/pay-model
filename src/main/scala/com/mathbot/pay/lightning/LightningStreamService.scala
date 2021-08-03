@@ -1,7 +1,7 @@
 package com.mathbot.pay.lightning
 
 import org.slf4j.{Logger, LoggerFactory}
-import sttp.client.Response
+import sttp.client3.Response
 
 import scala.concurrent.{Future, Promise}
 

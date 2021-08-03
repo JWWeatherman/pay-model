@@ -7,6 +7,10 @@ addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
 addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
 addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
 
+addCommandsAlias("cc", Seq("clean", "compile"))
+addCommandAlias("err", "lastGrep error compile")
+addCommandAlias("errt", "lastGrep error test:compile")
+
 
 val scala213 = "2.13.3"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
@@ -38,9 +42,10 @@ val commonDeps = Seq(
   akkaStream,
   akkaStreamTestkit,
   akkaTestkit,
+  logging,
   scalactic,
   mockito,
-  "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided",
+  nameOf
   bitcoinLib,
   scodec
 ) ++ sttp ++ macwire

@@ -154,7 +154,7 @@ case class MilliSatoshi(private val underlying: Long) extends BtcAmount with Ord
   def *(m: Long): MilliSatoshi = MilliSatoshi(underlying * m)
   def /(d: Long): MilliSatoshi = MilliSatoshi(underlying / d)
   def compare(other: MilliSatoshi): Int =
-    if (underlying == other.underlying) 0 else if (underlying < other.underlying) -1 else 1
+    underlying.compareTo(other.underlying)
   def unary_-(): MilliSatoshi = MilliSatoshi(-underlying)
 
   def max(other: BtcAmount): MilliSatoshi =

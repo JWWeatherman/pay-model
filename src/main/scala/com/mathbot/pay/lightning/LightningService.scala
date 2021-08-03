@@ -2,7 +2,7 @@ package com.mathbot.pay.lightning
 
 import scala.concurrent.Future
 
-import sttp.client.Response
+import sttp.client3.Response
 
 trait LightningService {
   def listPays(l: ListPaysRequest = ListPaysRequest(None, None)): Future[Response[Either[LightningRequestError, Pays]]]

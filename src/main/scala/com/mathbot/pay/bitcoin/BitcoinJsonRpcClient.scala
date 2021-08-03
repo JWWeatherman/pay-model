@@ -1,8 +1,5 @@
 package com.mathbot.pay.bitcoin
 
-import java.time.Instant
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.mathbot.pay.bitcoin.AddressType.AddressType
 import com.mathbot.pay.bitcoin.Btc.stringify
 import com.mathbot.pay.bitcoin.EstimateFeeMode.EstimateFeeMode
@@ -10,34 +7,26 @@ import com.mathbot.pay.bitcoin.SigHashType.SigHashType
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
-import sttp.client._
+import sttp.client3._
 import sttp.model.MediaType
 
+import java.time.Instant
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 //noinspection SpellCheckingInspection
 case class BitcoinJsonRpcClient(
     config: BitcoinJsonRpcConfig,
-    ec: ExecutionContext,
-    backend: SttpBackend[Future, Nothing, NothingT],
+    backend: SttpBackend[Future, Any],
     logger: Logger = LoggerFactory.getLogger("BitcoinJsonRpcClient")
-) {
-  private implicit val _ec: ExecutionContext = ec
-  implicit val sttpBackend: SttpBackend[Future, Nothing, NothingT] = backend
+)(implicit ec: ExecutionContext) {
   private val idGen = new AtomicInteger(1)
   private def id = idGen.getAndIncrement()
 
-  private val baseRequest = basicRequest
-    .post(uri"${config.baseUrl}")
-    .contentType(MediaType.TextPlain)
-    .acceptEncoding(MediaType.ApplicationJson.toString)
-    .auth
-    .basic(user = config.username, password = config.password)
-
   private def asRpcResult[T](
       id: String
-  )(implicit jsonReader: Reads[T]): ResponseAs[Either[RpcResponseError, T], Nothing] =
+  )(implicit jsonReader: Reads[T]): ResponseAs[Either[RpcResponseError, T], Any] =
     asString.map {
       case Left(value) => Left(RpcResponseError(id, ResponseError(500, value)))
       case Right(value) =>
@@ -78,18 +67,22 @@ case class BitcoinJsonRpcClient(
    * @return Error or the method's expected response object
    */
   def send[T](method: String, params: JsValueWrapper*)(implicit
-      jsonReader: Reads[T]
-  ): Future[Either[RpcResponseError, T]] = {
+                                                       jsonReader: Reads[T]): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
       .toJson(JsonRpcRequestBody(method = method, params = Json.arr(params: _*), jsonrpc = config.jsonRpc, id = ID))
       .toString
-    val req = baseRequest
+    val req = basicRequest
+      .post(uri"${config.baseUrl}")
+      .contentType(MediaType.TextPlain)
+      .acceptEncoding(MediaType.ApplicationJson.toString)
+      .auth
+      .basic(user = config.username, password = config.password)
       .body(body)
       .response(asRpcResult(ID))
 
     logger.debug(req.toCurl)
-    req.send().map(_.body)
+    req.send(backend).map(_.body)
   }
 
   /**

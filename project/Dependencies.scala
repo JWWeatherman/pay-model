@@ -6,8 +6,8 @@ import sbt._
 object Dependencies {
   lazy val playJsonV = "2.7.4"
   lazy val scalaTestV = "3.2.8"
-  lazy val akkaVersion = "2.5.32"
-  lazy val sttpVersion = "2.2.9"
+  lazy val akkaVersion = "2.6.15"
+  lazy val sttpVersion = "3.3.11"
   lazy val alpakkaSocketV = "2.0.2"
   lazy val macwireVersion = "2.3.7"
   lazy val sttpModelV = "1.3.4"
@@ -15,15 +15,15 @@ object Dependencies {
   lazy val mockitoV = "3.2.8.0"
 
   lazy val sttp = Seq(
-    "com.softwaremill.sttp.client" %% "core" % sttpVersion,
-    "com.softwaremill.sttp.client" %% "akka-http-backend" % sttpVersion,
-    "com.softwaremill.sttp.client" %% "play-json" % sttpVersion
+    "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
+    "com.softwaremill.sttp.client3" %% "akka-http-backend" % sttpVersion,
+    "com.softwaremill.sttp.client3" %% "play-json" % sttpVersion
   )
   val requests = "com.lihaoyi" %% "requests" % "0.6.7"
   val bitcoinLib = "fr.acinq" %% "bitcoin-lib" % "0.19"
   val scodec = "org.scodec" %% "scodec-core" % "1.11.7"
-
-  lazy val okhttp = "com.softwaremill.sttp.client" %% "okhttp-backend" % sttpVersion
+  val nameOf = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided"
+  lazy val okhttp = "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpVersion
   lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it,test"
   lazy val akkaTestkit =
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it,test"
@@ -44,5 +44,6 @@ object Dependencies {
     "com.softwaremill.macwire" %% "proxy" % macwireVersion
   )
   lazy val mockito = "org.scalatestplus" %% "mockito-3-4" % mockitoV % "it,test"
+  val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
 
 }

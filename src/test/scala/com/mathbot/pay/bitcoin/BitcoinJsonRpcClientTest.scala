@@ -5,8 +5,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsArray, JsString, JsValue, Json}
-import sttp.client.StringBody
-import sttp.client.testing._
+import sttp.client3.StringBody
+import sttp.client3.testing._
 
 import java.text.DecimalFormat
 import java.time.Instant
@@ -29,7 +29,7 @@ class BitcoinJsonRpcClientTest extends AsyncWordSpec with MockitoSugar with Eith
           }
         })
         .thenRespond("""{"result": 0.001, "id": "id" }""")
-      val client = BitcoinJsonRpcClient(config, executionContext, be)
+      val client = BitcoinJsonRpcClient(config, be)
       for {
         b <- client.getbalance
       } yield {
@@ -64,7 +64,7 @@ class BitcoinJsonRpcClientTest extends AsyncWordSpec with MockitoSugar with Eith
           }
         })
         .thenRespond(Json.obj("result" -> walletTransaction, "id" -> "1", "error" -> null).toString())
-      val client = BitcoinJsonRpcClient(config, executionContext, be)
+      val client = BitcoinJsonRpcClient(config, be)
       for {
         t <- client.gettransaction(txid)
       } yield {
@@ -77,7 +77,7 @@ class BitcoinJsonRpcClientTest extends AsyncWordSpec with MockitoSugar with Eith
     "error with gettransaction (non wallet tx)" in {
       val txid = TxId("d6e889709bdd03b3dea86e4a01e6d12a51cdf4c97ac0d9f6db0fd41cea9f5109")
       val be = SttpBackendStub.asynchronousFuture
-      val client = BitcoinJsonRpcClient(config, executionContext, be)
+      val client = BitcoinJsonRpcClient(config, be)
       for {
         e <- client.gettransaction(txid)
       } yield {
@@ -109,7 +109,7 @@ class BitcoinJsonRpcClientTest extends AsyncWordSpec with MockitoSugar with Eith
         .thenRespond(
           """{"result": "d6e889709bdd03b3dea86e4a01e6d12a51cdf4c97ac0d9f6db0fd41cea9f5109", "id": "id" }"""
         )
-      val client = BitcoinJsonRpcClient(config, executionContext, be)
+      val client = BitcoinJsonRpcClient(config, be)
       for {
         r <- client.sendtoaddress(btcAddress, amount)
       } yield {

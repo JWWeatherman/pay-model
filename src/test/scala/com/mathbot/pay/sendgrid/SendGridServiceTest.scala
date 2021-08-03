@@ -13,7 +13,7 @@ class SendGridServiceTesst extends AsyncWordSpec with MockitoSugar {
     "sendMessage" in {
 
       when(service.sendMessage(any[EmailMessage])) thenReturn FastFuture.successful(
-        sttp.client.Response.ok(Right("accepted"))
+        sttp.client3.Response.ok(Right("accepted"))
       )
 
       service
