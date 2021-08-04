@@ -10,7 +10,7 @@ class SendGridService(config: SendGridConfig, backend: SttpBackend[Future, Any])
     val req = basicRequest
       .post(uri"${config.baseUrl}/v3/mail/send")
       .auth
-      .bearer(config.secretKey)
+      .bearer(config.secretKey.value)
       .body(SendGridEmail(email))
     req.send(backend)
   }

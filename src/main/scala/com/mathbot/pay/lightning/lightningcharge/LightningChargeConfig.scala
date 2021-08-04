@@ -1,5 +1,6 @@
 package com.mathbot.pay.lightning.lightningcharge
 
+import com.mathbot.pay.Sensitive
 import com.typesafe.config.Config
 
 /**
@@ -8,13 +9,13 @@ import com.typesafe.config.Config
  * @param baseUrl
  * @param websocketUrl to subscribe for payment events
  */
-case class LightningChargeConfig(username: String, password: String, baseUrl: String, websocketUrl: String)
+case class LightningChargeConfig(username: String, password: Sensitive, baseUrl: String, websocketUrl: String)
 
 object LightningChargeConfig {
   def forConfig(config: Config): LightningChargeConfig =
     LightningChargeConfig(
       username = config.getString("lightningCharge.username"),
-      password = config.getString("lightningCharge.password"),
+      password = Sensitive(config.getString("lightningCharge.password")),
       baseUrl = config.getString("lightningCharge.baseUrl"),
       websocketUrl = config.getString("lightningCharge.websocketUrl")
     )

@@ -1,6 +1,7 @@
 package com.mathbot.pay.lightning.lightningcharge
 
 import play.api.libs.json.{JsError, Json}
+import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.playJson.asJson
 import sttp.client3.{SttpBackend, basicRequest, _}
 import sttp.model.{MediaType, StatusCode}
@@ -16,27 +17,26 @@ import scala.concurrent.duration._
  */
 class LightningChargeService(
     config: LightningChargeConfig,
-    backend: SttpBackend[Future, Nothing]
+    backend: SttpBackend[Future, AkkaStreams]
 ) {
-
+  import playJson._
   private val base = basicRequest.auth
-    .basic(config.username, config.password)
+    .basic(config.username, config.password.value)
     .acceptEncoding(MediaType.ApplicationJson.toString())
 
   private final val baseInvoiceRequest = base
     .post(uri"${config.baseUrl}/invoice")
-    .contentType(MediaType.ApplicationJson)
     .response(asJson[LightningChargeInvoice])
 
   def invoice(
       invoice: LightningChargeInvoiceRequest
   ): Future[Response[Either[ResponseException[String, JsError], LightningChargeInvoice]]] =
-    baseInvoiceRequest.body(Json.toJson(invoice).toString).send(backend)
+    baseInvoiceRequest.body(invoice).send(backend)
 
   def invoice(
       invoice: LightningChargeInvoiceRequestByCurrency
   ) =
-    baseInvoiceRequest.body(Json.toJson(invoice).toString).send(backend)
+    baseInvoiceRequest.body(invoice).send(backend)
 
   /*
     https://github.com/ElementsProject/lightning-charge#get-invoiceidwaittimeoutsec
@@ -58,7 +58,6 @@ class LightningChargeService(
   def get(id: String) = {
     val req = base
       .get(uri"${config.baseUrl}/invoice/$id")
-      .acceptEncoding(MediaType.ApplicationJson.toString())
       .response(asJson[LightningChargeInvoice])
     req.send(backend)
   }
@@ -66,7 +65,6 @@ class LightningChargeService(
   def getAll() = {
     val req = base
       .get(uri"${config.baseUrl}/invoices")
-      .acceptEncoding(MediaType.ApplicationJson.toString())
       .response(asJson[Seq[LightningChargeInvoice]])
     req.send(backend)
   }

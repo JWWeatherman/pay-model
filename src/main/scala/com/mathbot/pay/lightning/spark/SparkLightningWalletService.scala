@@ -16,7 +16,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
   import sttp.client3.playJson._
 
   private val base = basicRequest
-    .headers(Map("X-Access" -> config.accessKey))
+    .headers(Map("X-Access" -> config.accessKey.value))
 
   private def toBody[T](implicit reads: Reads[T]): ResponseAs[Either[LightningRequestError, T], Any] =
     asJson[T].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
@@ -27,9 +27,8 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
   override def listPays(
       l: ListPaysRequest = ListPaysRequest(None, None)
   ) = {
-    basicRequest
+    base
       .post(uri"${config.baseUrl}")
-      .headers(Map("X-Access" -> config.accessKey))
       .body(makeBody("listpays", Json.toJson(l)))
       .response(toBody[Pays])
       .send(backend)

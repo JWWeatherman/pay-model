@@ -47,6 +47,7 @@ val commonDeps = Seq(
   mockito,
   nameOf,
   bitcoinLib,
+  logging,
   scodec
 ) ++ sttp ++ macwire
 
