@@ -74,17 +74,6 @@ class BitcoinJsonRpcClientTest extends AsyncWordSpec with MockitoSugar with Eith
       }
     }
 
-    "error with gettransaction (non wallet tx)" in {
-      val txid = TxId("d6e889709bdd03b3dea86e4a01e6d12a51cdf4c97ac0d9f6db0fd41cea9f5109")
-      val be = SttpBackendStub.asynchronousFuture
-      val client = BitcoinJsonRpcClient(config, be)
-      for {
-        e <- client.gettransaction(txid)
-      } yield {
-        assert(e.isLeft)
-      }
-    }
-
     "send to address" in {
       val btcAddress = BtcAddress("tb1q89dagnf6g0reveq57z7yzmrer47tmtwj9s73qh")
       val amount = Satoshi(1000).toBtc
