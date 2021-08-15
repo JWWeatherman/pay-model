@@ -1,17 +1,18 @@
 package com.mathbot.pay.lightning.spark
 
 import akka.stream.scaladsl.Source
-import akka.util.ByteString
 import com.mathbot.pay.lightning._
-import play.api.libs.json.{JsValue, Json, Reads}
+import play.api.libs.json._
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
+import sttp.client3.akkahttp.AkkaHttpServerSentEvents
+import sttp.model.sse.ServerSentEvent
 
 import scala.concurrent.Future
 
 class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, backend: SttpBackend[Future, AkkaStreams])
     extends LightningService {
-
+  import SparkLightningWalletService._
   import sttp.client3._
   import sttp.client3.playJson._
 
@@ -21,11 +22,11 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
   private def toBody[T](implicit reads: Reads[T]): ResponseAs[Either[LightningRequestError, T], Any] =
     asJson[T].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
 
-  private def makeBody(method: String, params: JsValue) =
+  private def makeBody(method: String, params: JsValue): JsObject =
     Json.obj("method" -> method, "params" -> params)
 
   override def listPays(
-      l: ListPaysRequest = ListPaysRequest(None, None)
+      l: ListPaysRequest = ListPaysRequest(bolt11 = None, payment_hash = None)
   ) = {
     base
       .post(uri"${config.baseUrl}")
@@ -83,10 +84,29 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
     r.send(backend)
   }
 
-  def stream: Future[Response[Either[String, Source[ByteString, Any]]]] =
+  def onEvent(event: ServerSentEvent): Either[String, SparkWalletSSE] = {
+    (event.eventType, event.data) match {
+      case (Some(event), Some(data)) =>
+        event match {
+          case "btcusd" => Right(BtcUsd(BigDecimal(data)))
+          case "inv-paid" =>
+            Json.parse(data).validate[ListPay] match {
+              case JsSuccess(value, _) => Right(InvoicePaid(value))
+              case JsError(errors) => Left(errors.mkString(","))
+            }
+          case other => Left(other)
+        }
+      case noEventTypeOrData => Left(event.toString())
+    }
+  }
+
+  def stream: Future[Response[Either[String, Source[ServerSentEvent, Any]]]] =
     base
       .get(uri"${config.baseUrl.replace("/rpc", "/stream")}")
-      .response(asStreamUnsafe(AkkaStreams))
+      .response(
+        asStreamUnsafe(AkkaStreams)
+          .mapRight(_.via(AkkaHttpServerSentEvents.parse))
+      )
       .send(backend)
 
   override def decodePay(b: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]] = {
@@ -116,4 +136,11 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
       .response(toBody[LightningCreateInvoice])
     r.send(backend)
   }
+}
+
+object SparkLightningWalletService {
+  trait SparkWalletSSE
+  case class BtcUsd(btcusd: BigDecimal) extends SparkWalletSSE
+  case class InvoicePaid(listPay: ListPay) extends SparkWalletSSE
+
 }
