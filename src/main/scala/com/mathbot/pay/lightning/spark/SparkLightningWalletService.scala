@@ -90,7 +90,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
         event match {
           case "btcusd" => Right(BtcUsd(BigDecimal(data)))
           case "inv-paid" =>
-            Json.parse(data).validate[ListPay] match {
+            Json.parse(data).validate[ListInvoice] match {
               case JsSuccess(value, _) => Right(InvoicePaid(value))
               case JsError(errors) => Left(errors.mkString(","))
             }
@@ -141,6 +141,6 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
 object SparkLightningWalletService {
   trait SparkWalletSSE
   case class BtcUsd(btcusd: BigDecimal) extends SparkWalletSSE
-  case class InvoicePaid(listPay: ListPay) extends SparkWalletSSE
+  case class InvoicePaid(listPay: ListInvoice) extends SparkWalletSSE
 
 }
