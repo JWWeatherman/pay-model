@@ -84,6 +84,28 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
     r.send(backend)
   }
 
+  def stream(processEvents: Source[ServerSentEvent, Any] => Future[Unit]) = {
+    base
+      .get(uri"${config.baseUrl.replace("/rpc", "/stream")}")
+      .response(
+        asStream(AkkaStreams)(stream => processEvents(stream.via(AkkaHttpServerSentEvents.parse)))
+      )
+      .send(backend)
+  }
+
+  override def decodePay(b: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]] = {
+    val r = base
+      .post(uri"${config.baseUrl}")
+      .body(makeBody("decodepay", Json.obj("bolt11" -> b.toString)))
+      .response(toBody[DecodePay])
+    r.send(backend)
+  }
+
+  /**
+   * Helper to handle the server sent events. spark only returns btcusd and parid invoices
+   * @param event
+   * @return
+   */
   def onEvent(event: ServerSentEvent): Either[String, SparkWalletSSE] = {
     (event.eventType, event.data) match {
       case (Some(event), Some(data)) =>
@@ -98,23 +120,6 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
         }
       case noEventTypeOrData => Left(event.toString())
     }
-  }
-
-  def stream: Future[Response[Either[String, Source[ServerSentEvent, Any]]]] =
-    base
-      .get(uri"${config.baseUrl.replace("/rpc", "/stream")}")
-      .response(
-        asStreamUnsafe(AkkaStreams)
-          .mapRight(_.via(AkkaHttpServerSentEvents.parse))
-      )
-      .send(backend)
-
-  override def decodePay(b: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]] = {
-    val r = base
-      .post(uri"${config.baseUrl}")
-      .body(makeBody("decodepay", Json.obj("bolt11" -> b.toString)))
-      .response(toBody[DecodePay])
-    r.send(backend)
   }
 
   override def createOffer(
