@@ -109,10 +109,11 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
   def onEvent(event: ServerSentEvent): Either[String, SparkWalletSSE] = {
     (event.eventType, event.data) match {
       case (Some(event), Some(data)) =>
+        val cleanData = data.replace("\"", "").trim
         event match {
-          case "btcusd" => Right(BtcUsd(BigDecimal(data)))
+          case "btcusd" => Right(BtcUsd(BigDecimal(cleanData)))
           case "inv-paid" =>
-            Json.parse(data).validate[ListInvoice] match {
+            Json.parse(cleanData).validate[ListInvoice] match {
               case JsSuccess(value, _) => Right(InvoicePaid(value))
               case JsError(errors) => Left(errors.mkString(","))
             }
