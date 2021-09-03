@@ -11,7 +11,7 @@ class BTCPayServerServiceV2(
 ) {
 
   private val baseUrl = config.baseUrl
-  private val headers = Map("Authorization" -> config.apiKey, "Content-Type" -> "application/json")
+  private val headers = Map("Authorization" -> config.apiKey.value, "Content-Type" -> "application/json")
 
   def invoice(invoice: InvoiceRequest): (Response, JsResult[ChargeInfoResponse]) = {
     val response = requests.post(

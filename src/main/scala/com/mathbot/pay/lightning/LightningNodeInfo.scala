@@ -2,7 +2,7 @@ package com.mathbot.pay.lightning
 
 import play.api.libs.json.{Json, OFormat}
 
-case class InfoResponse(
+case class LightningNodeInfo(
     id: String,
     alias: String,
     color: String,
@@ -21,6 +21,6 @@ case class InfoResponse(
   override def toString: String = Json.toJson(this).toString()
 }
 
-object InfoResponse {
-  lazy implicit val formatInfoResponse: OFormat[InfoResponse] = Json.format[InfoResponse]
+object LightningNodeInfo {
+  lazy implicit val formatInfoResponse: OFormat[LightningNodeInfo] = Json.format[LightningNodeInfo]
 }

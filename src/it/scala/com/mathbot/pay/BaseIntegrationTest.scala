@@ -6,7 +6,7 @@ import org.scalatest.wordspec.AsyncWordSpecLike
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.mockito.MockitoSugar
 import org.slf4j.LoggerFactory
-import sttp.client.akkahttp.AkkaHttpBackend
+import sttp.client3.akkahttp.AkkaHttpBackend
 
 abstract class BaseIntegrationTest
     extends TestKit(ActorSystem("test"))

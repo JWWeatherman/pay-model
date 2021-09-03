@@ -1,17 +1,12 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
-import com.mathbot.pay.json.FiniteDurationToSecondsWriter
+import com.mathbot.pay.json.{FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
 import play.api.libs.json._
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
 
-object Pay extends FiniteDurationToSecondsWriter {
-  implicit val readsRetryFo: Reads[FiniteDuration] = {
-    case JsString(value) =>
-      JsSuccess(Duration(value).asInstanceOf[FiniteDuration])
-    case _ => JsError("Not a FiniteDuration")
-  }
+object Pay extends FiniteDurationToSecondsWriter with FiniteDurationToSecondsReader {
   implicit val formatPay = Json.format[Pay]
 
 }
