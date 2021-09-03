@@ -1,6 +1,52 @@
-{"jsonrpc":"2.0","id":3,"result":{"currency":"bc","created_at":1586697965,"expiry":18000,
-  "payee":"03902356d26efdc0812726c31a1a2e0d721f26063dd252ac89ded8280037e9ece8","msatoshi":1000,
-  "amount_msat":"1000msat","description":"⚡","min_final_cltv_expiry":10,
-  "payment_secret":"8aad2f375c11eec8538d532fb7b2d440a2e6655b98921cba092819be73a71cff","features":"028200","routes":[[{"pubkey":"03de7f5fa97bc87f048e977533fdc0484bf4e0a5b5ca6e55f7baf32b533cbac3f7","short_channel_id":"593125x1217x0","fee_base_msat":850,"fee_proportional_millionths":10,"cltv_expiry_delta":14}]],
-  "payment_hash":"020fc7f608ab2759907bc0f5559987ab53f2924746a4d13c93844f255c094c2f",
-  "signature":"304402205afbf2bddc3c50ecc5d3d5a43c884ea82e45d38130cb995bb01f18bd3e7f0585022059d1f08f69dec7677922a66a05d814adff20c250f8504b16eedd330828650951"}}
+[
+  {
+      "currency": "bc",
+      "created_at": 1586697965,
+      "expiry": 18000,
+      "payee": "03902356d26efdc0812726c31a1a2e0d721f26063dd252ac89ded8280037e9ece8",
+      "msatoshi": 1000,
+      "amount_msat": "1000msat",
+      "description": "⚡",
+      "min_final_cltv_expiry": 10,
+      "payment_secret": "8aad2f375c11eec8538d532fb7b2d440a2e6655b98921cba092819be73a71cff",
+      "features": "028200",
+      "routes": [
+        [
+          {
+            "pubkey": "03de7f5fa97bc87f048e977533fdc0484bf4e0a5b5ca6e55f7baf32b533cbac3f7",
+            "short_channel_id": "593125x1217x0",
+            "fee_base_msat": 850,
+            "fee_proportional_millionths": 10,
+            "cltv_expiry_delta": 14
+          }
+        ]
+      ],
+      "payment_hash": "020fc7f608ab2759907bc0f5559987ab53f2924746a4d13c93844f255c094c2f",
+      "signature": "304402205afbf2bddc3c50ecc5d3d5a43c884ea82e45d38130cb995bb01f18bd3e7f0585022059d1f08f69dec7677922a66a05d814adff20c250f8504b16eedd330828650951"
+  },
+  {
+    "currency": "bc",
+    "created_at": 1624286712,
+    "expiry": 18000,
+    "payee": "03c445a245209e328a10806d9e5acf5da8238d8dd0274670a7225a890ab941f456",
+    "msatoshi": 1000,
+    "amount_msat": "1000msat",
+    "description": "⚡",
+    "min_final_cltv_expiry": 18,
+    "payment_secret": "525aafe0b2b07d76f9a065b7702f1be499cd85d3a485bae74b8f020bd2bd0459",
+    "features": "028200",
+    "routes": [
+      [
+        {
+          "pubkey": "02a20247f515d978cbf9e9ce6a4287b5931d724068b7b88bbaead6380db3dd8e9a",
+          "short_channel_id": "647788x600x0",
+          "fee_base_msat": 1000,
+          "fee_proportional_millionths": 100,
+          "cltv_expiry_delta": 34
+        }
+      ]
+    ],
+    "payment_hash": "1ef6e19b1cb2fdfcd6dab4df89370637d5b7da7048c65aead52f66900c9f7f9a",
+    "signature": "304502210090d5831036780310713ae6571ecb1cfa8e18d37e29bda8b2837709428661a42802202f66d6d0e04ce6223b01b3ed0185ab15ef0c899d8869f60550a35d97418948a6"
+  }
+]

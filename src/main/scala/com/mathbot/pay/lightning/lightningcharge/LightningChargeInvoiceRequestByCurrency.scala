@@ -1,4 +1,4 @@
-package com.mathbot.pay.lightningcharge
+package com.mathbot.pay.lightning.lightningcharge
 
 import com.mathbot.pay.json.FiniteDurationToSecondsWriter
 import play.api.libs.json.{JsValue, Json}
