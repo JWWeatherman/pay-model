@@ -2,7 +2,7 @@ package com.mathbot.pay.bitcoin
 
 import com.mathbot.pay.BaseIntegrationTest
 import com.softwaremill.macwire.wire
-import sttp.client.akkahttp.AkkaHttpBackend
+import sttp.client3.akkahttp.AkkaHttpBackend
 
 //noinspection SpellCheckingInspection
 class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {

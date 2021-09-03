@@ -7,9 +7,11 @@ addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
 addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
 addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
 
+addCommandsAlias("cc", Seq("clean", "compile"))
+addCommandAlias("err", "lastGrep error compile")
+addCommandAlias("errt", "lastGrep error test:compile")
 
-val scala211 = "2.11.11"
-val scala212 = "2.12.10"
+
 val scala213 = "2.13.3"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
 // object defined in the /pay/project or /math-bot/project directory.
@@ -40,23 +42,16 @@ val commonDeps = Seq(
   akkaStream,
   akkaStreamTestkit,
   akkaTestkit,
+  logging,
   scalactic,
-  mockito
+  mockito,
+  nameOf,
+  bitcoinLib,
+  logging,
+  scodec
 ) ++ sttp ++ macwire
 
 
-val scala211Deps =  "com.github.dwickern" %% "scala-nameof" % "1.0.3" % "provided" :: Nil
-val scala212Deps = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided" :: Nil
-val scala213Deps = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided" :: Nil
-
-libraryDependencies ++= {
-  CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 11)) => commonDeps ++ scala211Deps
-    case Some((2, 12)) => commonDeps ++ scala212Deps
-    case Some((2, 13)) => commonDeps ++ scala213Deps
-    case _ => Seq()
-  }
-}
 
 
 
@@ -67,11 +62,11 @@ lazy val paymodel = (project in file("."))
     name := "pay-model",
     version := "0.0.1",
     coverageMinimum := 70,
+    libraryDependencies := commonDeps,
     coverageFailOnMinimum := false,
     coverageHighlighting := true,
     organization := "com.mathbot",
     scalaVersion := scala213,
-    crossScalaVersions := scala211 :: scala212 :: scala213 :: Nil,
     Defaults.itSettings,
   )
 

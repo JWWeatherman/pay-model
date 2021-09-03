@@ -1,6 +1,6 @@
-package com.mathbot.pay.lightningcharge
+package com.mathbot.pay.lightning.lightningcharge
 
-import com.mathbot.pay.BaseIntegrationTest
+import com.mathbot.pay.{BaseIntegrationTest, Sensitive}
 import com.softwaremill.macwire.wire
 
 import java.util.concurrent.TimeUnit
@@ -10,7 +10,7 @@ class LightningChargeServiceTest extends BaseIntegrationTest {
 
   val config = LightningChargeConfig(
     username = sys.env("LIGHTNING_CHARGE_USERNAME"),
-    password = sys.env("LIGHTNING_CHARGE_PASSWORD"),
+    password = Sensitive(sys.env("LIGHTNING_CHARGE_PASSWORD")),
     baseUrl = sys.env("LIGHTNING_CHARGE_BASEURL"),
     websocketUrl = sys.env("LIGHTNING_CHARGE_WEBSOCKETURL")
   )

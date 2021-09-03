@@ -2,7 +2,7 @@ package com.mathbot.pay.lightning
 
 import play.api.libs.json.{Json, OFormat}
 
-case class Route(
+case class LightningPaymentRoute(
     pubkey: String,
     short_channel_id: String,
     fee_base_msat: Long,
@@ -10,7 +10,7 @@ case class Route(
     cltv_expiry_delta: Long
 )
 
-object Route {
-  lazy implicit val formatRoute: OFormat[Route] = Json.format[Route]
+object LightningPaymentRoute {
+  lazy implicit val formatRoute: OFormat[LightningPaymentRoute] = Json.format[LightningPaymentRoute]
 
 }
