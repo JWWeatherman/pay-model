@@ -1,4 +1,4 @@
-package com.mathbot.pay.lightningcharge
+package com.mathbot.pay.lightning.lightningcharge
 
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json

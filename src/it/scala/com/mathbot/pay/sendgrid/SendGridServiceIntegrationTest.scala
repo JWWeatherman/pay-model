@@ -1,11 +1,13 @@
 package com.mathbot.pay.sendgrid
 
-import com.mathbot.pay.BaseIntegrationTest
+import com.mathbot.pay.{BaseIntegrationTest, Sensitive}
 import com.softwaremill.macwire.wire
 
 class SendGridServiceIntegrationTest extends BaseIntegrationTest {
-  val config = SendGridConfig(sys.env("SENDGRID_API_KEY"))
+  val config = SendGridConfig(Sensitive(sys.env("SENDGRID_API_KEY")))
 
+  println(config)
+  println(config)
   val service = wire[SendGridService]
   "SendGridService" should {
     "send email" in {

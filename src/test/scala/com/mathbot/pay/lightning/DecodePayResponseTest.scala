@@ -9,7 +9,7 @@ class DecodePayResponseTest extends AnyFunSuite {
 
   test("decode") {
     val js = Json.parse(Source.fromResource("decodePayResponse.json").getLines().mkString(""))
-    val decodePay = js.validate[DecodePayResponse]
+    val decodePay = js.validate[Seq[DecodePay]]
     assert(decodePay.isSuccess)
   }
 }

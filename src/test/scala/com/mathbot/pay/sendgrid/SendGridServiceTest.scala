@@ -1,19 +1,20 @@
 package com.mathbot.pay.sendgrid
 
 import akka.http.scaladsl.util.FastFuture
+import com.mathbot.pay.Sensitive
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
 class SendGridServiceTesst extends AsyncWordSpec with MockitoSugar {
-  val c = SendGridConfig("")
+  val c = SendGridConfig(Sensitive(""))
   val service = mock[SendGridService]
   "SendGridServiceTest" should {
     "sendMessage" in {
 
       when(service.sendMessage(any[EmailMessage])) thenReturn FastFuture.successful(
-        sttp.client.Response.ok(Right("accepted"))
+        sttp.client3.Response.ok(Right("accepted"))
       )
 
       service

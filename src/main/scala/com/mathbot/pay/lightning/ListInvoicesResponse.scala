@@ -2,7 +2,7 @@ package com.mathbot.pay.lightning
 
 import play.api.libs.json.{Json, OFormat}
 
-case class ListInvoicesResponse(jsonrpc: String, id: Int, result: Invoices)
+case class ListInvoicesResponse(jsonrpc: String, id: Int, result: Invoices) extends LightningJson
 
 object ListInvoicesResponse {
 
