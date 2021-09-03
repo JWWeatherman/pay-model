@@ -1,21 +1,27 @@
-package com.mathbot.pay.lightning
+package com.mathbot.pay.lightning.url
 
 import akka.http.scaladsl.model.Uri
 import fr.acinq.bitcoin.Bech32
 import fr.acinq.bitcoin.Bech32.{five2eight, Int5}
+import play.api.libs.json.Json
 
 case class LightningUrl(url: String) {
   // validate
   Bech32.decode(url)
 
   override def toString: String = url
+//  def decode = LightningUrl.decode(this)
 
-  def decode: String = {
-    val (hrp, data) = Bech32.decode(url)
-    new String(five2eight(data))
-  }
 }
 object LightningUrl {
+  implicit val formatLightingUrl = Json.format[LightningUrl]
+  def decode(l: LightningUrl): String = decode(l.url)
+
+  def decode(url: String): String = {
+    val (_, data) = Bech32.decode(url)
+    new String(five2eight(data))
+  }
+
   def eight2five(input: Array[Byte]): Array[Int5] = {
     var buffer = 0L
     val output = collection.mutable.ArrayBuffer.empty[Byte]
