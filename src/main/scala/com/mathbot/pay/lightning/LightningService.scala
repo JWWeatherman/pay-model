@@ -1,7 +1,8 @@
 package com.mathbot.pay.lightning
 
-import scala.concurrent.Future
+import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
 
+import scala.concurrent.Future
 import sttp.client3.Response
 
 trait LightningService {
@@ -21,4 +22,7 @@ trait LightningService {
   def createOffer(offerRequest: LightningOfferRequest): Future[Response[Either[LightningRequestError, LightningOffer]]]
 
   def invoice(inv: LightningInvoice): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]]
+  def invoiceWithDescriptionHash(
+      i: InvoiceWithDescriptionHash
+  ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]]
 }

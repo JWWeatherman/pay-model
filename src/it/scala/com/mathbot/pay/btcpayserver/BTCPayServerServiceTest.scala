@@ -1,11 +1,13 @@
 package com.mathbot.pay.btcpayserver
 
-import com.mathbot.pay.BaseIntegrationTest
+import com.mathbot.pay.{BaseIntegrationTest, Sensitive}
 
 class BTCPayServerServiceTest extends BaseIntegrationTest {
 
   val config =
-    BTCPayServerConfig(baseUrl = sys.env("BTCPAYSERVER_BASE_URL"), apiKey = sys.env("BTCPAYSERVER_API_KEY"), "fixme")
+    BTCPayServerConfig(baseUrl = sys.env("BTCPAYSERVER_BASE_URL"),
+                       apiKey = Sensitive(sys.env("BTCPAYSERVER_API_KEY")),
+                       "fixme")
   val invoiceId = sys.env.getOrElse("BTCPAYSERVER_TEST_INVOICE_ID", "")
 
 //  val be = new FollowRedirectsBackend(

@@ -1,5 +1,6 @@
 package com.mathbot.pay.lightning
 
+import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
 import org.slf4j.{Logger, LoggerFactory}
 import sttp.client3.Response
 
@@ -129,4 +130,8 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
     }
     p.future
   }
+
+  override def invoiceWithDescriptionHash(
+      i: InvoiceWithDescriptionHash
+  ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] = ???
 }
