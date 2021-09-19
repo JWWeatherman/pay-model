@@ -22,6 +22,13 @@ trait LightningService {
   def createOffer(offerRequest: LightningOfferRequest): Future[Response[Either[LightningRequestError, LightningOffer]]]
 
   def invoice(inv: LightningInvoice): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]]
+
+  /**
+   * Note bolt11 will differ from the listInvoices since they create the invoice and
+   * override the description hash
+   * @param i
+   * @return
+   */
   def invoiceWithDescriptionHash(
       i: InvoiceWithDescriptionHash
   ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]]
