@@ -1,6 +1,7 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin._
+import com.mathbot.pay.lightning.Bolt11Test.bolt11
 
 import scala.language.postfixOps
 import org.scalatest.funsuite.AnyFunSuite
@@ -8,10 +9,8 @@ import org.scalatest.funsuite.AnyFunSuite
 class Bolt11Test extends AnyFunSuite {
 
   test("apply") {
-    val bitrefillBolt11 =
-      "lnbc22435140n1p0zxgcupp5hkn3lnlkk6kmq0670a9u2xd8reuefc7dw704pwe7dqqm06nnzpcsdz2gf5hgun9ve5kcmpqv9jx2v3e8pjkgtf5xaskxtf5venxvttp8pjrvttrvgerzvm9x93r2dehxgfppjue4tflpg2hule862xylcsnu0p0mrjvmnxqrp9s2xnqfz900f0mq36dnkseqped68nzjm2nvh85uxw4nkhezkd4zzlymw93q96mf9glupqxrfd46rps7dztqm5rerusxpx77curwrpal9qqenm4p0"
-    val b = Bolt11(bitrefillBolt11)
-    assert(b.milliSatoshi.toSatoshi === (2243514 satoshi))
+
+    assert(bolt11.milliSatoshi.toSatoshi === (2243514 satoshi))
   }
   test("apply 2") {
     val bolt =
@@ -19,4 +18,10 @@ class Bolt11Test extends AnyFunSuite {
     val b = Bolt11(bolt)
     assert(true)
   }
+}
+
+object Bolt11Test {
+  val bitrefillBolt11 =
+    "lnbc22435140n1p0zxgcupp5hkn3lnlkk6kmq0670a9u2xd8reuefc7dw704pwe7dqqm06nnzpcsdz2gf5hgun9ve5kcmpqv9jx2v3e8pjkgtf5xaskxtf5venxvttp8pjrvttrvgerzvm9x93r2dehxgfppjue4tflpg2hule862xylcsnu0p0mrjvmnxqrp9s2xnqfz900f0mq36dnkseqped68nzjm2nvh85uxw4nkhezkd4zzlymw93q96mf9glupqxrfd46rps7dztqm5rerusxpx77curwrpal9qqenm4p0"
+  val bolt11 = Bolt11(bitrefillBolt11)
 }

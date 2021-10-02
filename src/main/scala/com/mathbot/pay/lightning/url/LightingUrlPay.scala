@@ -12,6 +12,7 @@ import play.api.libs.json.Json
  * @param maxSendable
  * @param tag use the default
  * @param metadata
+ * @param commentAllowed number of characters someone can attach the the payment request
  */
 case class LightingUrlPay(
     callback: String,
@@ -20,6 +21,7 @@ case class LightingUrlPay(
     tag: String = "payRequest",
     metadata: String,
     descriptionHash: String,
+    commentAllowed: Option[Int] = None
 ) {
   require(minSendable <= maxSendable, s"Invalid min and max $this")
 }
@@ -30,11 +32,13 @@ object LightingUrlPay {
   def makeMetadata(description: String) = s"""[["text/plain","$description"]]"""
   def makeMetadataWithImg(description: String, img: String) =
     s"""[["text/plain","$description"],["image/png;base64","$img"]]"""
-  def apply(callback: String,
-            max: MilliSatoshi,
-            min: MilliSatoshi,
-            description: String,
-            base64Img: Option[String]): LightingUrlPay = {
+  def apply(
+      callback: String,
+      max: MilliSatoshi,
+      min: MilliSatoshi,
+      description: String,
+      base64Img: Option[String]
+  ): LightingUrlPay = {
     val metadata = base64Img match {
       case Some(value) => makeMetadataWithImg(description, value)
       case None => makeMetadata(description)
