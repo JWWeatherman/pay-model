@@ -11,7 +11,7 @@ object Dependencies {
   lazy val alpakkaSocketV = "2.0.2"
   lazy val macwireVersion = "2.3.7"
   lazy val sttpModelV = "1.3.4"
-  lazy val bitcoinjV = "0.15.10"
+  lazy val bitcoinjV = "0.16.1"
   lazy val mockitoV = "3.2.8.0"
 
   lazy val sttp = Seq(
