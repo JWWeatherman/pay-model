@@ -5,12 +5,14 @@ import fr.acinq.bitcoin.Bech32
 import fr.acinq.bitcoin.Bech32.{five2eight, Int5}
 import play.api.libs.json.Json
 
+import scala.util.Try
+
 case class LightningUrl(url: String) {
   // validate
-  Bech32.decode(url)
-
+  Try(Bech32.decode(url)).failed.foreach(err => {
+    throw new IllegalArgumentException(s"Invalid url $url $err")
+  })
   override def toString: String = url
-//  def decode = LightningUrl.decode(this)
 
 }
 object LightningUrl {

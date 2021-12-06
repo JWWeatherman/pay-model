@@ -2,6 +2,7 @@ package com.mathbot.pay.lightning.spark
 
 import akka.stream.scaladsl.Source
 import com.mathbot.pay.lightning._
+import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
 import play.api.libs.json._
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
@@ -59,17 +60,6 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
       .post(uri"${config.baseUrl}")
       .body(makeBody("pay", Json.toJson(pay)))
       .response(toBody[Payment])
-
-    r.send(backend)
-  }
-
-  override def waitAnyInvoice(
-      w: WaitAnyInvoice
-  ): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
-    val r = base
-      .post(uri"${config.baseUrl}")
-      .body(makeBody("waitanyinvoice", Json.toJson(w)))
-      .response(toBody[ListInvoice])
 
     r.send(backend)
   }
@@ -141,6 +131,16 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
       .post(uri"${config.baseUrl}")
       .body(makeBody("offer", Json.toJson(inv)))
       .response(toBody[LightningCreateInvoice])
+    r.send(backend)
+  }
+
+  def invoiceWithDescriptionHash(
+      i: InvoiceWithDescriptionHash
+  ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] = {
+    val r = base
+      .post(uri"${config.baseUrl}")
+      .body(makeBody("invoicewithdescriptionhash", Json.toJson(i)))
+      .response(toBody[CreateInvoiceWithDescriptionHash])
     r.send(backend)
   }
 }

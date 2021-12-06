@@ -1,5 +1,6 @@
 package com.mathbot.pay.lightning.url
 
+import com.mathbot.pay.bitcoin.MilliSatoshi
 import play.api.libs.json.Json
 
 object LightingUrlWithdrawRequestResponse {
@@ -10,7 +11,7 @@ case class LightingUrlWithdrawRequestResponse(
     callback: String,
     k1: String,
     defaultDescription: String,
-    minWithdrawable: Long,
-    maxWithdrawable: Long,
+    minWithdrawable: MilliSatoshi,
+    maxWithdrawable: MilliSatoshi,
     balanceCheck: Option[String] = None
 )
