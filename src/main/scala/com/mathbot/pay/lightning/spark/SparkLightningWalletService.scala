@@ -129,7 +129,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
   ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
-      .body(makeBody("offer", Json.toJson(inv)))
+      .body(makeBody("invoice", Json.toJson(inv)))
       .response(toBody[LightningCreateInvoice])
     r.send(backend)
   }

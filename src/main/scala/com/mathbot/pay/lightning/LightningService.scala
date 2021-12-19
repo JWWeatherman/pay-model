@@ -15,6 +15,12 @@ trait LightningService {
   )(implicit ec: ExecutionContext): Future[Either[LightningRequestError, Option[ListInvoice]]] =
     listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash)))
       .map(_.body.map(_.invoices.find(_.payment_hash == payment_hash)))
+
+  def getInvoice(
+      bolt11: Bolt11
+  )(implicit ec: ExecutionContext): Future[Either[LightningRequestError, Option[ListInvoice]]] =
+    listInvoices(ListInvoicesRequest(invstring = Some(bolt11.bolt11)))
+      .map(_.body.map(_.invoices.find(_.bolt11.contains(bolt11))))
   def listPays(l: ListPaysRequest = ListPaysRequest(None, None)): Future[Response[Either[LightningRequestError, Pays]]]
   def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]]
   def pay(pay: Pay): Future[Response[Either[LightningRequestError, Payment]]]
