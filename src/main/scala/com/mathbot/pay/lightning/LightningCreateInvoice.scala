@@ -11,7 +11,13 @@ import java.time.Instant
  * @param payment_hash
  * @param expires_at
  */
-case class LightningCreateInvoice(bolt11: Bolt11, payment_hash: String, expires_at: Instant)
+case class LightningCreateInvoice(bolt11: Bolt11,
+                                  payment_hash: String,
+                                  expires_at: Instant,
+                                  payment_secret: Option[String],
+                                  warning_mpp: Option[String],
+                                  warning_capacity: Option[String],
+)
 
 object LightningCreateInvoice extends EpochSecondInstantFormatter {
   implicit val formatLightningCreateInvoice = Json.format[LightningCreateInvoice]
