@@ -5,6 +5,7 @@ import com.mathbot.pay.lightning.LightningInvoice
 import com.mathbot.pay.{BaseIntegrationTest, Sensitive}
 import com.softwaremill.macwire.wire
 
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
@@ -16,6 +17,12 @@ class SparkLightningWalletServiceTest extends BaseIntegrationTest {
   val service = wire[SparkLightningWalletService]
 
   "LightningChargeService" should {
+    "get info" in {
+      service.getInfo.map(r => {
+        println(r)
+        assert(r.isSuccess)
+      })
+    }
     "create invoice by currency" in {
 
       service
@@ -24,7 +31,7 @@ class SparkLightningWalletServiceTest extends BaseIntegrationTest {
             msatoshi = MilliSatoshi(1),
             expiry = Some(FiniteDuration(10, TimeUnit.MINUTES)),
             description = "test currency",
-            label = "test hello 3",
+            label = s"test invoice ${Instant.now}",
             preimage = None
           )
         )
