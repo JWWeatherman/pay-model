@@ -12,9 +12,16 @@ trait LightningService {
   ): Future[Response[Either[LightningRequestError, Invoices]]]
   def getInvoice(
       payment_hash: String
-  )(implicit ec: ExecutionContext): Future[Either[LightningRequestError, Option[ListInvoice]]] =
-    listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash)))
-      .map(_.body.map(_.invoices.find(_.payment_hash == payment_hash)))
+  )(implicit ec: ExecutionContext): Future[Either[LightningRequestError, ListInvoice]] = {
+    for {
+      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(
+        _.body.flatMap(
+          _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
+        )
+      )
+    } yield inv
+
+  }
 
   def getInvoice(
       bolt11: Bolt11

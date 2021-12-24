@@ -1,6 +1,7 @@
 package com.mathbot.pay.lightning.spark
 
 import akka.stream.scaladsl.Source
+import com.github.dwickern.macros.NameOf.nameOf
 import com.mathbot.pay.lightning._
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
 import play.api.libs.json._
@@ -58,7 +59,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
   override def pay(pay: Pay): Future[Response[Either[LightningRequestError, Payment]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
-      .body(makeBody("pay", Json.toJson(pay)))
+      .body(makeBody(nameOf(pay), Json.toJson(pay)))
       .response(toBody[Payment])
 
     r.send(backend)
@@ -129,7 +130,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
   ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
-      .body(makeBody("invoice", Json.toJson(inv)))
+      .body(makeBody(nameOf(invoice _), Json.toJson(inv)))
       .response(toBody[LightningCreateInvoice])
     r.send(backend)
   }
