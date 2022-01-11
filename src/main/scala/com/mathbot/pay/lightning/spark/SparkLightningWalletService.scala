@@ -43,6 +43,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
       .post(uri"${config.baseUrl}")
       .body(makeBody("getinfo", Json.obj()))
       .response(toBody[LightningNodeInfo])
+
     r.send(backend)
   }
   override def listInvoices(
