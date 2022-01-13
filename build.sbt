@@ -12,7 +12,7 @@ addCommandAlias("err", "lastGrep error compile")
 addCommandAlias("errt", "lastGrep error test:compile")
 
 
-val scala213 = "2.13.3"
+val scala213 = "2.13.8"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
 // object defined in the /pay/project or /math-bot/project directory.
 val commonSettings = Seq(
