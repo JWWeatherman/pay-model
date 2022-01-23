@@ -4,6 +4,7 @@ import com.mathbot.pay.bitcoin.AddressType.AddressType
 import com.mathbot.pay.bitcoin.Btc.stringify
 import com.mathbot.pay.bitcoin.EstimateFeeMode.EstimateFeeMode
 import com.mathbot.pay.bitcoin.SigHashType.SigHashType
+import com.typesafe.scalalogging.LazyLogging
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
@@ -19,9 +20,9 @@ import scala.util.{Failure, Success, Try}
 case class BitcoinJsonRpcClient(
     config: BitcoinJsonRpcConfig,
     backend: SttpBackend[Future, Any],
-    logger: Logger = LoggerFactory.getLogger("BitcoinJsonRpcClient")
-)(implicit ec: ExecutionContext) {
-  private val idGen = new AtomicInteger(1)
+    private val idGen: AtomicInteger = new AtomicInteger(1)
+)(implicit ec: ExecutionContext)
+    extends LazyLogging {
   private def id = idGen.getAndIncrement()
 
   private def asRpcResult[T](
