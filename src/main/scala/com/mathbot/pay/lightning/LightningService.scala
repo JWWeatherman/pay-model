@@ -36,7 +36,7 @@ trait LightningService extends StrictLogging {
   def pay(pay: Pay): Future[Response[Either[LightningRequestError, Payment]]]
   def decodePay(r: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]]
   def createOffer(offerRequest: LightningOfferRequest): Future[Response[Either[LightningRequestError, LightningOffer]]]
-  def listOffers(r: LightningListOffersRequest): Future[Response[Either[LightningRequestError, Seq[LightningOffer]]]]
+  def listOffers(r: LightningListOffersRequest): Future[Response[Either[LightningRequestError, LightningOffers]]]
 
   /**
    * Note bolt11 will differ from the listInvoices since they create the invoice and
@@ -47,5 +47,6 @@ trait LightningService extends StrictLogging {
   def invoiceWithDescriptionHash(
       i: InvoiceWithDescriptionHash
   ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]]
-  //  def waitAnyInvoice(w: WaitAnyInvoice): Future[Response[Either[LightningRequestError, ListInvoice]]]
+
+  def waitAnyInvoice(w: WaitAnyInvoice): Future[Response[Either[LightningRequestError, ListInvoice]]]
 }

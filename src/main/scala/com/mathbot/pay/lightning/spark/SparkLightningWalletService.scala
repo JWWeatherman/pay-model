@@ -70,11 +70,11 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
 
   override def listOffers(
       req: LightningListOffersRequest
-  ): Future[Response[Either[LightningRequestError, Seq[LightningOffer]]]] = {
+  ): Future[Response[Either[LightningRequestError, LightningOffers]]] = {
     val r = base
       .post(uri"${config.baseUrl}")
       .body(makeBody("listoffers", Json.toJson(req)))
-      .response(toBody[LightningOffers].mapRight(_.offers))
+      .response(toBody[LightningOffers])
     r.send(backend)
   }
 
@@ -146,6 +146,13 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
       .post(uri"${config.baseUrl}")
       .body(makeBody("invoicewithdescriptionhash", Json.toJson(i)))
       .response(toBody[CreateInvoiceWithDescriptionHash])
+    r.send(backend)
+  }
+
+  def waitAnyInvoice(w: WaitAnyInvoice): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
+    val r = base.post(uri"${config.baseUrl}")
+      .body(makeBody("waitanyinvoice", Json.toJson(w)))
+      .response(toBody[ListInvoice])
     r.send(backend)
   }
 }
