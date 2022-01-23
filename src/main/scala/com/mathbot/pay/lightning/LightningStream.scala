@@ -111,7 +111,6 @@ object LightningStream extends LazyLogging {
       case Success(js) =>
         logger.debug(s"Response ${js.toString()}")
         val success = js.asOpt[ListPaysResponse] orElse
-          js.asOpt[LightningCreateInvoiceResponse] orElse
           js.asOpt[PayResponse] orElse
           js.asOpt[GetInfoResponse] orElse
           js.asOpt[ListInvoicesResponse] orElse
@@ -119,6 +118,7 @@ object LightningStream extends LazyLogging {
           js.asOpt[ListInvoice] orElse
           js.asOpt[ListInvoiceResponse] orElse
           js.asOpt[DecodePayResponse] orElse
+          js.asOpt[LightningCreateInvoiceResponse] orElse
           js.asOpt[LightningRequestError]
         success getOrElse {
           val message = s"Unknown response from lightning node $js"

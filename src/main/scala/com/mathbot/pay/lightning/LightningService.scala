@@ -15,10 +15,12 @@ trait LightningService extends StrictLogging {
       payment_hash: String
   )(implicit ec: ExecutionContext): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
     for {
-      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(
-        r => r.copy(body = r.body.flatMap(
-          _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
-        ))
+      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(r =>
+        r.copy(body =
+          r.body.flatMap(
+            _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
+          )
+        )
       )
     } yield inv
 
