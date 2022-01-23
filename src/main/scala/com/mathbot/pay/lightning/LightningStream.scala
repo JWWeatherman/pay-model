@@ -1,11 +1,11 @@
 package com.mathbot.pay.lightning
 
 import java.util.concurrent.atomic.AtomicInteger
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Flow, GraphDSL, Source, SourceQueueWithComplete, Unzip, Zip}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult, SourceShape}
+import com.typesafe.scalalogging.LazyLogging
 import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 
@@ -21,11 +21,9 @@ class LightningStream(
     system: ActorSystem,
     ec: ExecutionContext,
     lightingFlow: Flow[LightningJson, LightningJson, NotUsed]
-) {
+) extends LazyLogging {
 
   private implicit val as = system
-  private implicit val mat = ActorMaterializer()
-  val logger = LoggerFactory.getLogger(this.getClass)
 
   private lazy val graph: Source[(LightningJson => Unit, LightningJson), SourceQueueWithComplete[
     (LightningJson => Unit, LightningJson)
@@ -70,9 +68,7 @@ class LightningStream(
       }(ec)
 
 }
-object LightningStream {
-
-  val logger = LoggerFactory.getLogger("LightningStream")
+object LightningStream extends LazyLogging {
 
   def convertToString(lj: LightningJson, idGen: AtomicInteger): String = {
     val (method, params) = lj match {
@@ -115,6 +111,7 @@ object LightningStream {
       case Success(js) =>
         logger.debug(s"Response ${js.toString()}")
         val success = js.asOpt[ListPaysResponse] orElse
+          js.asOpt[LightningCreateInvoiceResponse] orElse
           js.asOpt[PayResponse] orElse
           js.asOpt[GetInfoResponse] orElse
           js.asOpt[ListInvoicesResponse] orElse

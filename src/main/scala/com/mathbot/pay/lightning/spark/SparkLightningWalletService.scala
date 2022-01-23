@@ -44,6 +44,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
       .body(makeBody("getinfo", Json.obj()))
       .response(toBody[LightningNodeInfo])
 
+    println(r.toCurl)
     r.send(backend)
   }
   override def listInvoices(
@@ -53,6 +54,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
       .post(uri"${config.baseUrl}")
       .body(makeBody("listinvoices", Json.toJson(listInvoicesRequest)))
       .response(toBody[Invoices])
+    println(r.toCurl)
     r.send(backend)
 
   }
@@ -133,6 +135,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
       .post(uri"${config.baseUrl}")
       .body(makeBody(nameOf(invoice _), Json.toJson(inv)))
       .response(toBody[LightningCreateInvoice])
+    println(r.toCurl)
     r.send(backend)
   }
 

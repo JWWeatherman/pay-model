@@ -1,23 +1,24 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.{ExecutionContext, Future}
 import sttp.client3.Response
 
-trait LightningService {
+trait LightningService extends StrictLogging {
   def invoice(inv: LightningInvoice): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]]
   def listInvoices(
       l: ListInvoicesRequest = ListInvoicesRequest(label = None, invstring = None, payment_hash = None)
   ): Future[Response[Either[LightningRequestError, Invoices]]]
   def getInvoice(
       payment_hash: String
-  )(implicit ec: ExecutionContext): Future[Either[LightningRequestError, ListInvoice]] = {
+  )(implicit ec: ExecutionContext): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
     for {
       inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(
-        _.body.flatMap(
+        r => r.copy(body = r.body.flatMap(
           _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
-        )
+        ))
       )
     } yield inv
 

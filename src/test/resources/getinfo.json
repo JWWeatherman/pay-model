@@ -1,0 +1,30 @@
+{
+  "id": "030c3f19d742ca294a55c00376b3b355c3c90d61c6b6b39554dbc7ac19b141c14f",
+  "alias": "bitrefill",
+  "color": "026a23",
+  "num_peers": 24,
+  "num_pending_channels": 0,
+  "num_active_channels": 23,
+  "num_inactive_channels": 0,
+  "address": [
+    {
+      "type": "torv3",
+      "address": "x.onion",
+      "port": 9735
+    }
+  ],
+  "binding": [
+    {
+      "type": "ipv4",
+      "address": "0.0.0.0",
+      "port": 9735
+    }
+  ],
+  "version": "basedon-v0.10.2",
+  "blockheight": 719816,
+  "network": "bitcoin",
+  "msatoshi_fees_collected": 1352517,
+  "fees_collected_msat": "1352517msat",
+  "lightning-dir": "/root/.lightning/bitcoin",
+  "warning_lightningd_sync": "Still loading latest blocks from bitcoind."
+}

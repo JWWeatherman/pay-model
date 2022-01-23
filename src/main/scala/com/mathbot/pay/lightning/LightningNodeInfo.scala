@@ -10,13 +10,15 @@ case class LightningNodeInfo(
     num_pending_channels: Int,
     num_active_channels: Int,
     num_inactive_channels: Int,
-//    address: Seq[Address],
+    address: Seq[Address],
+    binding: Seq[Address],
     version: String,
     blockheight: Int,
-    network: String,
+    network: String, // "bitcoin"
     msatoshi_fees_collected: Int,
     fees_collected_msat: String,
-    `lightning-dir`: String
+    `lightning-dir`: String,
+    warning_lightningd_sync: Option[String] // "Still loading latest blocks from bitcoind."
 ) {
   override def toString: String = Json.toJson(this).toString()
 }

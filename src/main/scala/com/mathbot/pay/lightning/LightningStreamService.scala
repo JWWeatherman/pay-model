@@ -1,14 +1,12 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
-import org.slf4j.{Logger, LoggerFactory}
 import sttp.client3.Response
 
 import scala.concurrent.{Future, Promise}
 
 class LightningStreamService(lightningStream: LightningStream) extends LightningService {
 
-  val logger: Logger = LoggerFactory.getLogger("LightningStreamService")
   override def listPays(
       l: ListPaysRequest = ListPaysRequest()
   ): Future[Response[Either[LightningRequestError, Pays]]] = {
