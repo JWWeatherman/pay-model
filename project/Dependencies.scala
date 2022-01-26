@@ -20,7 +20,7 @@ object Dependencies {
     "com.softwaremill.sttp.client3" %% "play-json" % sttpVersion
   )
   val requests = "com.lihaoyi" %% "requests" % "0.6.7"
-  val bitcoinLib = "fr.acinq" %% "bitcoin-lib" % "0.19"
+  val bitcoinLib = "fr.acinq" %% "bitcoin-lib" % "0.20"
   val scodec = "org.scodec" %% "scodec-core" % "1.11.7"
   val nameOf = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided"
   lazy val okhttp = "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpVersion
