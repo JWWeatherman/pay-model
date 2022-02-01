@@ -9,6 +9,7 @@ import play.api.libs.json._
 import java.time.Instant
 
 /**
+ * https://lightning.readthedocs.io/lightning-pay.7.html
  * @param amount_msat
  * @param amount_sent_msat
  * @param created_at
@@ -19,22 +20,18 @@ import java.time.Instant
  * @param payment_preimage hex string
  * @param status
  * @param parts
- * @param error
- * @param label attached to the payment
  */
 case class Payment(
     amount_msat: MilliSatoshi,
     amount_sent_msat: MilliSatoshi,
     created_at: Instant,
-    destination: String,
+    destination: Option[String],
     msatoshi: MilliSatoshi,
     msatoshi_sent: MilliSatoshi,
     payment_hash: String,
     payment_preimage: String,
     status: PayStatus,
-    parts: Option[Int] = None,
-    error: Option[String] = None,
-    label: Option[String] = None
+    parts: Option[Int] // older payments don't include field
 )
 
 object Payment extends EpochSecondInstantFormatter {

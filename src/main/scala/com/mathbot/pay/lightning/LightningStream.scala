@@ -5,6 +5,7 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Flow, GraphDSL, Source, SourceQueueWithComplete, Unzip, Zip}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult, SourceShape}
+import com.github.dwickern.macros.NameOf.nameOf
 import com.typesafe.scalalogging.LazyLogging
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsValue, Json}
@@ -72,6 +73,7 @@ object LightningStream extends LazyLogging {
 
   def convertToString(lj: LightningJson, idGen: AtomicInteger): String = {
     val (method, params) = lj match {
+      case w: WaitInvoice => (nameOf(WaitInvoice).toLowerCase, Json.toJsObject(w))
       case l: LightningListOffersRequest => ("listoffers", Json.toJsObject(l))
       case l: LightningOfferRequest => ("offer", Json.toJsObject(l))
       case l: ListInvoicesRequest => ("listinvoices", Json.toJsObject(l))

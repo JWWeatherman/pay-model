@@ -78,4 +78,3 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
     wrap[ListInvoice](WaitInvoice(label))
 }
 
-case class WaitInvoice(label: String) extends LightningJson
