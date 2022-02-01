@@ -49,4 +49,11 @@ trait LightningService extends StrictLogging {
   ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]]
 
   def waitAnyInvoice(w: WaitAnyInvoice): Future[Response[Either[LightningRequestError, ListInvoice]]]
+
+  /**
+   * https://lightning.readthedocs.io/lightning-waitinvoice.7.html
+   * @param label
+   * @return
+   */
+  def waitInvoice(label: String): Future[Response[Either[LightningRequestError, ListInvoice]]]
 }

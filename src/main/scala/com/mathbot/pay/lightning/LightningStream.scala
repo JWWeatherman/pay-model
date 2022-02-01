@@ -32,8 +32,8 @@ class LightningStream(
       ) { implicit builder => queue =>
         import GraphDSL.Implicits._
 
-        val u = builder.add(Unzip[JsValue => Unit, LightningJson]) // (finish, lighting request)
-        val z = builder.add(Zip[JsValue => Unit, JsValue]) // (finish, lightning response)
+        val u = builder.add(Unzip[JsValue => Unit, LightningJson])
+        val z = builder.add(Zip[JsValue => Unit, JsValue])
         val flow = builder.add(lightingFlow)
 
         queue.out ~> u.in
@@ -46,7 +46,7 @@ class LightningStream(
     )
 
   private lazy val queue = {
-    val (q, s ) = graph.preMaterialize()
+    val (q, s) = graph.preMaterialize()
     s.runForeach { case (finish, lightning) => finish(lightning) }
     q
   }
@@ -58,10 +58,12 @@ class LightningStream(
         case QueueOfferResult.Failure(t) =>
           logger.error(s"failure adding request to queue $lightning")
           finish(
-            Json.toJson(LightningRequestError(
-              error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t"),
-              bolt11 = None
-            ))
+            Json.toJson(
+              LightningRequestError(
+                error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t"),
+                bolt11 = None
+              )
+            )
           )
       }(ec)
 

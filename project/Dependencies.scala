@@ -1,3 +1,4 @@
+import Dependencies.scalaLogging
 import sbt._
 // This object is only used when running sbt from the pay-model directory, a project like pay or mathbot will use
 // the Dependencies object defined in its ./project directory instead
@@ -24,7 +25,6 @@ object Dependencies {
   val scodec = "org.scodec" %% "scodec-core" % "1.11.7"
   val nameOf = "com.github.dwickern" %% "scala-nameof" % "3.0.0" % "provided"
   lazy val okhttp = "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpVersion
-  lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it,test"
   lazy val akkaTestkit =
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it,test"
   lazy val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
@@ -32,8 +32,10 @@ object Dependencies {
   lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % sttpModelV
   lazy val bitcoinj = "org.bitcoinj" % "bitcoinj-core" % bitcoinjV
 
+  lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it,test"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % scalaTestV % "it,test"
   lazy val scalactic = "org.scalactic" %% "scalactic" % scalaTestV % "it,test"
+  lazy val mockito = "org.scalatestplus" %% "mockito-3-4" % mockitoV % "it,test"
 
   lazy val playJson = "com.typesafe.play" %% "play-json" % playJsonV
   lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
@@ -43,7 +45,13 @@ object Dependencies {
     "com.softwaremill.macwire" %% "util" % macwireVersion,
     "com.softwaremill.macwire" %% "proxy" % macwireVersion
   )
-  lazy val mockito = "org.scalatestplus" %% "mockito-3-4" % mockitoV % "it,test"
-  val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
+  val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
+
+  // https://mvnrepository.com/artifact/com.typesafe.akka/akka-slf4j
+  lazy val loggingDeps = Seq(
+    scalaLogging,
+  "org.slf4j" % "slf4j-api" % "1.7.31"
+
+  )
 
 }
