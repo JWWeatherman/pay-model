@@ -15,12 +15,11 @@ trait LightningService extends StrictLogging {
       payment_hash: String
   )(implicit ec: ExecutionContext): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
     for {
-      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(
-        r =>
-          r.copy(
-            body = r.body.flatMap(
-              _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
-            )
+      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(r =>
+        r.copy(
+          body = r.body.flatMap(
+            _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
+          )
         )
       )
     } yield inv
@@ -35,7 +34,7 @@ trait LightningService extends StrictLogging {
 
   /**
    * description=List result of payment {bolt11} or {payment_hash}, or all
-      verbose=Covers old payments (failed and succeeded) and current ones.
+   *      verbose=Covers old payments (failed and succeeded) and current ones.
    */
   def listPays(l: ListPaysRequest = ListPaysRequest(None, None)): Future[Response[Either[LightningRequestError, Pays]]]
   def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]]
