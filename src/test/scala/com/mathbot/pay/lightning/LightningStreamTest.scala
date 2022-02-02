@@ -34,8 +34,8 @@ class LightningStreamTest
       val s = system
       val lightningStream: LightningStream = {
         val fakeFlow: Flow[ByteString, ByteString, NotUsed] = Flow[ByteString].map(b => b)
-        val lightingFlow: Flow[LightningJson, JsValue, NotUsed] = Flow
-          .fromFunction[LightningJson, String](LightningStream.convertToString(_, idAtom))
+        val lightingFlow = Flow
+          .fromFunction[LightningJson, LightningRpcRequest](LightningRpcRequest(_, idAtom))
           .map(_ => Json.toJson(getinfoRes))
           .recover {
             case t =>

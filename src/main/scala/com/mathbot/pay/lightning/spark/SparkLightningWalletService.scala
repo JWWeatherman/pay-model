@@ -22,7 +22,7 @@ class SparkLightningWalletService(config: SparkLightningWalletServiceConfig, bac
     .headers(Map("X-Access" -> config.accessKey.value))
 
   private def toBody[T](implicit reads: Reads[T]): ResponseAs[Either[LightningRequestError, T], Any] =
-    asJson[T].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err"), None))
+    asJson[T].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err")))
 
   private def makeBody(method: String, params: JsValue): JsObject =
     Json.obj("method" -> method, "params" -> params)

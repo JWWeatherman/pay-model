@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Flow, GraphDSL, Source, SourceQueueWithComplete, Unzip, Zip}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult, SourceShape}
 import com.github.dwickern.macros.NameOf.nameOf
+import com.mathbot.pay.lightning.url.InvoiceWithDescriptionHash
 import com.typesafe.scalalogging.LazyLogging
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsValue, Json}
@@ -19,12 +20,9 @@ import scala.util.{Failure, Success, Try}
  * @param lightingFlow Flow i.e. json -> unix socket -> json
  */
 class LightningStream(
-    system: ActorSystem,
-    ec: ExecutionContext,
     lightingFlow: Flow[LightningJson, JsValue, NotUsed]
-) extends LazyLogging {
-
-  private implicit val as = system
+)(implicit system: ActorSystem)
+    extends LazyLogging {
 
   private lazy val graph =
     Source.fromGraph(
@@ -61,44 +59,11 @@ class LightningStream(
           finish(
             Json.toJson(
               LightningRequestError(
-                error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t"),
-                bolt11 = None
+                error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t")
               )
             )
           )
-      }(ec)
+      }(system.dispatcher)
 
 }
-object LightningStream extends LazyLogging {
-
-  def convertToString(lj: LightningJson, idGen: AtomicInteger): String = {
-    val (method, params) = lj match {
-      case w: WaitInvoice => (nameOf(WaitInvoice).toLowerCase, Json.toJsObject(w))
-      case l: LightningListOffersRequest => ("listoffers", Json.toJsObject(l))
-      case l: LightningOfferRequest => ("offer", Json.toJsObject(l))
-      case l: ListInvoicesRequest => ("listinvoices", Json.toJsObject(l))
-      case w: WaitAnyInvoice => ("waitanyinvoice", Json.toJsObject(w))
-      case p: Pay => ("pay", Json.toJsObject(p))
-      case x: ListPaysRequest =>
-        ("listpays", Json.toJsObject(x))
-      case x: LightningDebitRequest =>
-        ("pay", Json.toJsObject(x.pay))
-      case _: LightningGetInfoRequest =>
-        ("getinfo", Json.obj())
-      case DecodePayRequest(bolt11) =>
-        ("decodepay", Json.obj("bolt11" -> bolt11.bolt11))
-      case i: LightningInvoice =>
-        ("invoice", Json.obj("msatoshi" -> i.msatoshi.toLong, "label" -> i.label, "description" -> i.description))
-      case i: MultiFundChannel => ??? // TODO: implement
-      case s: SetChannelFee =>
-        ("setchannelfee", Json.obj("id" -> s.id, "base" -> s.base.map(_.toLong), "ppm" -> s.ppm.map(_.toLong)))
-      case i: NewAddressRequest =>
-        ("newaddr", Json.obj("addresstype" -> i.addresstype.toString))
-    }
-    val request =
-      Request(method = method, id = idGen.getAndIncrement(), params = params, jsonrpc = Request.json2)
-    logger.debug(s"Request $request")
-    Json.toJson(request).toString
-  }
-
-}
+object LightningStream extends LazyLogging {}

@@ -22,7 +22,9 @@ case class ListInvoice(
     expires_at: Long,
     bolt12: Option[String],
     local_offer_id: Option[String]
-) extends LightningJson
+) extends LightningJson {
+  lazy val isPaid = status == LightningInvoiceStatus.paid
+}
 
 object ListInvoice extends EpochSecondInstantFormatter {
   lazy implicit val formatListInvoice: OFormat[ListInvoice] = Json.format[ListInvoice]

@@ -6,4 +6,3 @@ object WaitInvoice {
   implicit val formatWaitInvoice = Json.format[WaitInvoice]
 }
 case class WaitInvoice(label: String) extends LightningJson
-

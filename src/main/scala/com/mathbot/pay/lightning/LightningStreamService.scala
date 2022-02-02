@@ -4,6 +4,7 @@ import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceW
 import play.api.libs.json.Reads
 import sttp.client3.Response
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{Future, Promise}
 
 class LightningStreamService(lightningStream: LightningStream) extends LightningService {
@@ -51,8 +52,10 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
   // TODO:
   def invoiceWithDescriptionHash(
       i: InvoiceWithDescriptionHash
-  ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] = ???
+  ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] =
+    wrap[CreateInvoiceWithDescriptionHash](i)
 
+  val idGen = new AtomicInteger()
   private def wrap[T](
       r: LightningJson
   )(implicit readsT: Reads[T]): Future[Response[Either[LightningRequestError, T]]] = {
@@ -77,4 +80,3 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
   override def waitInvoice(label: String): Future[Response[Either[LightningRequestError, ListInvoice]]] =
     wrap[ListInvoice](WaitInvoice(label))
 }
-

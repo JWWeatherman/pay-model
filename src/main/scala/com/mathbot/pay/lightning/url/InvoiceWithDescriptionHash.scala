@@ -1,6 +1,7 @@
 package com.mathbot.pay.lightning.url
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
+import com.mathbot.pay.lightning.LightningJson
 import play.api.libs.json.Json
 
 object InvoiceWithDescriptionHash {
@@ -12,4 +13,4 @@ case class InvoiceWithDescriptionHash(
     description_hash: String,
     expiry: Int,
     preimage: Option[String] = None
-)
+) extends LightningJson
