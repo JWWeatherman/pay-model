@@ -42,14 +42,12 @@ val commonDeps = Seq(
   akkaStream,
   akkaStreamTestkit,
   akkaTestkit,
-  logging,
   scalactic,
   mockito,
   nameOf,
   bitcoinLib,
-  logging,
   scodec
-) ++ sttp ++ macwire
+) ++ sttp ++ macwire ++ loggingDeps
 
 
 

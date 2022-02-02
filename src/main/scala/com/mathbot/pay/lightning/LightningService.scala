@@ -16,8 +16,8 @@ trait LightningService extends StrictLogging {
   )(implicit ec: ExecutionContext): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
     for {
       inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(r =>
-        r.copy(body =
-          r.body.flatMap(
+        r.copy(
+          body = r.body.flatMap(
             _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
           )
         )
@@ -31,6 +31,11 @@ trait LightningService extends StrictLogging {
   )(implicit ec: ExecutionContext): Future[Either[LightningRequestError, Option[ListInvoice]]] =
     listInvoices(ListInvoicesRequest(invstring = Some(bolt11.bolt11)))
       .map(_.body.map(_.invoices.find(_.bolt11.contains(bolt11))))
+
+  /**
+   * description=List result of payment {bolt11} or {payment_hash}, or all
+   *      verbose=Covers old payments (failed and succeeded) and current ones.
+   */
   def listPays(l: ListPaysRequest = ListPaysRequest(None, None)): Future[Response[Either[LightningRequestError, Pays]]]
   def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]]
   def pay(pay: Pay): Future[Response[Either[LightningRequestError, Payment]]]
@@ -49,4 +54,11 @@ trait LightningService extends StrictLogging {
   ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]]
 
   def waitAnyInvoice(w: WaitAnyInvoice): Future[Response[Either[LightningRequestError, ListInvoice]]]
+
+  /**
+   * https://lightning.readthedocs.io/lightning-waitinvoice.7.html
+   * @param label
+   * @return
+   */
+  def waitInvoice(label: String): Future[Response[Either[LightningRequestError, ListInvoice]]]
 }

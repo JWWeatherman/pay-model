@@ -1,0 +1,15 @@
+{
+  "label": "testApp,testUser1,2IqI09r8dTc=",
+  "bolt11": "lnbc700n1psljvsgpp5h6lsq37rk9n9my0yljhmy7xa2jzwpw7ahwc4jfjmtdn0mnklt0jsdqqxqyjw5qcqpjsp5y58ppma3kwscfmsgqq59wuyan04dwh3ujetg7693qm63vsn87v2qrzjqd82srutzjx82prr234anxdlwvs6peklcc92lp9aqsq296xnwmqd2zh4ccqqr9qqqyqqqqqpqqqqqlgq9q9qgsqqqyssq3f0k5npdygfjd26q5lvf76xeusf34f6hdg95mjez97yhrmqmwmf4trz64d3khwlkh0a86tgyl95z35qev2sdu95e487x58u0kn39qtsp6du58e",
+  "payment_hash": "bebf0047c3b1665d91e4fcafb278dd5484e0bbddbbb159265b5b66fdcedf5be5",
+  "msatoshi": 70000,
+  "amount_msat": "70000msat",
+  "status": "paid",
+  "pay_index": 64,
+  "msatoshi_received": 70000,
+  "amount_received_msat": "70000msat",
+  "paid_at": 1643721409,
+  "payment_preimage": "d25724d859dd4f4541247afc2cce552aa991c57866dfdc4429ef7879ffae44e2",
+  "description": "",
+  "expires_at": 1644326025
+}

@@ -1,135 +1,79 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
+import play.api.libs.json.Reads
 import sttp.client3.Response
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{Future, Promise}
 
 class LightningStreamService(lightningStream: LightningStream) extends LightningService {
 
-  override def listPays(
+  def listPays(
       l: ListPaysRequest = ListPaysRequest()
-  ): Future[Response[Either[LightningRequestError, Pays]]] = {
-    val p = Promise[Response[Either[LightningRequestError, Pays]]]()
-    lightningStream.enqueue(l) {
-      case l: ListPaysResponse =>
-        // cache listpays
-        p.success(Response.ok(Right(l.result)))
-      case l: LightningRequestError =>
-        p.success(Response.ok(Left(l)))
-    }
-    p.future
-  }
+  ): Future[Response[Either[LightningRequestError, Pays]]] = wrap[Pays](l)
 
-  def waitAnyInvoice(w: WaitAnyInvoice): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
-    val p = Promise[Response[Either[LightningRequestError, ListInvoice]]]()
-    lightningStream.enqueue(w) {
-      case l: LightningRequestError =>
-        p.success(Response.ok(Left(l)))
-      case l: ListInvoiceResponse => p.success(Response.ok(Right(l.result)))
+  def waitAnyInvoice(w: WaitAnyInvoice): Future[Response[Either[LightningRequestError, ListInvoice]]] =
+    wrap[ListInvoice](w)
 
-    }
-    p.future
-  }
-
-  override def listInvoices(
+  def listInvoices(
       l: ListInvoicesRequest = ListInvoicesRequest(label = None, invstring = None, payment_hash = None)
-  ): Future[Response[Either[LightningRequestError, Invoices]]] = {
-    val p = Promise[Response[Either[LightningRequestError, Invoices]]]()
-    lightningStream.enqueue(l) {
-      case l: ListInvoicesResponse =>
-        p.success(Response.ok(Right(l.result)))
-      case l: LightningRequestError =>
-        p.success(Response.ok(Left(l)))
-    }
-    p.future
-  }
+  ): Future[Response[Either[LightningRequestError, Invoices]]] =
+    wrap[Invoices](l)
 
-  def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]] = {
-    val p = Promise[Response[Either[LightningRequestError, LightningNodeInfo]]]()
-    lightningStream
-      .enqueue(LightningGetInfoRequest()) {
-        case g: GetInfoResponse => p.success(Response.ok(Right(g.result)))
-        case other =>
-          p.failure(
-            new RuntimeException(s"Failed getinfo from lighting client response = $other")
-          )
-      }
-    p.future
-  }
-  override def decodePay(bolt11: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]] = {
-    val p = Promise[Response[Either[LightningRequestError, DecodePay]]]()
-    lightningStream.enqueue(DecodePayRequest(bolt11)) {
-      case err: LightningRequestError =>
-        p.success(Response.ok(Left(err)))
-      case d: DecodePayResponse => p.success(Response.ok(Right(d.result)))
-    }
-    p.future
-  }
+  def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]] =
+    wrap[LightningNodeInfo](LightningGetInfoRequest())
 
-  def pay(pay: Pay): Future[Response[Either[LightningRequestError, Payment]]] = {
-    val p = Promise[Response[Either[LightningRequestError, Payment]]]()
-    lightningStream.enqueue(pay) {
-      case payResponse: PayResponse =>
-        p.success(Response.ok(Right(payResponse.result)))
-      case err: LightningRequestError =>
-        p.success(Response.ok(Left(err)))
-    }
-    p.future
-  }
+  def decodePay(bolt11: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]] =
+    wrap[DecodePay](DecodePayRequest(bolt11))
 
-  def listPay(req: ListPaysRequest): Future[Response[Either[LightningRequestError, Pays]]] = {
-    val p = Promise[Response[Either[LightningRequestError, Pays]]]()
-    lightningStream.enqueue(req) {
-      case err: LightningRequestError =>
-        p.success(Response.ok(Left(err)))
-      case lp: ListPaysResponse =>
-        p.success(Response.ok(Right(lp.result)))
-    }
-    p.future
-  }
+  def pay(pay: Pay): Future[Response[Either[LightningRequestError, Payment]]] =
+    wrap[Payment](pay)
 
-  override def listOffers(
+  def listPay(req: ListPaysRequest): Future[Response[Either[LightningRequestError, Pays]]] =
+    wrap[Pays](req)
+
+  def listOffers(
       r: LightningListOffersRequest
-  ): Future[Response[Either[LightningRequestError, LightningOffers]]] = {
-    val p = Promise[Response[Either[LightningRequestError, LightningOffers]]]()
-    lightningStream.enqueue(r) {
-      case err: LightningRequestError =>
-        p.success(Response.ok(Left(err)))
-      case lp: LightningListOffersResponse =>
-        p.success(Response.ok(Right(lp.result)))
-    }
-    p.future
+  ): Future[Response[Either[LightningRequestError, LightningOffers]]] =
+    wrap[LightningOffers](r)
 
-  }
-
-  override def createOffer(
+  def createOffer(
       offerRequest: LightningOfferRequest
-  ): Future[Response[Either[LightningRequestError, LightningOffer]]] = {
-    val p = Promise[Response[Either[LightningRequestError, LightningOffer]]]()
-    lightningStream.enqueue(offerRequest) {
-      case err: LightningRequestError =>
-        p.success(Response.ok(Left(err)))
-      case lp: LightningOffer =>
-        p.success(Response.ok(Right(lp)))
-    }
-    p.future
-  }
+  ): Future[Response[Either[LightningRequestError, LightningOffer]]] =
+    wrap[LightningOffer](offerRequest)
 
-  override def invoice(
+  def invoice(
       inv: LightningInvoice
-  ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] = {
-    val p = Promise[Response[Either[LightningRequestError, LightningCreateInvoice]]]()
-    lightningStream.enqueue(inv) {
-      case err: LightningRequestError =>
-        p.success(Response.ok(Left(err)))
-      case lp: LightningCreateInvoiceResponse =>
-        p.success(Response.ok(Right(lp.result)))
+  ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
+    wrap[LightningCreateInvoice](inv)
+
+  def invoiceWithDescriptionHash(
+      i: InvoiceWithDescriptionHash
+  ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] =
+    wrap[CreateInvoiceWithDescriptionHash](i)
+
+  /**
+   * https://lightning.readthedocs.io/lightning-waitinvoice.7.html
+   *
+   * @param label
+   * @return
+   */
+  override def waitInvoice(label: String): Future[Response[Either[LightningRequestError, ListInvoice]]] =
+    wrap[ListInvoice](WaitInvoice(label))
+
+  private def wrap[T](
+      r: LightningJson
+  )(implicit readsT: Reads[T]): Future[Response[Either[LightningRequestError, T]]] = {
+    val p = Promise[Response[Either[LightningRequestError, T]]]()
+    lightningStream.enqueue(r) {
+      case t if t.\("result").isDefined && t("result").validate[T].isSuccess =>
+        p.success(Response.ok(Right(t("result").as[T])))
+      case t if t.validate[LightningRequestError].isSuccess =>
+        p.success(Response.ok(Left(t.as[LightningRequestError])))
+      case other =>
+        p.success(Response.ok(Left(LightningRequestError(ErrorMsg(500, s"Unknown result $other")))))
     }
     p.future
   }
-
-  override def invoiceWithDescriptionHash(
-      i: InvoiceWithDescriptionHash
-  ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] = ???
 }

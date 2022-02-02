@@ -5,9 +5,11 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Flow, GraphDSL, Source, SourceQueueWithComplete, Unzip, Zip}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult, SourceShape}
+import com.github.dwickern.macros.NameOf.nameOf
+import com.mathbot.pay.lightning.url.InvoiceWithDescriptionHash
 import com.typesafe.scalalogging.LazyLogging
 import org.slf4j.LoggerFactory
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -18,24 +20,19 @@ import scala.util.{Failure, Success, Try}
  * @param lightingFlow Flow i.e. json -> unix socket -> json
  */
 class LightningStream(
-    system: ActorSystem,
-    ec: ExecutionContext,
-    lightingFlow: Flow[LightningJson, LightningJson, NotUsed]
-) extends LazyLogging {
+    lightingFlow: Flow[LightningJson, JsValue, NotUsed]
+)(implicit system: ActorSystem)
+    extends LazyLogging {
 
-  private implicit val as = system
-
-  private lazy val graph: Source[(LightningJson => Unit, LightningJson), SourceQueueWithComplete[
-    (LightningJson => Unit, LightningJson)
-  ]] =
+  private lazy val graph =
     Source.fromGraph(
       GraphDSL.create(
-        Source.queue[(LightningJson => Unit, LightningJson)](bufferSize = 32, overflowStrategy = OverflowStrategy.fail)
+        Source.queue[(JsValue => Unit, LightningJson)](bufferSize = 32, overflowStrategy = OverflowStrategy.fail)
       ) { implicit builder => queue =>
         import GraphDSL.Implicits._
 
-        val u = builder.add(Unzip[LightningJson => Unit, LightningJson]) // (finish, lighting request)
-        val z = builder.add(Zip[LightningJson => Unit, LightningJson]) // (finish, lightning response)
+        val u = builder.add(Unzip[JsValue => Unit, LightningJson])
+        val z = builder.add(Zip[JsValue => Unit, JsValue])
         val flow = builder.add(lightingFlow)
 
         queue.out ~> u.in
@@ -53,78 +50,20 @@ class LightningStream(
     q
   }
 
-  def enqueue(lightning: LightningJson)(finish: LightningJson => Unit): Future[Unit] =
+  def enqueue(lightning: LightningJson)(finish: JsValue => Unit): Future[Unit] =
     queue
       .offer((finish, lightning))
       .collect {
         case QueueOfferResult.Failure(t) =>
           logger.error(s"failure adding request to queue $lightning")
           finish(
-            LightningRequestError(
-              error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t"),
-              bolt11 = None
+            Json.toJson(
+              LightningRequestError(
+                error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t")
+              )
             )
           )
-      }(ec)
+      }(system.dispatcher)
 
 }
-object LightningStream extends LazyLogging {
-
-  def convertToString(lj: LightningJson, idGen: AtomicInteger): String = {
-    val (method, params) = lj match {
-      case l: LightningListOffersRequest => ("listoffers", Json.toJsObject(l))
-      case l: LightningOfferRequest => ("offer", Json.toJsObject(l))
-      case l: ListInvoicesRequest => ("listinvoices", Json.toJsObject(l))
-      case w: WaitAnyInvoice => ("waitanyinvoice", Json.toJsObject(w))
-      case p: Pay => ("pay", Json.toJsObject(p))
-      case x: ListPaysRequest =>
-        ("listpays", Json.toJsObject(x))
-      case x: LightningDebitRequest =>
-        ("pay", Json.toJsObject(x.pay))
-      case _: LightningGetInfoRequest =>
-        ("getinfo", Json.obj())
-      case DecodePayRequest(bolt11) =>
-        ("decodepay", Json.obj("bolt11" -> bolt11.bolt11))
-      case i: LightningInvoice =>
-        ("invoice", Json.obj("msatoshi" -> i.msatoshi.toLong, "label" -> i.label, "description" -> i.description))
-      case i: MultiFundChannel => ??? // todo implement
-      case s: SetChannelFee =>
-        ("setchannelfee", Json.obj("id" -> s.id, "base" -> s.base.map(_.toLong), "ppm" -> s.ppm.map(_.toLong)))
-      case i: NewAddressRequest =>
-        ("newaddr", Json.obj("addresstype" -> i.addresstype.toString))
-    }
-    val request =
-      Request(method = method, id = idGen.getAndIncrement(), params = params, jsonrpc = Request.json2)
-    logger.debug(s"Request $request")
-    Json.toJson(request).toString
-  }
-
-  def convertToLightingJson(s: String): LightningJson =
-    Try(Json.parse(s)) match {
-      case Failure(exception) =>
-        val message = s"Json parsing error response = $s, error = $exception"
-        logger.error(message)
-        LightningRequestError(
-          error = ErrorMsg(code = 500, message = message),
-          bolt11 = None
-        )
-      case Success(js) =>
-        logger.debug(s"Response ${js.toString()}")
-        val success = js.asOpt[ListPaysResponse] orElse
-          js.asOpt[PayResponse] orElse
-          js.asOpt[GetInfoResponse] orElse
-          js.asOpt[ListInvoicesResponse] orElse
-          js.asOpt[LightningListOffersResponse] orElse
-          js.asOpt[ListInvoice] orElse
-          js.asOpt[ListInvoiceResponse] orElse
-          js.asOpt[DecodePayResponse] orElse
-          js.asOpt[LightningCreateInvoiceResponse] orElse
-          js.asOpt[LightningRequestError]
-        success getOrElse {
-          val message = s"Unknown response from lightning node $js"
-          logger.error(message)
-          LightningRequestError(error = ErrorMsg(code = 500, message = message), bolt11 = None)
-        }
-
-    }
-}
+object LightningStream extends LazyLogging {}
