@@ -40,22 +40,28 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
 
   def createOffer(
       offerRequest: LightningOfferRequest
-  ): Future[Response[Either[LightningRequestError, LightningOffer]]] = {
+  ): Future[Response[Either[LightningRequestError, LightningOffer]]] =
     wrap[LightningOffer](offerRequest)
-  }
 
   def invoice(
       inv: LightningInvoice
   ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
     wrap[LightningCreateInvoice](inv)
 
-  // TODO:
   def invoiceWithDescriptionHash(
       i: InvoiceWithDescriptionHash
   ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] =
     wrap[CreateInvoiceWithDescriptionHash](i)
 
-  val idGen = new AtomicInteger()
+  /**
+   * https://lightning.readthedocs.io/lightning-waitinvoice.7.html
+   *
+   * @param label
+   * @return
+   */
+  override def waitInvoice(label: String): Future[Response[Either[LightningRequestError, ListInvoice]]] =
+    wrap[ListInvoice](WaitInvoice(label))
+
   private def wrap[T](
       r: LightningJson
   )(implicit readsT: Reads[T]): Future[Response[Either[LightningRequestError, T]]] = {
@@ -70,13 +76,4 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
     }
     p.future
   }
-
-  /**
-   * https://lightning.readthedocs.io/lightning-waitinvoice.7.html
-   *
-   * @param label
-   * @return
-   */
-  override def waitInvoice(label: String): Future[Response[Either[LightningRequestError, ListInvoice]]] =
-    wrap[ListInvoice](WaitInvoice(label))
 }
