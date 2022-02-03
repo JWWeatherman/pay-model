@@ -1,12 +1,9 @@
-package com.mathbot.pay.lightning.pay
+package com.mathbot.pay.lightning
 
-import com.github.dwickern.macros.NameOf.nameOf
-import com.mathbot.pay.{SecureIdentifier, Sensitive}
 import com.mathbot.pay.bitcoin.MilliSatoshi
-import com.mathbot.pay.lightning._
-import com.mathbot.pay.lightning.pay.PayService.PayInvoiceServiceConfig
 import com.mathbot.pay.webhook.CallbackURL
-import play.api.libs.json.{JsValue, Json, Reads}
+import com.mathbot.pay.{SecureIdentifier, Sensitive}
+import play.api.libs.json.{JsValue, Json}
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
 import sttp.model.MediaType
@@ -22,8 +19,8 @@ object PayService {
   case class PlayerStatement(invoices: Set[ListInvoice], payments: Seq[ListPay], playerId: String) {
     lazy val paidInvoices = invoices.filter(_.status == LightningInvoiceStatus.paid)
     val completeOrPendingPayments = {
-      payments.filter(p =>
-        p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
+      payments.filter(
+        p => p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
       )
     }
     val paidInvoicesMsat = paidInvoices.flatMap(_.msatoshi).map(_.toLong).sum
@@ -83,7 +80,10 @@ object PayService {
   }
   case class RpcRequest(method: String, params: JsValue)
 
-  case class PayInvoiceServiceConfig(clientId: String, clientSecret: Sensitive, baseUrl: String)
+  case class PayInvoiceServiceConfig(clientId: String,
+                                     clientSecret: Sensitive,
+                                     baseUrl: String,
+                                     accessToken: Option[String] = None)
 
   object MyTokenResponse {
     implicit val formatMyTokenResponse = Json.format[MyTokenResponse]
@@ -154,7 +154,8 @@ object PayService {
 
 }
 
-class PayService(config: PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
+class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
+    implicit
     ec: ExecutionContext
 ) extends RpcLightningService {
   import PayService._
@@ -163,7 +164,7 @@ class PayService(config: PayInvoiceServiceConfig, val backend: SttpBackend[Futur
   import sttp.client3.playJson._
   val baseUrl = config.baseUrl + "/lightning/rpc"
 
-  var ACCESS_TOKEN = ""
+  private var ACCESS_TOKEN = config.accessToken.map(_.toString).getOrElse(default = "INVALID")
   def base: RequestT[Empty, Either[String, String], Any] =
     basicRequest.auth.bearer(ACCESS_TOKEN)
 

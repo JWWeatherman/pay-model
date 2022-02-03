@@ -1,14 +1,9 @@
-package com.mathbot.pay.lightning.pay
+package com.mathbot.pay
 
-import com.mathbot.pay.bitcoin.MilliSatoshi
-import com.mathbot.pay.lightning.Bolt11
-import com.mathbot.pay.lightning.pay.PayService.{PayInvoiceServiceConfig, PlayerInvoice, PlayerPayment__IN}
+import com.mathbot.pay.lightning.PayService.{PayInvoiceServiceConfig, PlayerPayment__IN}
+import com.mathbot.pay.lightning.{Bolt11, PayService}
 import com.mathbot.pay.webhook.CallbackURL
-import com.mathbot.pay.{BaseIntegrationTest, Sensitive}
 import com.softwaremill.macwire.wire
-import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
-
-import scala.concurrent.Await
 
 class PayServiceTest extends BaseIntegrationTest {
   val config =
@@ -30,6 +25,7 @@ class PayServiceTest extends BaseIntegrationTest {
 
       for {
         tr <- service.getToken
+        if tr.isSuccess
         r <- service.getInfo
         s <- service.playerStatement("IT SPEC")
 //        i <- service.playerInvoice(PlayerInvoice(MilliSatoshi(10000), "IT SPEC", "IT SPEC"))

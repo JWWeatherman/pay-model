@@ -1,11 +1,9 @@
 package com.mathbot.pay
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, JsResult, JsString, JsValue, Json}
 
 case class Sensitive(value: String) {
   override def toString: String = "***"
 }
 
-object Sensitive {
-  implicit val formatSensitive = Json.format[Sensitive]
-}
+object Sensitive
