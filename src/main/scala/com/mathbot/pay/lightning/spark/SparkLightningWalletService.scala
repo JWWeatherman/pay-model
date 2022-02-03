@@ -8,9 +8,10 @@ import sttp.model.sse.ServerSentEvent
 
 import scala.concurrent.Future
 
-class SparkLightningWalletService(config: SparkLightningWalletServiceConfig,
-                                  val backend: SttpBackend[Future, AkkaStreams])
-    extends RpcLightningService {
+class SparkLightningWalletService(
+    config: SparkLightningWalletServiceConfig,
+    val backend: SttpBackend[Future, AkkaStreams]
+) extends RpcLightningService {
   import SparkLightningWalletService._
   import sttp.client3._
   val baseUrl = config.baseUrl

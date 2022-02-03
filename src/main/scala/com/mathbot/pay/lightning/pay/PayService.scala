@@ -22,8 +22,8 @@ object PayService {
   case class PlayerStatement(invoices: Set[ListInvoice], payments: Seq[ListPay], playerId: String) {
     lazy val paidInvoices = invoices.filter(_.status == LightningInvoiceStatus.paid)
     val completeOrPendingPayments = {
-      payments.filter(
-        p => p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
+      payments.filter(p =>
+        p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
       )
     }
     val paidInvoicesMsat = paidInvoices.flatMap(_.msatoshi).map(_.toLong).sum
@@ -39,11 +39,13 @@ object PayService {
   def invoice(inv: PlayerInvoice__IN): LightningInvoice = {
     import inv._
     val label = makeLabel(source, playerId)
-    LightningInvoice(inv.msatoshi,
-                     label = label,
-                     description = description.getOrElse(DEFAULT_DESCRIPTION),
-                     expiry = Some(15.minutes), // todo hardcode
-                     preimage = None)
+    LightningInvoice(
+      inv.msatoshi,
+      label = label,
+      description = description.getOrElse(DEFAULT_DESCRIPTION),
+      expiry = Some(15.minutes), // todo hardcode
+      preimage = None
+    )
   }
 
   def payment(p: LightningDebitRequest, playerId: String, source: String) = {
@@ -89,11 +91,11 @@ object PayService {
 
   /**
    * {
-    "access_token" : "Si7EHoP_rRDoRAfTRORa-wESMvT2r5WnNarvDW-OjmQ.wCJWYPY-AoamoLF0q1ER5WJt04gOdDPgivY9EgAEBCs",
-    "expires_in" : 3599,
-    "scope" : "offline",
-    "token_type" : "bearer"
-  }
+   *    "access_token" : "Si7EHoP_rRDoRAfTRORa-wESMvT2r5WnNarvDW-OjmQ.wCJWYPY-AoamoLF0q1ER5WJt04gOdDPgivY9EgAEBCs",
+   *    "expires_in" : 3599,
+   *    "scope" : "offline",
+   *    "token_type" : "bearer"
+   *  }
    * @param access_token
    * @param scope
    * @param token_type
@@ -140,18 +142,20 @@ object PayService {
     implicit val formatPlayerInvoiceRequest = Json.reads[PlayerInvoice__IN]
   }
 
-  case class PlayerInvoice__IN(msatoshi: MilliSatoshi,
-                               playerId: String,
-                               source: String,
-                               description: Option[String],
-                               webhook: Option[CallbackURL]) {
+  case class PlayerInvoice__IN(
+      msatoshi: MilliSatoshi,
+      playerId: String,
+      source: String,
+      description: Option[String],
+      webhook: Option[CallbackURL]
+  ) {
     val invoice = PayService.invoice(this)
   }
 
 }
 
-class PayService(config: PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
-    implicit ec: ExecutionContext
+class PayService(config: PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
+    ec: ExecutionContext
 ) extends RpcLightningService {
   import PayService._
   import config._
