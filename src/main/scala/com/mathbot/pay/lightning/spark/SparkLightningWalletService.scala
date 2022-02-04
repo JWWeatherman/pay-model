@@ -1,9 +1,11 @@
 package com.mathbot.pay.lightning.spark
 
+import akka.stream.scaladsl.Source
 import com.mathbot.pay.lightning._
 import play.api.libs.json._
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
+import sttp.client3.akkahttp.AkkaHttpServerSentEvents
 import sttp.model.sse.ServerSentEvent
 
 import scala.concurrent.Future
@@ -17,6 +19,15 @@ class SparkLightningWalletService(
   val baseUrl = config.baseUrl
   val base = basicRequest
     .headers(Map("X-Access" -> config.accessKey.value))
+
+  def stream(processEvents: Source[ServerSentEvent, Any] => Future[Unit]): Future[Response[Either[String, Unit]]] = {
+    base
+      .get(uri"${config.baseUrl.replace("/rpc", "/stream")}")
+      .response(
+        asStream(AkkaStreams)(stream => processEvents(stream.via(AkkaHttpServerSentEvents.parse)))
+      )
+      .send(backend)
+  }
 
   /**
    * Helper to handle the server sent events. spark only returns btcusd and parid invoices

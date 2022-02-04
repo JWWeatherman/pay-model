@@ -19,8 +19,8 @@ object PayService {
   case class PlayerStatement(invoices: Set[ListInvoice], payments: Seq[ListPay], playerId: String) {
     lazy val paidInvoices = invoices.filter(_.status == LightningInvoiceStatus.paid)
     val completeOrPendingPayments = {
-      payments.filter(
-        p => p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
+      payments.filter(p =>
+        p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
       )
     }
     val paidInvoicesMsat = paidInvoices.flatMap(_.msatoshi).map(_.toLong).sum
@@ -80,10 +80,12 @@ object PayService {
   }
   case class RpcRequest(method: String, params: JsValue)
 
-  case class PayInvoiceServiceConfig(clientId: String,
-                                     clientSecret: Sensitive,
-                                     baseUrl: String,
-                                     accessToken: Option[String] = None)
+  case class PayInvoiceServiceConfig(
+      clientId: String,
+      clientSecret: Sensitive,
+      baseUrl: String,
+      accessToken: Option[String] = None
+  )
 
   object MyTokenResponse {
     implicit val formatMyTokenResponse = Json.format[MyTokenResponse]
@@ -154,8 +156,7 @@ object PayService {
 
 }
 
-class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
-    implicit
+class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
     ec: ExecutionContext
 ) extends RpcLightningService {
   import PayService._
@@ -164,7 +165,7 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
   import sttp.client3.playJson._
   val baseUrl = config.baseUrl + "/lightning/rpc"
 
-  private var ACCESS_TOKEN = config.accessToken.map(_.toString).getOrElse(default = "INVALID")
+  private var ACCESS_TOKEN = config.accessToken.getOrElse(default = "INVALID")
   def base: RequestT[Empty, Either[String, String], Any] =
     basicRequest.auth.bearer(ACCESS_TOKEN)
 
