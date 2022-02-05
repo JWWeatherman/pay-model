@@ -3,7 +3,7 @@ package com.mathbot.pay.lightning
 import com.mathbot.pay.bitcoin.MilliSatoshi
 import com.mathbot.pay.webhook.CallbackURL
 import com.mathbot.pay.{SecureIdentifier, Sensitive}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsError, JsValue, Json, OFormat, Reads}
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
 import sttp.model.MediaType
@@ -14,18 +14,18 @@ import scala.util.{Failure, Success}
 
 object PayService {
   object PlayerStatement {
-    implicit val formatPlayerStatement = Json.format[PlayerStatement]
+    implicit val formatPlayerStatement: OFormat[PlayerStatement] = Json.format[PlayerStatement]
   }
   case class PlayerStatement(invoices: Set[ListInvoice], payments: Seq[ListPay], playerId: String) {
-    lazy val paidInvoices = invoices.filter(_.status == LightningInvoiceStatus.paid)
-    val completeOrPendingPayments = {
+    lazy val paidInvoices: Set[ListInvoice] = invoices.filter(_.status == LightningInvoiceStatus.paid)
+    val completeOrPendingPayments: Seq[ListPay] = {
       payments.filter(p =>
         p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
       )
     }
-    val paidInvoicesMsat = paidInvoices.flatMap(_.msatoshi).map(_.toLong).sum
-    val completeOrPendingPaymentsMsat = completeOrPendingPayments.map(_.amount_sent_msat.toLong).sum
-    val balance = paidInvoicesMsat - completeOrPendingPaymentsMsat
+    val paidInvoicesMsat: Long = paidInvoices.flatMap(_.msatoshi).map(_.toLong).sum
+    val completeOrPendingPaymentsMsat: Long = completeOrPendingPayments.map(_.amount_sent_msat.toLong).sum
+    val balance: Long = paidInvoicesMsat - completeOrPendingPaymentsMsat
   }
   val DEFAULT_DESCRIPTION = ""
   final val SEPARATOR = ","
@@ -45,18 +45,18 @@ object PayService {
     )
   }
 
-  def payment(p: LightningDebitRequest, playerId: String, source: String) = {
+  def payment(p: LightningDebitRequest, playerId: String, source: String): LightningDebitRequest = {
     val label = makeLabel(source, playerId)
     p.copy(pay = p.pay.copy(label = Some(label)))
   }
 
-  def parseLabel(label: String, playerId: String) =
+  def parseLabel(label: String, playerId: String): Boolean =
     label.split(SEPARATOR).toSeq match {
       case Seq(_, `playerId`, _) => true
       case o => false
     }
 
-  def parseAppLabel(label: String, source: String) =
+  def parseAppLabel(label: String, source: String): Boolean =
     label.split(SEPARATOR).toSeq match {
       case Seq(`source`, _, _) => true
       case o => false
@@ -76,7 +76,7 @@ object PayService {
   }
 
   object RpcRequest {
-    implicit val formatRpcReq = Json.reads[RpcRequest]
+    implicit val formatRpcReq: Reads[RpcRequest] = Json.reads[RpcRequest]
   }
   case class RpcRequest(method: String, params: JsValue)
 
@@ -88,7 +88,7 @@ object PayService {
   )
 
   object MyTokenResponse {
-    implicit val formatMyTokenResponse = Json.format[MyTokenResponse]
+    implicit val formatMyTokenResponse: OFormat[MyTokenResponse] = Json.format[MyTokenResponse]
   }
 
   /**
@@ -105,43 +105,38 @@ object PayService {
    */
   case class MyTokenResponse(access_token: String, expires_in: Int, scope: String, token_type: String)
 
-  object PlayerInvoice {
-    implicit val formatPlayerInvoice = Json.format[PlayerInvoice]
-  }
-  case class PlayerInvoice(msatoshi: MilliSatoshi, playerId: String, source: String)
-
   object PlayerPayment__IN {
-    implicit val formatPlayerPayment__IN = Json.format[PlayerPayment__IN]
+    implicit val formatPlayerPayment__IN: OFormat[PlayerPayment__IN] = Json.format[PlayerPayment__IN]
   }
   case class PlayerPayment__IN(source: String, playerId: String, bolt11: Bolt11, callbackURL: Option[CallbackURL])
 
   object PlayerStatement__IN {
-    implicit val formatPlayerStatement__IN = Json.format[PlayerStatement__IN]
+    implicit val formatPlayerStatement__IN: OFormat[PlayerStatement__IN] = Json.format[PlayerStatement__IN]
   }
   case class PlayerStatement__IN(playerId: String)
 
   object PlayerStatement__OUT {
-    implicit val formatPlayerStatement__OUT = Json.format[PlayerStatement__OUT]
+    implicit val formatPlayerStatement__OUT: OFormat[PlayerStatement__OUT] = Json.format[PlayerStatement__OUT]
   }
   case class PlayerStatement__OUT(statement: PlayerStatement)
 
   object AppInvoices__IN {
-    implicit val formatAppInvoices__IN = Json.format[AppInvoices__IN]
+    implicit val formatAppInvoices__IN: OFormat[AppInvoices__IN] = Json.format[AppInvoices__IN]
   }
   case class AppInvoices__IN(source: String)
 
   object AppInvoices__OUT {
-    implicit val formatAppInvoices__OUT = Json.format[AppInvoices__OUT]
+    implicit val formatAppInvoices__OUT: OFormat[AppInvoices__OUT] = Json.format[AppInvoices__OUT]
   }
   case class AppInvoices__OUT(invoices: Set[ListInvoice], source: String)
 
   object AppStatment__IN {
-    implicit val formatAppStatment__IN = Json.format[AppStatment__IN]
+    implicit val formatAppStatment__IN: OFormat[AppStatment__IN] = Json.format[AppStatment__IN]
   }
   case class AppStatment__IN(source: String)
 
   object PlayerInvoice__IN {
-    implicit val formatPlayerInvoiceRequest = Json.reads[PlayerInvoice__IN]
+    implicit val formatPlayerInvoiceRequest: Reads[PlayerInvoice__IN] = Json.reads[PlayerInvoice__IN]
   }
 
   case class PlayerInvoice__IN(
@@ -151,7 +146,7 @@ object PayService {
       description: Option[String],
       webhook: Option[CallbackURL]
   ) {
-    val invoice = PayService.invoice(this)
+    val invoice: LightningInvoice = PayService.invoice(this)
   }
 
 }
@@ -163,13 +158,13 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
   import config._
   import sttp.client3._
   import sttp.client3.playJson._
-  val baseUrl = config.baseUrl + "/lightning/rpc"
+  val baseUrl: String = config.baseUrl + "/lightning/rpc"
 
   private var ACCESS_TOKEN = config.accessToken.getOrElse(default = "INVALID")
   def base: RequestT[Empty, Either[String, String], Any] =
     basicRequest.auth.bearer(ACCESS_TOKEN)
 
-  def getToken = {
+  def getToken: Future[Response[Either[ResponseException[String, JsError], MyTokenResponse]]] = {
     val r = basicRequest
       .post(uri"${config.baseUrl}/oauth2/token")
       .auth
@@ -189,17 +184,15 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
       }
   }
 
-  def playerInvoice(inv: PlayerInvoice) =
+  def playerInvoice(inv: PlayerInvoice__IN): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
     base
       .post(uri"${config.baseUrl}/lightning/player/invoice")
       .contentType(MediaType.ApplicationJson)
-      .body(
-        inv
-      )
+      .body(inv.invoice)
       .response(toBody[LightningCreateInvoice])
       .send(backend)
 
-  def playerPayment(payment: PlayerPayment__IN) = {
+  def playerPayment(payment: PlayerPayment__IN): Future[Response[Either[LightningRequestError, ListPay]]] = {
     val r = base
       .contentType(MediaType.ApplicationJson)
       .post(uri"${config.baseUrl}/lightning/player/pay")
@@ -209,7 +202,7 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
 
   }
 
-  def playerStatement(playerId: String) = {
+  def playerStatement(playerId: String): Future[Response[Either[LightningRequestError, PlayerStatement__OUT]]] = {
     val r = base
       .contentType(MediaType.ApplicationJson)
       .post(uri"${config.baseUrl}/lightning/player/statement")
