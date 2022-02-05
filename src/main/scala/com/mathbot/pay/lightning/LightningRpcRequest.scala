@@ -36,7 +36,7 @@ object LightningRpcRequest {
       case DecodePayRequest(bolt11) =>
         ("decodepay", Json.obj("bolt11" -> bolt11.bolt11))
       case i: LightningInvoice =>
-        ("invoice", Json.obj("msatoshi" -> i.msatoshi.toLong, "label" -> i.label, "description" -> i.description))
+        ("invoice", Json.toJsObject(i))
       case i: MultiFundChannel => ??? // TODO: implement
       case s: SetChannelFee =>
         ("setchannelfee", Json.obj("id" -> s.id, "base" -> s.base.map(_.toLong), "ppm" -> s.ppm.map(_.toLong)))
