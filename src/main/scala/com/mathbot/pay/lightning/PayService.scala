@@ -17,13 +17,18 @@ object PayService {
   object PlayerStatement {
     implicit val formatPlayerStatement: OFormat[PlayerStatement] = Json.format[PlayerStatement]
   }
-  case class PlayerStatement(invoices: Set[ListInvoice], payments: Seq[ListPay], playerId: String) {
+  case class PlayerStatement(
+      invoices: Set[ListInvoice],
+      payments: Seq[ListPay],
+      playerId: String,
+      subtractFromBalance: MilliSatoshi
+  ) {
     lazy val paidInvoices: Set[ListInvoice] = invoices.filter(_.isPaid)
     val completeOrPendingPayments: Seq[ListPay] = payments.filter(p => p.isPaid || p.isPending)
     import com.mathbot.pay.bitcoin.NumericMilliSatoshi
     val paidInvoicesMsat = paidInvoices.flatMap(_.msatoshi).sum
     val completeOrPendingPaymentsMsat = completeOrPendingPayments.map(_.amount_sent_msat).sum
-    val balance: MilliSatoshi = paidInvoicesMsat - completeOrPendingPaymentsMsat
+    val balance: MilliSatoshi = paidInvoicesMsat - completeOrPendingPaymentsMsat - subtractFromBalance
   }
   val DEFAULT_DESCRIPTION = ""
   final val SEPARATOR = ","
@@ -60,17 +65,22 @@ object PayService {
       case o => false
     }
 
-  def statement(i: Set[ListInvoice], p: Seq[ListPay], playerId: String): PlayerStatement = {
+  def statement(
+      i: Set[ListInvoice],
+      p: Seq[ListPay],
+      playerId: String,
+      subtractFromBalance: MilliSatoshi
+  ): PlayerStatement = {
 
     val ii = i.filter(j => parseLabel(j.label, playerId))
     val pp = p.filter(_.label.exists(parseLabel(_, playerId)))
-    PlayerStatement(ii, pp, playerId)
+    PlayerStatement(ii, pp, playerId, subtractFromBalance)
   }
 
   def appStatement(i: Set[ListInvoice], p: Seq[ListPay], source: String): PlayerStatement = {
     val ii = i.filter(j => parseAppLabel(j.label, source))
     val pp = p.filter(_.label.exists(parseAppLabel(_, source)))
-    PlayerStatement(ii, pp, source)
+    PlayerStatement(invoices = ii, payments = pp, playerId = source, subtractFromBalance = MilliSatoshi(0))
   }
 
   object RpcRequest {
@@ -111,7 +121,9 @@ object PayService {
   object PlayerStatement__IN {
     implicit val formatPlayerStatement__IN: OFormat[PlayerStatement__IN] = Json.format[PlayerStatement__IN]
   }
-  case class PlayerStatement__IN(playerId: String)
+  case class PlayerStatement__IN(playerId: String, subtractFromBalance: Option[MilliSatoshi]) {
+    val toSubtract = subtractFromBalance.getOrElse(MilliSatoshi(0))
+  }
 
   object PlayerStatement__OUT {
     implicit val formatPlayerStatement__OUT: OFormat[PlayerStatement__OUT] = Json.format[PlayerStatement__OUT]
@@ -209,11 +221,14 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
 
   }
 
-  def playerStatement(playerId: String): Future[Response[Either[LightningRequestError, PlayerStatement__OUT]]] = {
+  def playerStatement(
+      playerId: String,
+      subtractFromBalance: Option[MilliSatoshi] = None
+  ): Future[Response[Either[LightningRequestError, PlayerStatement__OUT]]] = {
     val r = base
       .contentType(MediaType.ApplicationJson)
       .post(uri"${config.baseUrl}/lightning/player/statement")
-      .body(PlayerStatement__IN(playerId))
+      .body(PlayerStatement__IN(playerId, subtractFromBalance))
       .response(toBody[PlayerStatement__OUT])
     r.send(backend)
   }
