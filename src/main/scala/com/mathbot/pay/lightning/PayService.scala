@@ -8,7 +8,7 @@ import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
 import sttp.model.MediaType
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -19,8 +19,8 @@ object PayService {
   case class PlayerStatement(invoices: Set[ListInvoice], payments: Seq[ListPay], playerId: String) {
     lazy val paidInvoices: Set[ListInvoice] = invoices.filter(_.status == LightningInvoiceStatus.paid)
     val completeOrPendingPayments: Seq[ListPay] = {
-      payments.filter(p =>
-        p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
+      payments.filter(
+        p => p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
       )
     }
     val paidInvoicesMsat: Long = paidInvoices.flatMap(_.msatoshi).map(_.toLong).sum
@@ -40,7 +40,7 @@ object PayService {
       inv.msatoshi,
       label = label,
       description = description.getOrElse(DEFAULT_DESCRIPTION),
-      expiry = Some(15.minutes), // todo hardcode
+      expiry = expiry orElse Some(15.minutes), // todo hardcode
       preimage = None
     )
   }
@@ -136,7 +136,7 @@ object PayService {
   case class AppStatment__IN(source: String)
 
   object PlayerInvoice__IN {
-    implicit val formatPlayerInvoiceRequest: Reads[PlayerInvoice__IN] = Json.reads[PlayerInvoice__IN]
+    implicit val formatPlayerInvoiceRequest = Json.format[PlayerInvoice__IN]
   }
 
   case class PlayerInvoice__IN(
@@ -144,14 +144,16 @@ object PayService {
       playerId: String,
       source: String,
       description: Option[String],
-      webhook: Option[CallbackURL]
+      webhook: Option[CallbackURL],
+      expiry: Option[FiniteDuration]
   ) {
     val invoice: LightningInvoice = PayService.invoice(this)
   }
 
 }
 
-class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
+class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
+    implicit
     ec: ExecutionContext
 ) extends RpcLightningService {
   import PayService._
@@ -188,7 +190,7 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
     base
       .post(uri"${config.baseUrl}/lightning/player/invoice")
       .contentType(MediaType.ApplicationJson)
-      .body(inv.invoice)
+      .body(inv)
       .response(toBody[LightningCreateInvoice])
       .send(backend)
 
