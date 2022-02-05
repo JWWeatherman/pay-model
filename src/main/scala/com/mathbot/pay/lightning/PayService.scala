@@ -1,6 +1,7 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
+import com.mathbot.pay.json.{EpochSecondInstantFormatter, FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
 import com.mathbot.pay.webhook.CallbackURL
 import com.mathbot.pay.{SecureIdentifier, Sensitive}
 import play.api.libs.json.{JsError, JsValue, Json, OFormat, Reads}
@@ -135,7 +136,7 @@ object PayService {
   }
   case class AppStatment__IN(source: String)
 
-  object PlayerInvoice__IN {
+  object PlayerInvoice__IN extends FiniteDurationToSecondsReader with FiniteDurationToSecondsWriter {
     implicit val formatPlayerInvoiceRequest = Json.format[PlayerInvoice__IN]
   }
 
