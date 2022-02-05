@@ -18,15 +18,12 @@ object PayService {
     implicit val formatPlayerStatement: OFormat[PlayerStatement] = Json.format[PlayerStatement]
   }
   case class PlayerStatement(invoices: Set[ListInvoice], payments: Seq[ListPay], playerId: String) {
-    lazy val paidInvoices: Set[ListInvoice] = invoices.filter(_.status == LightningInvoiceStatus.paid)
-    val completeOrPendingPayments: Seq[ListPay] = {
-      payments.filter(
-        p => p.status == PayStatus.complete || p.status == PayStatus.pending || p.status == PayStatus.paid
-      )
-    }
-    val paidInvoicesMsat: Long = paidInvoices.flatMap(_.msatoshi).map(_.toLong).sum
-    val completeOrPendingPaymentsMsat: Long = completeOrPendingPayments.map(_.amount_sent_msat.toLong).sum
-    val balance: Long = paidInvoicesMsat - completeOrPendingPaymentsMsat
+    lazy val paidInvoices: Set[ListInvoice] = invoices.filter(_.isPaid)
+    val completeOrPendingPayments: Seq[ListPay] = payments.filter(p => p.isPaid || p.isPending)
+    import com.mathbot.pay.bitcoin.NumericMilliSatoshi
+    val paidInvoicesMsat = paidInvoices.flatMap(_.msatoshi).sum
+    val completeOrPendingPaymentsMsat = completeOrPendingPayments.map(_.amount_sent_msat).sum
+    val balance: MilliSatoshi = paidInvoicesMsat - completeOrPendingPaymentsMsat
   }
   val DEFAULT_DESCRIPTION = ""
   final val SEPARATOR = ","
@@ -151,10 +148,17 @@ object PayService {
     val invoice: LightningInvoice = PayService.invoice(this)
   }
 
+  object ValidatePay {
+    implicit val formatValidatePay = Json.format[ValidatePay]
+  }
+  case class ValidatePay(pay: PlayerPayment__IN, subtractFromBalance: MilliSatoshi) {
+    def maxWithdraw(statement: PlayerStatement): MilliSatoshi = statement.balance - subtractFromBalance
+    def validateStatement(statement: PlayerStatement): Boolean =
+      pay.bolt11.milliSatoshi <= maxWithdraw(statement)
+  }
 }
 
-class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
-    implicit
+class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
     ec: ExecutionContext
 ) extends RpcLightningService {
   import PayService._
@@ -211,6 +215,14 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
       .post(uri"${config.baseUrl}/lightning/player/statement")
       .body(PlayerStatement__IN(playerId))
       .response(toBody[PlayerStatement__OUT])
+    r.send(backend)
+  }
+
+  def validatePay(validatePay: ValidatePay): Future[Response[Either[LightningRequestError, ListPay]]] = {
+    val r = base
+      .post(uri"${config.baseUrl}/lightning/player/validatePay")
+      .body(validatePay)
+      .response(toBody[ListPay])
     r.send(backend)
   }
 

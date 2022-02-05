@@ -11,6 +11,20 @@ package object bitcoin {
     BitcoinNetwork.testnet -> "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
   )
 
+  implicit object NumericMilliSatoshi extends Numeric[MilliSatoshi] {
+    override def plus(x: MilliSatoshi, y: MilliSatoshi): MilliSatoshi = MilliSatoshi(x.toLong + y.toLong)
+    override def toDouble(x: MilliSatoshi): Double = x.toLong
+    override def toFloat(x: MilliSatoshi): Float = x.toLong
+    override def toInt(x: MilliSatoshi): Int = x.toLong.toInt
+    override def negate(x: MilliSatoshi): MilliSatoshi = MilliSatoshi(-x.toLong)
+    override def fromInt(x: Int): MilliSatoshi = MilliSatoshi(x.toLong)
+    override def toLong(x: MilliSatoshi): Long = x.toLong
+    override def times(x: MilliSatoshi, y: MilliSatoshi): MilliSatoshi = MilliSatoshi(x.toLong * y.toLong)
+    override def minus(x: MilliSatoshi, y: MilliSatoshi): MilliSatoshi = MilliSatoshi(x.toLong - y.toLong)
+    override def compare(x: MilliSatoshi, y: MilliSatoshi): Int = x.compare(y)
+    override def parseString(str: String): Option[MilliSatoshi] = Try(MilliSatoshi(str.toLong)).toOption
+  }
+
   implicit object NumericSatoshi extends Numeric[Satoshi] {
     override def plus(x: Satoshi, y: Satoshi): Satoshi = (x.toLong + y.toLong) satoshi
     override def toDouble(x: Satoshi): Double = x.toLong
