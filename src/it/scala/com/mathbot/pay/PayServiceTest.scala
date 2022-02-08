@@ -27,6 +27,8 @@ class PayServiceTest extends BaseIntegrationTest {
         tr <- service.getToken
         if tr.isSuccess
         r <- service.getInfo
+        inv1 <- service.getInvoice("27fb17cd8f344d1bccfae7624cd8e1d3ac46a5ba8c0d1468406339fae70bf7ef")
+        invoices <- service.listInvoices()
         s <- service.playerStatement("IT SPEC")
 //        i <- service.playerInvoice(PlayerInvoice(MilliSatoshi(10000), "IT SPEC", "IT SPEC"))
         p <- service.playerPayment(

@@ -1,7 +1,6 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
-import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 

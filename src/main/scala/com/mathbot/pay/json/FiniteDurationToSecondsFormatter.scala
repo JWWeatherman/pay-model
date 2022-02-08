@@ -1,8 +1,14 @@
 package com.mathbot.pay.json
 
-import play.api.libs.json.{JsError, JsNumber, JsString, JsSuccess, Reads}
+import play.api.libs.json.{JsError, JsNumber, JsString, JsSuccess, JsValue, Json, Reads, Writes}
 
 import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
+
+trait FiniteDurationToSecondsWriter {
+
+  implicit val formatFiniteDuration: Writes[FiniteDuration] = (o: FiniteDuration) => JsNumber(o.toSeconds)
+
+}
 
 trait FiniteDurationToSecondsReader {
 
@@ -13,3 +19,4 @@ trait FiniteDurationToSecondsReader {
     case _ => JsError("Not a FiniteDuration")
   }
 }
+trait FiniteDurationToSecondsFormatter extends FiniteDurationToSecondsReader with FiniteDurationToSecondsWriter
