@@ -10,11 +10,13 @@ class LightningInvoiceTest extends AnyWordSpec {
 
   "inv" should {
     "write" in {
-      val inv = LightningInvoice(msatoshi = MilliSatoshi(1000),
-                                 label = "label",
-                                 description = "description",
-                                 expiry = Some(10.minutes),
-                                 preimage = None)
+      val inv = LightningInvoice(
+        msatoshi = MilliSatoshi(1000),
+        label = "label",
+        description = "description",
+        expiry = Some(10.minutes),
+        preimage = None
+      )
 
       val json = Json.toJson(inv)
       assert(json.toString() === """{"msatoshi":1000,"label":"label","description":"description","expiry":600}""")

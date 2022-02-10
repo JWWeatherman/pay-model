@@ -183,8 +183,7 @@ object PayService {
   }
 }
 
-class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
-    implicit
+class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
     ec: ExecutionContext
 ) extends RpcLightningService {
   import PayService._

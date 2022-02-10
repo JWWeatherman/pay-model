@@ -14,12 +14,14 @@ import scala.concurrent.duration.FiniteDuration
 object InvoiceWithDescriptionHash extends FiniteDurationToSecondsFormatter {
   implicit val formatInvoiceWithDescriptionHash = Json.format[InvoiceWithDescriptionHash]
 
-  def apply(description: String,
-            milliSatoshi: MilliSatoshi,
-            label: String,
-            expiry: FiniteDuration,
-            img: Option[String], // todo: base64 validate
-            preimage: Option[String]): InvoiceWithDescriptionHash = {
+  def apply(
+      description: String,
+      milliSatoshi: MilliSatoshi,
+      label: String,
+      expiry: FiniteDuration,
+      img: Option[String], // todo: base64 validate
+      preimage: Option[String]
+  ): InvoiceWithDescriptionHash = {
     // validate image string is base64 encoded
     img.foreach(Base64.getDecoder.decode)
     val metadata =
@@ -32,11 +34,13 @@ object InvoiceWithDescriptionHash extends FiniteDurationToSecondsFormatter {
       .sha256()
       .hashString(metadata, Charsets.UTF_8)
       .toString
-    InvoiceWithDescriptionHash(msatoshi = milliSatoshi,
-                               label = label,
-                               description_hash = descriptionHash,
-                               expiry = expiry,
-                               preimage = preimage)
+    InvoiceWithDescriptionHash(
+      msatoshi = milliSatoshi,
+      label = label,
+      description_hash = descriptionHash,
+      expiry = expiry,
+      preimage = preimage
+    )
   }
 }
 case class InvoiceWithDescriptionHash(

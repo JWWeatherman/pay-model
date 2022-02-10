@@ -22,8 +22,8 @@ class LightningStream(
   private lazy val graph =
     Source.fromGraph(
       GraphDSL.create(
-        Source.queue[(JsValue => Unit, LightningJson)](bufferSize = 32,
-                                                       overflowStrategy = OverflowStrategy.backpressure)
+        Source
+          .queue[(JsValue => Unit, LightningJson)](bufferSize = 32, overflowStrategy = OverflowStrategy.backpressure)
       ) { implicit builder => queue =>
         import GraphDSL.Implicits._
 
