@@ -10,13 +10,10 @@ import play.api.libs.json.{JsValue, Json}
 import scala.concurrent.Future
 
 /**
- * @param system operating in
- * @param ec to run
  * @param lightingFlow Flow i.e. json -> unix socket -> json
  */
 class LightningStream(
     lightingFlow: Flow[LightningJson, JsValue, NotUsed],
-    overflowStrategy: OverflowStrategy
 )(implicit system: ActorSystem)
     extends LazyLogging {
 
@@ -24,7 +21,7 @@ class LightningStream(
     Source.fromGraph(
       GraphDSL.create(
         Source
-          .queue[(JsValue => Unit, LightningJson)](bufferSize = 32, overflowStrategy = overflowStrategy)
+          .queue[(JsValue => Unit, LightningJson)](bufferSize = 32, overflowStrategy = OverflowStrategy.fail)
       ) { implicit builder => queue =>
         import GraphDSL.Implicits._
 
