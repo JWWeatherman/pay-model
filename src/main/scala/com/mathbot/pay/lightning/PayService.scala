@@ -1,21 +1,32 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
-import com.mathbot.pay.json.{EpochSecondInstantFormatter, FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
+import com.mathbot.pay.json.{FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
+import com.mathbot.pay.lightning.url.{LightningUrlPay, LightningUrlPayRequest}
 import com.mathbot.pay.webhook.CallbackURL
 import com.mathbot.pay.{SecureIdentifier, Sensitive}
-import play.api.libs.json.{JsError, JsValue, Json, OFormat, Reads}
+import play.api.libs.json._
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
 import sttp.model.MediaType
 
+import java.time.Instant
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 object PayService {
   object PlayerStatement {
-    implicit val formatPlayerStatement: OFormat[PlayerStatement] = Json.format[PlayerStatement]
+
+    implicit val formatPlayerStatement: Format[PlayerStatement] = new Format[PlayerStatement] {
+      private implicit val fo: OFormat[PlayerStatement] = Json.format[PlayerStatement]
+      override def reads(json: JsValue): JsResult[PlayerStatement] = json.validate[PlayerStatement]
+
+      override def writes(o: PlayerStatement): JsValue =
+        Json
+          .toJson[PlayerStatement](o)
+          .as[JsObject] ++ Json.obj("balance" -> o.balance)
+    }
   }
   case class PlayerStatement(
       invoices: Set[ListInvoice],
@@ -26,8 +37,8 @@ object PayService {
     lazy val paidInvoices: Set[ListInvoice] = invoices.filter(_.isPaid)
     val completeOrPendingPayments: Seq[ListPay] = payments.filter(p => p.isPaid || p.isPending)
     import com.mathbot.pay.bitcoin.NumericMilliSatoshi
-    val paidInvoicesMsat = paidInvoices.flatMap(_.msatoshi).sum
-    val completeOrPendingPaymentsMsat = completeOrPendingPayments.map(_.amount_sent_msat).sum
+    val paidInvoicesMsat: MilliSatoshi = paidInvoices.flatMap(_.msatoshi).sum
+    val completeOrPendingPaymentsMsat: MilliSatoshi = completeOrPendingPayments.map(_.amount_sent_msat).sum
     val balance: MilliSatoshi = paidInvoicesMsat - completeOrPendingPaymentsMsat - subtractFromBalance
   }
   val DEFAULT_DESCRIPTION = ""
@@ -111,7 +122,9 @@ object PayService {
    * @param token_type
    * @param refresh_token
    */
-  case class MyTokenResponse(access_token: String, expires_in: Int, scope: String, token_type: String)
+  case class MyTokenResponse(access_token: String, expires_in: Int, scope: String, token_type: String) {
+    val expiresAt: Instant = Instant.now().plusSeconds(expires_in)
+  }
 
   object PlayerPayment__IN {
     implicit val formatPlayerPayment__IN: OFormat[PlayerPayment__IN] = Json.format[PlayerPayment__IN]
@@ -122,7 +135,7 @@ object PayService {
     implicit val formatPlayerStatement__IN: OFormat[PlayerStatement__IN] = Json.format[PlayerStatement__IN]
   }
   case class PlayerStatement__IN(playerId: String, subtractFromBalance: Option[MilliSatoshi]) {
-    val toSubtract = subtractFromBalance.getOrElse(MilliSatoshi(0))
+    val toSubtract: MilliSatoshi = subtractFromBalance.getOrElse(MilliSatoshi(0))
   }
 
   object PlayerStatement__OUT {
@@ -146,7 +159,7 @@ object PayService {
   case class AppStatment__IN(source: String)
 
   object PlayerInvoice__IN extends FiniteDurationToSecondsReader with FiniteDurationToSecondsWriter {
-    implicit val formatPlayerInvoiceRequest = Json.format[PlayerInvoice__IN]
+    implicit val formatPlayerInvoiceRequest: OFormat[PlayerInvoice__IN] = Json.format[PlayerInvoice__IN]
   }
 
   case class PlayerInvoice__IN(
@@ -161,7 +174,7 @@ object PayService {
   }
 
   object ValidatePay {
-    implicit val formatValidatePay = Json.format[ValidatePay]
+    implicit val formatValidatePay: OFormat[ValidatePay] = Json.format[ValidatePay]
   }
   case class ValidatePay(pay: PlayerPayment__IN, subtractFromBalance: MilliSatoshi) {
     def maxWithdraw(statement: PlayerStatement): MilliSatoshi = statement.balance - subtractFromBalance
@@ -170,7 +183,8 @@ object PayService {
   }
 }
 
-class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
+class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
+    implicit
     ec: ExecutionContext
 ) extends RpcLightningService {
   import PayService._
@@ -211,6 +225,16 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
       .response(toBody[LightningCreateInvoice])
       .send(backend)
 
+  def playerInvoiceWithDescriptionHash(
+      inv: LightningUrlPay
+  ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
+    base
+      .post(uri"${config.baseUrl}/lightning/player/invoiceWithDescriptionHash")
+      .contentType(MediaType.ApplicationJson)
+      .body(inv)
+      .response(toBody[LightningCreateInvoice])
+      .send(backend)
+
   def playerPayment(payment: PlayerPayment__IN): Future[Response[Either[LightningRequestError, ListPay]]] = {
     val r = base
       .contentType(MediaType.ApplicationJson)
@@ -233,6 +257,11 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
     r.send(backend)
   }
 
+  /**
+   * Validate the balance on the server and pay the invoice if so
+   * @param validatePay
+   * @return
+   */
   def validatePay(validatePay: ValidatePay): Future[Response[Either[LightningRequestError, ListPay]]] = {
     val r = base
       .post(uri"${config.baseUrl}/lightning/player/validatePay")

@@ -7,27 +7,27 @@ import play.api.libs.json.Json
 
 /**
  * https://xn--57h.bigsun.xyz/lnurl-pay-flow.txt
- * @param callback url
+ * @param callback client respond to this url
  * @param minSendable
  * @param maxSendable
  * @param tag use the default
  * @param metadata
  * @param commentAllowed number of characters someone can attach the the payment request
  */
-case class LightingUrlPay(
+case class LightningUrlPay(
     callback: String,
     minSendable: MilliSatoshi,
     maxSendable: MilliSatoshi,
-    tag: String = "payRequest",
     metadata: String,
     descriptionHash: String,
+    tag: String = "payRequest",
     commentAllowed: Option[Int] = None
 ) {
   require(minSendable <= maxSendable, s"Invalid min and max $this")
 }
 
-object LightingUrlPay {
-  implicit val formatLightingUrlPay = Json.format[LightingUrlPay]
+object LightningUrlPay {
+  implicit val formatLightingUrlPay = Json.format[LightningUrlPay]
 
   def makeMetadata(description: String) = s"""[["text/plain","$description"]]"""
   def makeMetadataWithImg(description: String, img: String) =
@@ -38,7 +38,7 @@ object LightingUrlPay {
       min: MilliSatoshi,
       description: String,
       base64Img: Option[String]
-  ): LightingUrlPay = {
+  ): LightningUrlPay = {
     val metadata = base64Img match {
       case Some(value) => makeMetadataWithImg(description, value)
       case None => makeMetadata(description)
@@ -46,7 +46,7 @@ object LightingUrlPay {
     val descriptionHash = Hashing
       .sha256()
       .hashString(metadata, Charsets.UTF_8)
-    LightingUrlPay(
+    LightningUrlPay(
       callback = callback,
       minSendable = min,
       maxSendable = max,
