@@ -13,7 +13,7 @@ import scala.concurrent.Future
  * @param lightingFlow Flow i.e. json -> unix socket -> json
  */
 class LightningStream(
-    lightingFlow: Flow[LightningJson, JsValue, NotUsed],
+    lightingFlow: Flow[LightningJson, JsValue, NotUsed]
 )(implicit system: ActorSystem)
     extends LazyLogging {
 

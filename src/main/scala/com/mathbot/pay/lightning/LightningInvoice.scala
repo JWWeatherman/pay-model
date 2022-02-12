@@ -15,6 +15,17 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
  * @param label
  * @param description
  * @param expiry
+ *
+ *  *On failure, an error is returned and no invoice is created.
+ * If the lightning process fails before responding, the caller should
+ * use lightning-listinvoices(7) to query whether this invoice was created or not.
+ *
+ * The following error codes may occur:
+ *
+ * -1: Catchall nonspecific error.
+ * 900: An invoice with the given label already exists.
+ * 901: An invoice with the given preimage already exists.
+ * 902: None of the specified exposeprivatechannels were usable.
  */
 case class LightningInvoice(
     msatoshi: MilliSatoshi,

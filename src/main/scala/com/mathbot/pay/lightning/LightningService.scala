@@ -1,17 +1,25 @@
 package com.mathbot.pay.lightning
 
-import akka.stream.scaladsl.Source
+import akka.http.scaladsl.util.FastFuture
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
 import com.typesafe.scalalogging.StrictLogging
-import play.api.libs.json.JsValue
-
-import scala.concurrent.{ExecutionContext, Future}
 import sttp.client3.Response
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
 
 trait LightningService extends StrictLogging {
   def invoice(inv: LightningInvoice): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]]
+
+  def invoiceReturningListInvoice(
+      inv: LightningInvoice
+  )(implicit ec: ExecutionContext): Future[Response[Either[LightningRequestError, ListInvoice]]] =
+    for {
+      i <- invoice(inv)
+      r <- i.body match {
+        case Right(l) => getInvoiceByPaymentHash(l.payment_hash)
+        case Left(e) => FastFuture.successful(Response.ok[Either[LightningRequestError, ListInvoice]](Left(e)))
+      }
+    } yield r
   def listInvoices(
       l: ListInvoicesRequest = ListInvoicesRequest(label = None, invstring = None, payment_hash = None)
   ): Future[Response[Either[LightningRequestError, Invoices]]]
@@ -19,12 +27,11 @@ trait LightningService extends StrictLogging {
       payment_hash: String
   )(implicit ec: ExecutionContext): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
     for {
-      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(
-        r =>
-          r.copy(
-            body = r.body.flatMap(
-              _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
-            )
+      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(r =>
+        r.copy(
+          body = r.body.flatMap(
+            _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
+          )
         )
       )
     } yield inv

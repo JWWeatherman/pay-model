@@ -135,10 +135,10 @@ object MilliSatoshi {
     override def reads(json: JsValue): JsResult[MilliSatoshi] =
       json match {
         case JsString(satStr) =>
-          Try(satStr.replace("msat", "").toLong) match {
-            case Failure(exception) =>
-              JsError(s"Not a ${nameOf(MilliSatoshi)} Unable to convert string to long $exception")
-            case Success(value) => JsSuccess(MilliSatoshi(value))
+          (satStr.replace("msat", "").toLongOption) match {
+            case None =>
+              JsError(s"Not a ${nameOf(MilliSatoshi)} Unable to convert string to long $satStr")
+            case Some(value) => JsSuccess(MilliSatoshi(value))
           }
         case JsNumber(sat) => JsSuccess(MilliSatoshi(sat.toLong))
         case _ => JsError(s"Not a ${nameOf(MilliSatoshi)} Invalid format")

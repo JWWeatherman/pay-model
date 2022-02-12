@@ -37,8 +37,10 @@ object PayService {
     lazy val paidInvoices: Set[ListInvoice] = invoices.filter(_.isPaid)
     val completeOrPendingPayments: Seq[ListPay] = payments.filter(p => p.isPaid || p.isPending)
     import com.mathbot.pay.bitcoin.NumericMilliSatoshi
-    val paidInvoicesMsat: MilliSatoshi = paidInvoices.flatMap(_.msatoshi).sum
-    val completeOrPendingPaymentsMsat: MilliSatoshi = completeOrPendingPayments.map(_.amount_sent_msat).sum
+    val paidInvoicesMsat: MilliSatoshi = paidInvoices.flatMap(_.amount_msat).sum
+    // pending payments we'll have to deduct amount_sent_msat since destinatino has not recieved amount
+    val completeOrPendingPaymentsMsat: MilliSatoshi =
+      completeOrPendingPayments.map(r => r.amount_msat getOrElse r.amount_sent_msat).sum
     val balance: MilliSatoshi = paidInvoicesMsat - completeOrPendingPaymentsMsat - subtractFromBalance
   }
   val DEFAULT_DESCRIPTION = ""
