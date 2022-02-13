@@ -46,7 +46,7 @@ case class ListInvoice(
     require(bolt12.isEmpty, "'bolt12' defined w/ bolt11")
     require(local_offer_id.isEmpty, "'local_offer_id' defined w/ bolt11")
   }
-  if (bolt12.isDefined) require(local_offer_id.isEmpty, "'local_offer_id' defined w/ bolt11")
+  if (bolt12.isDefined) require(local_offer_id.isDefined, "'local_offer_id' empty w/ bolt12")
   if (isPaid) {
     require(pay_index.isDefined, "Missing 'pay_index' for paid invoice")
     require(amount_received_msat.isDefined, "Missing 'amount_received_msat' for paid invoice")
