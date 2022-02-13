@@ -56,12 +56,12 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
       .response(toBody[LightningCreateInvoice])
       .send(backend)
 
-  def playerInvoiceV2(inv: PlayerInvoice__IN): Future[Response[Either[LightningRequestError, ListPay]]] =
+  def playerInvoiceV2(inv: PlayerInvoice__IN): Future[Response[Either[LightningRequestError, ListInvoice]]] =
     base
       .post(uri"${config.baseUrl}/lightning/player/invoice/v2")
       .contentType(MediaType.ApplicationJson)
       .body(inv)
-      .response(toBody[ListPay])
+      .response(toBody[ListInvoice])
       .send(backend)
 
   def playerInvoiceWithDescriptionHash(
