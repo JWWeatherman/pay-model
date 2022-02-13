@@ -267,7 +267,8 @@ object PayService {
       source: String,
       description: Option[String],
       webhook: Option[CallbackURL],
-      expiry: Option[FiniteDuration]
+      expiry: Option[FiniteDuration],
+      version: Option[Int] = None
   ) {
     val invoice: LightningInvoice = PayService.invoice(this)
   }
