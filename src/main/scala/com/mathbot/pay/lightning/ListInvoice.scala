@@ -14,23 +14,21 @@ import java.time.Instant
  * @param status Whether it's paid, unpaid or unpayable
  * @param expires_at UNIX timestamp of when it will become / became unpayable
  * @param amount_msat the amount required to pay this invoice
+ * @param amount_received_msat the amount actually received (could be slightly greater than *amount_msat*, since clients may overpay)
  * @param bolt11 the BOLT11 string (always present unless *bolt12* is)
  * @param bolt12 the BOLT12 string (always present unless *bolt11* is)
  * @param local_offer_id the *id* of our offer which created this invoice (**experimental-offers** only).
  * @param payer_note the optional *payer_note* from invoice_request which created this invoice (**experimental-offers** only).
- * @param amount_received_msat the amount actually received (could be slightly greater than *amount_msat*, since clients may overpay)
  * @param pay_index Unique incrementing index for this payment
  */
 case class ListInvoice(
     label: String,
     bolt11: Option[Bolt11],
     payment_hash: String,
-    @deprecated("prefer amount_msat") msatoshi: Option[MilliSatoshi],
     amount_msat: Option[MilliSatoshi],
+    amount_received_msat: Option[MilliSatoshi],
     status: LightningInvoiceStatus,
     pay_index: Option[Long],
-    @deprecated("prefer amount_received_msat") msatoshi_received: Option[MilliSatoshi],
-    amount_received_msat: Option[MilliSatoshi],
     paid_at: Option[Instant],
     description: String,
     expires_at: Instant,
@@ -43,6 +41,12 @@ case class ListInvoice(
   val isExpired: Boolean = status == LightningInvoiceStatus.expired
   val isUnpaid: Boolean = status == LightningInvoiceStatus.unpaid
 
+  require(bolt11.isDefined || bolt12.isDefined, "Missing 'bolt11' and 'bolt12'")
+  if (bolt11.isDefined) {
+    require(bolt12.isEmpty, "'bolt12' defined w/ bolt11")
+    require(local_offer_id.isEmpty, "'local_offer_id' defined w/ bolt11")
+  }
+  if (bolt12.isDefined) require(local_offer_id.isEmpty, "'local_offer_id' defined w/ bolt11")
   if (isPaid) {
     require(pay_index.isDefined, "Missing 'pay_index' for paid invoice")
     require(amount_received_msat.isDefined, "Missing 'amount_received_msat' for paid invoice")

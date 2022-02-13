@@ -15,6 +15,98 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
+    implicit
+    ec: ExecutionContext
+) extends RpcLightningService {
+  import PayService._
+  import config._
+  import sttp.client3._
+  import sttp.client3.playJson._
+  val baseUrl: String = config.baseUrl + "/lightning/rpc"
+
+  private var ACCESS_TOKEN = config.accessToken.getOrElse(default = "INVALID")
+  def base: RequestT[Empty, Either[String, String], Any] =
+    basicRequest.auth.bearer(ACCESS_TOKEN)
+
+  def getToken: Future[Response[Either[ResponseException[String, JsError], MyTokenResponse]]] =
+    basicRequest
+      .post(uri"${config.baseUrl}/oauth2/token")
+      .auth
+      .basic(clientId, clientSecret.value)
+      .body(("grant_type", "client_credentials"))
+      .response(asJson[MyTokenResponse])
+      .send(backend)
+      .andThen {
+        case Failure(err) =>
+          err
+        case Success(value) =>
+          value.body.foreach(r => {
+            ACCESS_TOKEN = r.access_token
+            logger.debug(s"Updated access_token")
+          })
+      }
+
+  @deprecated("prefer playerInvoiceV2 to return full invoice details")
+  def playerInvoice(inv: PlayerInvoice__IN): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
+    base
+      .post(uri"${config.baseUrl}/lightning/player/invoice")
+      .contentType(MediaType.ApplicationJson)
+      .body(inv)
+      .response(toBody[LightningCreateInvoice])
+      .send(backend)
+
+  def playerInvoiceV2(inv: PlayerInvoice__IN): Future[Response[Either[LightningRequestError, ListPay]]] =
+    base
+      .post(uri"${config.baseUrl}/lightning/player/invoice/v2")
+      .contentType(MediaType.ApplicationJson)
+      .body(inv)
+      .response(toBody[ListPay])
+      .send(backend)
+
+  def playerInvoiceWithDescriptionHash(
+      inv: LightningUrlPay
+  ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
+    base
+      .post(uri"${config.baseUrl}/lightning/player/invoiceWithDescriptionHash")
+      .contentType(MediaType.ApplicationJson)
+      .body(inv)
+      .response(toBody[LightningCreateInvoice])
+      .send(backend)
+
+  def playerPayment(payment: PlayerPayment__IN): Future[Response[Either[LightningRequestError, ListPay]]] =
+    base
+      .contentType(MediaType.ApplicationJson)
+      .post(uri"${config.baseUrl}/lightning/player/pay")
+      .body(payment)
+      .response(toBody[ListPay])
+      .send(backend)
+
+  def playerStatement(
+      playerId: String,
+      subtractFromBalance: Option[MilliSatoshi] = None
+  ): Future[Response[Either[LightningRequestError, PlayerStatement__OUT]]] =
+    base
+      .contentType(MediaType.ApplicationJson)
+      .post(uri"${config.baseUrl}/lightning/player/statement")
+      .body(PlayerStatement__IN(playerId, subtractFromBalance))
+      .response(toBody[PlayerStatement__OUT])
+      .send(backend)
+
+  /**
+   * Validate the balance on the server and pay the invoice if so
+   * @param validatePay
+   * @return
+   */
+  def validatePay(validatePay: ValidatePay): Future[Response[Either[LightningRequestError, ListPay]]] =
+    base
+      .post(uri"${config.baseUrl}/lightning/player/validatePay")
+      .body(validatePay)
+      .response(toBody[ListPay])
+      .send(backend)
+
+}
+
 object PayService {
   object PlayerStatement {
 
@@ -183,92 +275,4 @@ object PayService {
     def validateStatement(statement: PlayerStatement): Boolean =
       pay.bolt11.milliSatoshi <= maxWithdraw(statement)
   }
-}
-
-class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
-    ec: ExecutionContext
-) extends RpcLightningService {
-  import PayService._
-  import config._
-  import sttp.client3._
-  import sttp.client3.playJson._
-  val baseUrl: String = config.baseUrl + "/lightning/rpc"
-
-  private var ACCESS_TOKEN = config.accessToken.getOrElse(default = "INVALID")
-  def base: RequestT[Empty, Either[String, String], Any] =
-    basicRequest.auth.bearer(ACCESS_TOKEN)
-
-  def getToken: Future[Response[Either[ResponseException[String, JsError], MyTokenResponse]]] = {
-    val r = basicRequest
-      .post(uri"${config.baseUrl}/oauth2/token")
-      .auth
-      .basic(clientId, clientSecret.value)
-      .body(("grant_type", "client_credentials"))
-      .response(asJson[MyTokenResponse])
-
-    r.send(backend)
-      .andThen {
-        case Failure(err) =>
-          err
-        case Success(value) =>
-          value.body.foreach(r => {
-            ACCESS_TOKEN = r.access_token
-            logger.debug(s"Updated access_token")
-          })
-      }
-  }
-
-  def playerInvoice(inv: PlayerInvoice__IN): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
-    base
-      .post(uri"${config.baseUrl}/lightning/player/invoice")
-      .contentType(MediaType.ApplicationJson)
-      .body(inv)
-      .response(toBody[LightningCreateInvoice])
-      .send(backend)
-
-  def playerInvoiceWithDescriptionHash(
-      inv: LightningUrlPay
-  ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
-    base
-      .post(uri"${config.baseUrl}/lightning/player/invoiceWithDescriptionHash")
-      .contentType(MediaType.ApplicationJson)
-      .body(inv)
-      .response(toBody[LightningCreateInvoice])
-      .send(backend)
-
-  def playerPayment(payment: PlayerPayment__IN): Future[Response[Either[LightningRequestError, ListPay]]] = {
-    val r = base
-      .contentType(MediaType.ApplicationJson)
-      .post(uri"${config.baseUrl}/lightning/player/pay")
-      .body(payment)
-      .response(toBody[ListPay])
-    r.send(backend)
-
-  }
-
-  def playerStatement(
-      playerId: String,
-      subtractFromBalance: Option[MilliSatoshi] = None
-  ): Future[Response[Either[LightningRequestError, PlayerStatement__OUT]]] = {
-    val r = base
-      .contentType(MediaType.ApplicationJson)
-      .post(uri"${config.baseUrl}/lightning/player/statement")
-      .body(PlayerStatement__IN(playerId, subtractFromBalance))
-      .response(toBody[PlayerStatement__OUT])
-    r.send(backend)
-  }
-
-  /**
-   * Validate the balance on the server and pay the invoice if so
-   * @param validatePay
-   * @return
-   */
-  def validatePay(validatePay: ValidatePay): Future[Response[Either[LightningRequestError, ListPay]]] = {
-    val r = base
-      .post(uri"${config.baseUrl}/lightning/player/validatePay")
-      .body(validatePay)
-      .response(toBody[ListPay])
-    r.send(backend)
-  }
-
 }
