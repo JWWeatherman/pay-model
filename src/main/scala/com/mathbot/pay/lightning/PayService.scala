@@ -2,7 +2,12 @@ package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
 import com.mathbot.pay.json.{FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
-import com.mathbot.pay.lightning.url.{InvoiceWithDescriptionHash, LightningUrlPay, LightningUrlPayRequest}
+import com.mathbot.pay.lightning.url.{
+  CreateInvoiceWithDescriptionHash,
+  InvoiceWithDescriptionHash,
+  LightningUrlPay,
+  LightningUrlPayRequest
+}
 import com.mathbot.pay.webhook.CallbackURL
 import com.mathbot.pay.{SecureIdentifier, Sensitive}
 import play.api.libs.json._
@@ -15,7 +20,8 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
+class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(
+    implicit
     ec: ExecutionContext
 ) extends RpcLightningService {
   import PayService._
@@ -65,12 +71,12 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
 
   def playerInvoiceWithDescriptionHash(
       inv: InvoiceWithDescriptionHash
-  ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] =
+  ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] =
     base
       .post(uri"${config.baseUrl}/lightning/player/invoiceWithDescriptionHash")
       .contentType(MediaType.ApplicationJson)
       .body(inv)
-      .response(toBody[LightningCreateInvoice])
+      .response(toBody[CreateInvoiceWithDescriptionHash])
       .send(backend)
 
   def playerPayment(payment: PlayerPayment__IN): Future[Response[Either[LightningRequestError, ListPay]]] =
