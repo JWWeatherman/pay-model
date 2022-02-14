@@ -57,8 +57,8 @@ trait LightningService extends StrictLogging {
   def listPays(l: ListPaysRequest = ListPaysRequest(None, None)): Future[Response[Either[LightningRequestError, Pays]]]
   def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]]
   def pay(pay: Pay): Future[Response[Either[LightningRequestError, Payment]]]
-  def decodePay(r: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]]
-  def createOffer(offerRequest: LightningOfferRequest): Future[Response[Either[LightningRequestError, LightningOffer]]]
+  def decodePay(bolt11: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]]
+  def offer(offerRequest: LightningOfferRequest): Future[Response[Either[LightningRequestError, LightningOffer]]]
   def listOffers(r: LightningListOffersRequest): Future[Response[Either[LightningRequestError, LightningOffers]]]
 
   /**

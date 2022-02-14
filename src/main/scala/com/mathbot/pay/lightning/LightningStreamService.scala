@@ -38,7 +38,7 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
   ): Future[Response[Either[LightningRequestError, LightningOffers]]] =
     wrap[LightningOffers](r)
 
-  def createOffer(
+  def offer(
       offerRequest: LightningOfferRequest
   ): Future[Response[Either[LightningRequestError, LightningOffer]]] =
     wrap[LightningOffer](offerRequest)

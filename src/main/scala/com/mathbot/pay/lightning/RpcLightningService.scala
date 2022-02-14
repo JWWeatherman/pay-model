@@ -20,7 +20,7 @@ trait RpcLightningService extends LightningService {
   ) = {
     base
       .post(uri"$baseUrl")
-      .body(makeBody("listpays", Json.toJson(l)))
+      .body(makeBody(nameOf(listPays _).toLowerCase, Json.toJson(l)))
       .response(toBody[Pays])
       .send(backend)
 
@@ -29,7 +29,7 @@ trait RpcLightningService extends LightningService {
   override def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]] = {
     val r = base
       .post(uri"$baseUrl")
-      .body(makeBody("getinfo", Json.obj()))
+      .body(makeBody(nameOf(getInfo _), Json.obj()))
       .response(toBody[LightningNodeInfo])
 
     r.send(backend)
@@ -39,7 +39,7 @@ trait RpcLightningService extends LightningService {
   ): Future[Response[Either[LightningRequestError, Invoices]]] = {
     val r = base
       .post(uri"$baseUrl")
-      .body(makeBody("listinvoices", Json.toJson(listInvoicesRequest)))
+      .body(makeBody(nameOf(listInvoices _).toLowerCase, Json.toJson(listInvoicesRequest)))
       .response(toBody[Invoices])
     r.send(backend)
 
@@ -59,25 +59,25 @@ trait RpcLightningService extends LightningService {
   ): Future[Response[Either[LightningRequestError, LightningOffers]]] = {
     val r = base
       .post(uri"$baseUrl")
-      .body(makeBody("listoffers", Json.toJson(req)))
+      .body(makeBody(nameOf(listOffers _).toLowerCase, Json.toJson(req)))
       .response(toBody[LightningOffers])
     r.send(backend)
   }
 
-  override def decodePay(b: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]] = {
+  override def decodePay(bolt11: Bolt11): Future[Response[Either[LightningRequestError, DecodePay]]] = {
     val r = base
       .post(uri"$baseUrl")
-      .body(makeBody("decodepay", Json.obj("bolt11" -> b.toString)))
+      .body(makeBody(nameOf(decodePay _).toLowerCase, Json.obj("bolt11" -> bolt11.toString)))
       .response(toBody[DecodePay])
     r.send(backend)
   }
 
-  override def createOffer(
+  override def offer(
       offerRequest: LightningOfferRequest
   ): Future[Response[Either[LightningRequestError, LightningOffer]]] = {
     val r = base
       .post(uri"$baseUrl")
-      .body(makeBody("offer", Json.toJson(offerRequest)))
+      .body(makeBody(nameOf(offer _), Json.toJson(offerRequest)))
       .response(toBody[LightningOffer])
     r.send(backend)
   }
@@ -97,7 +97,7 @@ trait RpcLightningService extends LightningService {
   ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] = {
     val r = base
       .post(uri"$baseUrl")
-      .body(makeBody("invoicewithdescriptionhash", Json.toJson(i)))
+      .body(makeBody(nameOf(invoiceWithDescriptionHash _).toLowerCase, Json.toJson(i)))
       .response(toBody[CreateInvoiceWithDescriptionHash])
     r.send(backend)
   }
@@ -105,7 +105,7 @@ trait RpcLightningService extends LightningService {
   def waitAnyInvoice(w: WaitAnyInvoice): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
     val r = base
       .post(uri"$baseUrl")
-      .body(makeBody("waitanyinvoice", Json.toJson(w)))
+      .body(makeBody(nameOf(waitAnyInvoice _).toLowerCase, Json.toJson(w)))
       .response(toBody[ListInvoice])
     r.send(backend)
   }
@@ -119,12 +119,12 @@ trait RpcLightningService extends LightningService {
   override def waitInvoice(label: String): Future[Response[Either[LightningRequestError, ListInvoice]]] =
     base
       .post(uri"$baseUrl")
-      .body(makeBody("waitinvoice", Json.toJson(label)))
+      .body(makeBody(nameOf(waitInvoice _).toLowerCase, Json.toJson(label)))
       .response(toBody[ListInvoice])
       .send(backend)
   def toBody[T](implicit reads: Reads[T]): ResponseAs[Either[LightningRequestError, T], Any] =
     asJson[T].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err")))
 
   def makeBody(method: String, params: JsValue): JsObject =
-    Json.obj("method" -> method, "params" -> params)
+    Json.obj(nameOf(method) -> method, nameOf(params) -> params)
 }
