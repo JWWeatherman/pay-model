@@ -43,15 +43,31 @@ trait LightningService extends StrictLogging {
 
   def getInvoice(
       bolt11: Bolt11
-  )(implicit ec: ExecutionContext): Future[Either[LightningRequestError, Option[ListInvoice]]] =
-    listInvoices(ListInvoicesRequest(invstring = Some(bolt11.bolt11)))
-      .map(_.body.map(_.invoices.find(_.bolt11.contains(bolt11))))
+  )(implicit ec: ExecutionContext): Future[Response[Either[LightningRequestError, ListInvoice]]] =
+    for {
+      inv <- listInvoices(ListInvoicesRequest(invstring = Some(bolt11.bolt11))).map(
+        r =>
+          r.copy(
+            body = r.body.flatMap(
+              _.invoices.find(_.bolt11.contains(bolt11)).toRight(LightningRequestError(ErrorMsg(404, "not found")))
+            )
+        )
+      )
+    } yield inv
 
   def getInvoiceByLabel(
       label: String
-  )(implicit ec: ExecutionContext): Future[Either[LightningRequestError, Option[ListInvoice]]] =
-    listInvoices(ListInvoicesRequest(label = Some(label)))
-      .map(_.body.map(_.invoices.find(_.label == label)))
+  )(implicit ec: ExecutionContext): Future[Response[Either[LightningRequestError, ListInvoice]]] =
+    for {
+      inv <- listInvoices(ListInvoicesRequest(label = Some(label))).map(
+        r =>
+          r.copy(
+            body = r.body.flatMap(
+              _.invoices.find(_.label == label).toRight(LightningRequestError(ErrorMsg(404, "not found")))
+            )
+        )
+      )
+    } yield inv
 
   /**
    * Note bolt11 will differ from the listInvoices since they create the invoice and
