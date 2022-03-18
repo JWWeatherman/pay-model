@@ -25,27 +25,38 @@ class PayServiceTest extends BaseIntegrationTest {
 
       for {
         tr <- service.getToken
+        _ = println(tr)
         if tr.isSuccess
         r <- service.getInfo
-        inv1 <- service.getInvoice("27fb17cd8f344d1bccfae7624cd8e1d3ac46a5ba8c0d1468406339fae70bf7ef")
-        invoices <- service.listInvoices()
-        s <- service.playerStatement("IT SPEC")
-//        i <- service.playerInvoice(PlayerInvoice(MilliSatoshi(10000), "IT SPEC", "IT SPEC"))
-        p <- service.playerPayment(
-          PlayerPayment__IN(source = "IT SPEC",
-                            playerId = "IT SPEC",
-                            bolt11 = bolt11,
-                            callbackURL = Some(CallbackURL("https://api.pollofeed.com/callback")))
-        )
+//        inv1 <- service.getInvoiceByPaymentHash("27fb17cd8f344d1bccfae7624cd8e1d3ac46a5ba8c0d1468406339fae70bf7ef")
+//        invoices <- service.listInvoices()
+//        s <- service.playerStatement("IT SPEC")
+////        i <- service.playerInvoice(PlayerInvoice(MilliSatoshi(10000), "IT SPEC", "IT SPEC"))
+//        p <- service.playerPayment(
+//          PlayerPayment__IN(source = "IT SPEC",
+//                            playerId = "IT SPEC",
+//                            bolt11 = bolt11,
+//                            callbackURL = Some(CallbackURL("https://api.pollofeed.com/callback")))
+//        )
       } yield {
 
+        println(r)
         assert(r.isSuccess)
         assert(r.body.isRight)
-        assert(s.body.isRight)
-        assert(p.body.isRight)
+//        assert(s.body.isRight)
+//        assert(p.body.isRight)
 //        println(i.body)
 //        assert(i.body.isRight)
       }
     }
+//    "open ws" in {
+//      for {
+//        tr <- service.getToken
+//        if tr.isSuccess
+//        r <- service.openWs
+//      } yield {
+//        assert(r.isSuccess)
+//      }
+//    }
   }
 }

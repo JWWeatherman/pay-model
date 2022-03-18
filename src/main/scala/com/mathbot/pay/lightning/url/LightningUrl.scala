@@ -13,12 +13,14 @@ case class LightningUrl(url: String) {
     throw new IllegalArgumentException(s"Invalid url $url $err")
   })
   override def toString: String = url
+  lazy val decodedUrl: String = LightningUrl.decode(this)
 
 }
 object LightningUrl {
   implicit val formatLightingUrl = Json.format[LightningUrl]
   def decode(l: LightningUrl): String = decode(l.url)
 
+  @throws(classOf[IllegalArgumentException])
   def decode(url: String): String = {
     val (_, data) = Bech32.decode(url)
     new String(five2eight(data))

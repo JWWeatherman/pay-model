@@ -126,5 +126,5 @@ trait RpcLightningService extends LightningService {
     asJson[T].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err")))
 
   def makeBody(method: String, params: JsValue): JsObject =
-    Json.obj(nameOf(method) -> method, nameOf(params) -> params)
+    Json.obj(nameOf(method) -> method.toLowerCase, nameOf(params) -> params)
 }
