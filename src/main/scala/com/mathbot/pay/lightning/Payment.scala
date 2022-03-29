@@ -29,12 +29,12 @@ case class Payment(
     msatoshi: MilliSatoshi,
     msatoshi_sent: MilliSatoshi,
     payment_hash: String,
-    payment_preimage: String,
+    payment_preimage: Option[String],
     status: PayStatus,
     parts: Option[Int] // older payments don't include field
 )
 
 object Payment extends EpochSecondInstantFormatter {
   implicit val formatPayment: OFormat[Payment] = Json.format[Payment]
-  lazy val sha256 = Hashing.sha256()
+//  lazy val sha256 = Hashing.sha256()
 }

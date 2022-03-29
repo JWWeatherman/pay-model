@@ -1,19 +1,17 @@
 package com.mathbot.pay.lightning
 
+import akka.stream.scaladsl.Flow
 import com.mathbot.pay.bitcoin.MilliSatoshi
 import com.mathbot.pay.json.{FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
-import com.mathbot.pay.lightning.url.{
-  CreateInvoiceWithDescriptionHash,
-  InvoiceWithDescriptionHash,
-  LightningUrlPay,
-  LightningUrlPayRequest
-}
+import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
 import com.mathbot.pay.webhook.CallbackURL
 import com.mathbot.pay.{SecureIdentifier, Sensitive}
 import play.api.libs.json._
+import sttp.capabilities
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
 import sttp.model.MediaType
+import sttp.ws.{WebSocket, WebSocketFrame}
 
 import java.time.Instant
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -111,7 +109,11 @@ object PayService {
       clientSecret: Sensitive,
       baseUrl: String,
       accessToken: Option[String] = None
-  )
+  ) {
+    val wsBaseUrl =
+      if (baseUrl.startsWith("https")) baseUrl.replace("https", "wss")
+      else baseUrl.replace("http", "ws")
+  }
 
   object MyTokenResponse {
     implicit val formatMyTokenResponse: OFormat[MyTokenResponse] = Json.format[MyTokenResponse]
@@ -136,7 +138,9 @@ object PayService {
   object PlayerPayment__IN {
     implicit val formatPlayerPayment__IN: OFormat[PlayerPayment__IN] = Json.format[PlayerPayment__IN]
   }
-  case class PlayerPayment__IN(source: String, playerId: String, bolt11: Bolt11, callbackURL: Option[CallbackURL])
+  case class PlayerPayment__IN(source: String, playerId: String, bolt11: Bolt11, callbackURL: Option[CallbackURL]) {
+    val label = makeLabel(source = source, playerId = playerId)
+  }
 
   object PlayerStatement__IN {
     implicit val formatPlayerStatement__IN: OFormat[PlayerStatement__IN] = Json.format[PlayerStatement__IN]
@@ -160,10 +164,10 @@ object PayService {
   }
   case class AppInvoices__OUT(invoices: Set[ListInvoice], source: String)
 
-  object AppStatment__IN {
-    implicit val formatAppStatment__IN: OFormat[AppStatment__IN] = Json.format[AppStatment__IN]
+  object AppStatement__IN {
+    implicit val formatAppStatment__IN: OFormat[AppStatement__IN] = Json.format[AppStatement__IN]
   }
-  case class AppStatment__IN(source: String)
+  case class AppStatement__IN(source: String)
 
   object PlayerInvoice__IN extends FiniteDurationToSecondsReader with FiniteDurationToSecondsWriter {
     implicit val formatPlayerInvoiceRequest: OFormat[PlayerInvoice__IN] = Json.format[PlayerInvoice__IN]
@@ -202,9 +206,10 @@ object PayService {
   }
 }
 
-class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBackend[Future, AkkaStreams])(implicit
-    ec: ExecutionContext
-) extends RpcLightningService {
+class PayService(config: PayService.PayInvoiceServiceConfig,
+                 val backend: SttpBackend[Future, AkkaStreams with capabilities.WebSockets])(implicit val
+                                                                                             ec: ExecutionContext)
+    extends RpcLightningService {
   import PayService._
   import config._
   import sttp.client3._
@@ -290,5 +295,36 @@ class PayService(config: PayService.PayInvoiceServiceConfig, val backend: SttpBa
       .body(validatePay)
       .response(toBody[ListPay])
       .send(backend)
+//
+//  def useWebSocket(ws: WebSocket[Future]): Future[Unit] = {
+//    def send(i: Int) = ws.sendText(s"Hello $i!")
+//    def receive() = ws.receiveText().map(t => println(s"RECEIVED: $t"))
+//    for {
+//      _ <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
+////      _ <- send(2)
+////      _ <- receive()
+////      _ <- receive()
+//    } yield ()
+//  }
+//
+//  def flow(onPayload: String => Unit): AkkaStreams.Pipe[WebSocketFrame.Data[_], WebSocketFrame] =
+//    Flow[WebSocketFrame.Data[_]].map {
+//      case d @ WebSocketFrame.Text(payload, finalFragment, rsv) =>
+//        println("payload = " + d.payload)
+//        onPayload(d.payload)
+//        WebSocketFrame.ping
+//      case WebSocketFrame.Binary(payload, finalFragment, rsv) =>
+//        println("payload binary = " + new String(payload))
+//        WebSocketFrame.close
+//    }
+//
+//  def send = {
+//    base.get(uri"${config.wsBaseUrl}/ws").response(asWebSocket(useWebSocket)).send(backend)
+//  }
+//  def openWs = {
+//    base
+//      .get(uri"${config.wsBaseUrl}/ws")
+//      .response(asWebSocketStream(AkkaStreams)(flow))
+//      .send(backend)
 
 }

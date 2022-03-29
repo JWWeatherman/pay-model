@@ -2,7 +2,9 @@ package com.mathbot.pay.lightning
 
 import play.api.libs.json.{Json, OFormat}
 
-case class LightningRequestError(error: ErrorMsg) extends LightningJson
+case class LightningRequestError(error: ErrorMsg) extends LightningJson {
+  def getMessage: String = error.message
+}
 
 object LightningRequestError {
   lazy implicit val formatRequestError: OFormat[LightningRequestError] = Json.format[LightningRequestError]
