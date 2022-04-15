@@ -1,6 +1,6 @@
 package com.mathbot.pay.bitcoin
 
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, Json}
 import sttp.client3.SttpBackend
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -107,7 +107,7 @@ class FiatRatesService(backend: SttpBackend[Future, _])(implicit executionContex
   import sttp.client3._
   import playJson._
 
-  def requestRates = {
+  def requestRates: Future[Response[Either[ResponseException[String, JsError], Map[String, Double]]]] = {
     val req = Random.shuffle(0 :: 1 :: 2 :: Nil).head match {
       case 0 =>
         basicRequest
@@ -134,9 +134,10 @@ class FiatRatesService(backend: SttpBackend[Future, _])(implicit executionContex
   }
 
   def reloadData = requestRates.map(_.body.map(m => updateInfo(m)))
-  def updateInfo(newRates: Map[String, Double]): Unit = {
+  def updateInfo(newRates: Map[String, Double]) = {
     info = FiatRatesInfo(rates = newRates, oldRates = info.rates, stamp = System.currentTimeMillis)
     for (lst <- listeners) lst.onFiatRates(info)
+    info
   }
 
   var listeners: Set[FiatRatesListener] = Set.empty

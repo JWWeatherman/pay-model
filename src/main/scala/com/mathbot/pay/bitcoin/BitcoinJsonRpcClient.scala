@@ -4,8 +4,6 @@ import com.mathbot.pay.bitcoin.AddressType.AddressType
 import com.mathbot.pay.bitcoin.Btc.stringify
 import com.mathbot.pay.bitcoin.EstimateFeeMode.EstimateFeeMode
 import com.mathbot.pay.bitcoin.SigHashType.SigHashType
-import com.typesafe.scalalogging.LazyLogging
-import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import sttp.client3._
@@ -21,8 +19,7 @@ case class BitcoinJsonRpcClient(
     config: BitcoinJsonRpcConfig,
     backend: SttpBackend[Future, Any],
     private val idGen: AtomicInteger = new AtomicInteger(1)
-)(implicit ec: ExecutionContext)
-    extends LazyLogging {
+)(implicit ec: ExecutionContext) {
   private def id = idGen.getAndIncrement()
 
   private def asRpcResult[T](
@@ -51,7 +48,6 @@ case class BitcoinJsonRpcClient(
                   case JsSuccess(value, _) => Left(value)
                   case JsError(_) =>
                     val message = s"Unknown bitcoin rpc response = ${value}"
-                    logger.error(message)
                     Left(
                       RpcResponseError(id, error = ResponseError(code = 500, message = message))
                     )
@@ -68,8 +64,7 @@ case class BitcoinJsonRpcClient(
    * @return Error or the method's expected response object
    */
   def send[T](method: String, params: JsValueWrapper*)(implicit
-      jsonReader: Reads[T]
-  ): Future[Either[RpcResponseError, T]] = {
+                                                       jsonReader: Reads[T]): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
       .toJson(JsonRpcRequestBody(method = method, params = Json.arr(params: _*), jsonrpc = config.jsonRpc, id = ID))
@@ -83,7 +78,6 @@ case class BitcoinJsonRpcClient(
       .body(body)
       .response(asRpcResult(ID))
 
-    logger.debug(req.toCurl)
     req.send(backend).map(_.body)
   }
 

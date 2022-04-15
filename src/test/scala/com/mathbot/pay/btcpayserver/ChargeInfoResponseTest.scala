@@ -4,6 +4,8 @@ import org.scalatest
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.{JsResultException, Json}
 
+import scala.io.Source
+
 object ChargeInfoResponseTest {
 
   val newCharge: String =
@@ -1698,7 +1700,7 @@ class ChargeInfoResponseTest extends scalatest.funsuite.AnyFunSuite with Matcher
   test("json parse") {
 
     val stream = getClass.getResourceAsStream("/btcpayserverInvoiceResponse.json")
-    val lines = io.Source.fromInputStream(stream).getLines
+    val lines = Source.fromInputStream(stream).getLines
     val json = Json.parse(lines.mkString)
     stream.close()
     val r = json.validate[ChargeInfoResponse]

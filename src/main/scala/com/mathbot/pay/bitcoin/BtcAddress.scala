@@ -1,6 +1,5 @@
 package com.mathbot.pay.bitcoin
 
-import org.bitcoinj.core.Address
 import play.api.libs.json._
 
 import scala.util.Try
@@ -24,7 +23,6 @@ object BtcAddress {
         case _ => JsError()
       }
   }
-  def validateAddr(addr: String): Boolean =
-    Try(Address.fromString(null, addr)).isSuccess
+  def validateAddr(addr: String): Boolean = ??? // todo
 
 }

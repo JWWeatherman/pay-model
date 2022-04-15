@@ -2,7 +2,7 @@ package com.mathbot.pay.lightning.url
 
 import akka.http.scaladsl.model.Uri
 import fr.acinq.bitcoin.Bech32
-import fr.acinq.bitcoin.Bech32.{five2eight, Int5}
+import fr.acinq.bitcoin.Bech32.{five2eight, Bech32Encoding, Int5}
 import play.api.libs.json.Json
 
 import scala.util.Try
@@ -22,8 +22,8 @@ object LightningUrl {
 
   @throws(classOf[IllegalArgumentException])
   def decode(url: String): String = {
-    val (_, data) = Bech32.decode(url)
-    new String(five2eight(data))
+    val data = Bech32.decode(url)
+    new String(five2eight(data._2))
   }
 
   def eight2five(input: Array[Byte]): Array[Int5] = {
@@ -43,5 +43,5 @@ object LightningUrl {
   }
   val hrp = "lnurl"
   def apply(uri: Uri): LightningUrl =
-    LightningUrl(Bech32.encode(hrp, eight2five(uri.toString().getBytes())))
+    LightningUrl(Bech32.encode(hrp, eight2five(uri.toString().getBytes()), Bech32Encoding))
 }

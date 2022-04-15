@@ -1,11 +1,10 @@
 package com.mathbot.pay.lightning.url
 
-import akka.stream.scaladsl.Source
+import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import com.mathbot.pay.bitcoin.MilliSatoshi
 import com.mathbot.pay.json.FiniteDurationToSecondsFormatter
 import com.mathbot.pay.lightning.LightningJson
-import kotlin.text.Charsets
 import play.api.libs.json.Json
 
 import java.util.Base64
