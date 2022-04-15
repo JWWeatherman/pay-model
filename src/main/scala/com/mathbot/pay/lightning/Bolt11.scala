@@ -2,11 +2,13 @@ package com.mathbot.pay.lightning
 
 import com.mathbot.pay.bitcoin.MilliSatoshi
 import com.mathbot.pay.lightning.Bolt11.parseAmount
+import fr.acinq.eclair.payment.Bolt11Invoice
 import play.api.libs.json._
 
 case class Bolt11(private val _bolt11: String) extends LightningJson {
 
   val bolt11: String = Bolt11.trimPrefix(_bolt11)
+  val invoice = Bolt11Invoice.fromString(bolt11)
   val milliSatoshi: MilliSatoshi = parseAmount(bolt11)
 
   override def equals(obj: Any): Boolean = {
@@ -33,7 +35,7 @@ object Bolt11 {
       }
   }
 
-  def trimPrefix(bolt11: String) = if (bolt11.startsWith("lightning:")) bolt11.replace("lightning:", "") else bolt11
+  def trimPrefix(bolt11: String) = if (bolt11.startsWith(prefix)) bolt11.replace(prefix, "") else bolt11
 
   @throws(classOf[RuntimeException])
   def parseAmount(bolt11: String): MilliSatoshi = {
