@@ -1,9 +1,11 @@
 package com.mathbot.pay
 
-import com.mathbot.pay.lightning.PayService.{PayInvoiceServiceConfig, PlayerPayment__IN}
+import com.mathbot.pay.bitcoin.MilliSatoshi
+import com.mathbot.pay.lightning.PayService.{PayInvoiceServiceConfig, PlayerInvoice__IN}
 import com.mathbot.pay.lightning.{Bolt11, PayService}
-import com.mathbot.pay.webhook.CallbackURL
 import com.softwaremill.macwire.wire
+
+import scala.concurrent.duration.DurationInt
 
 class PayServiceTest extends BaseIntegrationTest {
   val config =
@@ -28,10 +30,18 @@ class PayServiceTest extends BaseIntegrationTest {
         _ = println(tr)
         if tr.isSuccess
         r <- service.getInfo
+        i <- service.playerInvoiceV2(
+          PlayerInvoice__IN(msatoshi = MilliSatoshi(1000),
+                            playerId = "test",
+                            source = "test",
+                            description = None,
+                            webhook = None,
+                            expiry = Some(3.minutes),
+                            version = Some(2))
+        )
 //        inv1 <- service.getInvoiceByPaymentHash("27fb17cd8f344d1bccfae7624cd8e1d3ac46a5ba8c0d1468406339fae70bf7ef")
 //        invoices <- service.listInvoices()
 //        s <- service.playerStatement("IT SPEC")
-////        i <- service.playerInvoice(PlayerInvoice(MilliSatoshi(10000), "IT SPEC", "IT SPEC"))
 //        p <- service.playerPayment(
 //          PlayerPayment__IN(source = "IT SPEC",
 //                            playerId = "IT SPEC",
@@ -41,8 +51,10 @@ class PayServiceTest extends BaseIntegrationTest {
       } yield {
 
         println(r)
+        println("invoice response: " + i)
         assert(r.isSuccess)
         assert(r.body.isRight)
+        assert(i.isSuccess)
 //        assert(s.body.isRight)
 //        assert(p.body.isRight)
 //        println(i.body)
