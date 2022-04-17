@@ -1,6 +1,6 @@
 package com.mathbot.pay.bitcoin
 
-import com.mathbot.pay.BaseIntegrationTest
+import com.mathbot.pay.{BaseIntegrationTest, FiatRatesService}
 import com.softwaremill.macwire.wire
 
 class FiatRatesServiceTest extends BaseIntegrationTest {

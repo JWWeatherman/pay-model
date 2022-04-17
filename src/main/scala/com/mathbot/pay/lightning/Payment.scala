@@ -1,7 +1,7 @@
 package com.mathbot.pay.lightning
 
 import com.google.common.hash.Hashing
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import fr.acinq.eclair.MilliSatoshi
 import com.mathbot.pay.json.EpochSecondInstantFormatter
 import com.mathbot.pay.lightning.PayStatus.PayStatus
 import play.api.libs.json._

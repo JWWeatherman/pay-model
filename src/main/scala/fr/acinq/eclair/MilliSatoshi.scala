@@ -1,10 +1,9 @@
 package fr.acinq.eclair
 
 import fr.acinq.bitcoin.Satoshi
+import play.api.libs.json._
 
-case class MilliSatoshi(underlying: Long)
-    extends AnyVal
-    with Ordered[MilliSatoshi] {
+case class MilliSatoshi(underlying: Long) extends AnyVal with Ordered[MilliSatoshi] {
   def +(other: MilliSatoshi): MilliSatoshi = MilliSatoshi(
     underlying + other.underlying
   )
@@ -42,4 +41,23 @@ case class MilliSatoshi(underlying: Long)
     if (this < other) this else other.toMilliSatoshi
   def truncateToSatoshi: Satoshi = Satoshi(underlying / 1000L)
   def toLong: Long = underlying
+}
+
+object MilliSatoshi {
+
+  lazy implicit val formatMSatoshi: Format[MilliSatoshi] = new Format[MilliSatoshi] {
+    override def writes(o: MilliSatoshi): JsValue = JsNumber(o.toLong)
+    override def reads(json: JsValue): JsResult[MilliSatoshi] =
+      json match {
+        case JsString(satStr) =>
+          (satStr.replace("msat", "").toLongOption) match {
+            case None =>
+              JsError(s"Not a MilliSatoshi Unable to convert string to long $satStr")
+            case Some(value) => JsSuccess(MilliSatoshi(value))
+          }
+        case JsNumber(sat) => JsSuccess(MilliSatoshi(sat.toLong))
+        case _ => JsError(s"Not a MilliSatoshi Invalid format")
+      }
+  }
+
 }

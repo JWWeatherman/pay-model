@@ -1,6 +1,6 @@
 package com.mathbot.pay.lightning
 
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import fr.acinq.eclair.MilliSatoshi
 
 import java.time.Instant
 import com.mathbot.pay.json.EpochSecondInstantFormatter

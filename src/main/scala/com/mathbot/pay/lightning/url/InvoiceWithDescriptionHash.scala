@@ -2,7 +2,7 @@ package com.mathbot.pay.lightning.url
 
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import fr.acinq.eclair.MilliSatoshi
 import com.mathbot.pay.json.FiniteDurationToSecondsFormatter
 import com.mathbot.pay.lightning.LightningJson
 import play.api.libs.json.Json

@@ -1,6 +1,6 @@
 package com.mathbot.pay
 
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import fr.acinq.eclair.MilliSatoshi
 import com.mathbot.pay.lightning.PayService.{PayInvoiceServiceConfig, PlayerInvoice__IN}
 import com.mathbot.pay.lightning.{Bolt11, PayService}
 import com.softwaremill.macwire.wire

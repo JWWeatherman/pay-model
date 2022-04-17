@@ -36,10 +36,6 @@ object LightningRpcRequest {
       case i: LightningInvoice =>
         ("invoice", Json.toJsObject(i))
       case i: MultiFundChannel => ??? // TODO: implement
-      case s: SetChannelFee =>
-        ("setchannelfee", Json.obj("id" -> s.id, "base" -> s.base.map(_.toLong), "ppm" -> s.ppm.map(_.toLong)))
-      case i: NewAddressRequest =>
-        ("newaddr", Json.obj("addresstype" -> i.addresstype.toString))
     }
     LightningRpcRequest(method = method, id = id, params = params)
   }

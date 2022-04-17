@@ -1,10 +1,10 @@
 package fr.acinq.bitcoin
 
-sealed trait BtcAmount
+sealed trait BtcAmount {
+  def toLong: Long
+}
 
-case class Satoshi(private val underlying: Long)
-    extends BtcAmount
-    with Ordered[Satoshi] {
+case class Satoshi(private val underlying: Long) extends BtcAmount with Ordered[Satoshi] {
   // @formatter:off
   def +(other: Satoshi) = Satoshi(underlying + other.underlying)
   def -(other: Satoshi) = Satoshi(underlying - other.underlying)
@@ -30,9 +30,7 @@ case class Satoshi(private val underlying: Long)
   // @formatter:on
 }
 
-case class MilliBtc(private val underlying: BigDecimal)
-    extends BtcAmount
-    with Ordered[MilliBtc] {
+case class MilliBtc(private val underlying: BigDecimal) extends BtcAmount with Ordered[MilliBtc] {
   // @formatter:off
   def +(other: MilliBtc) = MilliBtc(underlying + other.underlying)
   def -(other: MilliBtc) = MilliBtc(underlying - other.underlying)
@@ -60,9 +58,7 @@ case class MilliBtc(private val underlying: BigDecimal)
   // @formatter:on
 }
 
-case class Btc(private val underlying: BigDecimal)
-    extends BtcAmount
-    with Ordered[Btc] {
+case class Btc(private val underlying: BigDecimal) extends BtcAmount with Ordered[Btc] {
   require(underlying.abs <= 21e6, "amount must not be greater than 21 millions")
 
   // @formatter:off

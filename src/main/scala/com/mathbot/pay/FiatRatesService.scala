@@ -1,4 +1,4 @@
-package com.mathbot.pay.bitcoin
+package com.mathbot.pay
 
 import play.api.libs.json.{JsError, Json}
 import sttp.client3.SttpBackend
@@ -73,6 +73,9 @@ object FiatRatesService {
   }
   case class CoinGecko(rates: FiatRatesService.CoinGeckoItemMap)
 
+  object FiatRatesInfo {
+    implicit val fFiatRatesInfo = Json.format[FiatRatesInfo]
+  }
   case class FiatRatesInfo(
       rates: Map[String, Double],
       oldRates: Map[String, Double],

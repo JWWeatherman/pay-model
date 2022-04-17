@@ -1,7 +1,7 @@
 package com.mathbot.pay.lightning.url
 
 import com.google.common.hash.Hashing
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import fr.acinq.eclair.MilliSatoshi
 import kotlin.text.Charsets
 import play.api.libs.json.Json
 

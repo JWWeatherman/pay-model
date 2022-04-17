@@ -1,17 +1,16 @@
 package com.mathbot.pay.lightning
 
-import akka.stream.scaladsl.Flow
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import com.mathbot.pay.FiatRatesService.FiatRatesInfo
 import com.mathbot.pay.json.{FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
 import com.mathbot.pay.webhook.CallbackURL
 import com.mathbot.pay.{SecureIdentifier, Sensitive}
+import fr.acinq.eclair.MilliSatoshi
 import play.api.libs.json._
 import sttp.capabilities
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
 import sttp.model.MediaType
-import sttp.ws.{WebSocket, WebSocketFrame}
 
 import java.time.Instant
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -39,7 +38,6 @@ object PayService {
   ) {
     lazy val paidInvoices: Set[ListInvoice] = invoices.filter(_.isPaid)
     val completeOrPendingPayments: Seq[ListPay] = payments.filter(p => p.isPaid || p.isPending)
-    import com.mathbot.pay.bitcoin.NumericMilliSatoshi
     val paidInvoicesMsat: MilliSatoshi = paidInvoices.flatMap(_.amount_msat).sum
     // pending payments we'll have to deduct amount_sent_msat since destinatino has not recieved amount
     val completeOrPendingPaymentsMsat: MilliSatoshi =
@@ -110,7 +108,7 @@ object PayService {
       baseUrl: String,
       accessToken: Option[String] = None
   ) {
-    val wsBaseUrl =
+    val wsBaseUrl: String =
       if (baseUrl.startsWith("https")) baseUrl.replace("https", "wss")
       else baseUrl.replace("http", "ws")
   }
@@ -139,7 +137,7 @@ object PayService {
     implicit val formatPlayerPayment__IN: OFormat[PlayerPayment__IN] = Json.format[PlayerPayment__IN]
   }
   case class PlayerPayment__IN(source: String, playerId: String, bolt11: Bolt11, callbackURL: Option[CallbackURL]) {
-    val label = makeLabel(source = source, playerId = playerId)
+    val label: String = makeLabel(source = source, playerId = playerId)
   }
 
   object PlayerStatement__IN {
@@ -191,19 +189,24 @@ object PayService {
   case class ValidatePay(pay: PlayerPayment__IN, subtractFromBalance: MilliSatoshi) {
     def maxWithdraw(statement: PlayerStatement): MilliSatoshi = statement.balance - subtractFromBalance
     def validateStatement(statement: PlayerStatement): Boolean =
-      pay.bolt11.milliSatoshi <= maxWithdraw(statement)
+      pay.bolt11.invoice.amountOpt.exists(e => e.toLong <= maxWithdraw(statement).toLong)
   }
 
   object PlayerInvoiceWithDescriptionHash__IN {
-    implicit val formatPlayerInvoiceWithDescriptionHash__In = Json.format[PlayerInvoiceWithDescriptionHash__IN]
+    implicit val formatPlayerInvoiceWithDescriptionHash__In: OFormat[PlayerInvoiceWithDescriptionHash__IN] =
+      Json.format[PlayerInvoiceWithDescriptionHash__IN]
   }
   case class PlayerInvoiceWithDescriptionHash__IN(
       invoice: InvoiceWithDescriptionHash,
       source: String,
       playerId: String
   ) {
-    val inv = invoice.copy(label = PayService.makeLabel(source, playerId))
+    val inv: InvoiceWithDescriptionHash = invoice.copy(label = PayService.makeLabel(source, playerId))
   }
+  object FiatRatesInfoUSD {
+    implicit val fFiatRatesInfoUSD: OFormat[FiatRatesInfoUSD] = Json.format[FiatRatesInfoUSD]
+  }
+  case class FiatRatesInfoUSD(usd: Double)
 }
 
 class PayService(config: PayService.PayInvoiceServiceConfig,
@@ -213,7 +216,7 @@ class PayService(config: PayService.PayInvoiceServiceConfig,
   import PayService._
   import config._
   import sttp.client3._
-  import sttp.client3.playJson._
+  import playJson._
   val baseUrl: String = config.baseUrl + "/lightning/rpc"
 
   private var ACCESS_TOKEN = config.accessToken.getOrElse(default = "INVALID")
@@ -294,6 +297,18 @@ class PayService(config: PayService.PayInvoiceServiceConfig,
       .post(uri"${config.baseUrl}/lightning/player/validatePay")
       .body(validatePay)
       .response(toBody[ListPay])
+      .send(backend)
+
+  def getRates: Future[Response[Either[LightningRequestError, FiatRatesInfo]]] =
+    base
+      .get(uri"${config.baseUrl}/rates")
+      .response(toBody[FiatRatesInfo])
+      .send(backend)
+
+  def getUSDRates: Future[Response[Either[LightningRequestError, FiatRatesInfoUSD]]] =
+    base
+      .get(uri"${config.baseUrl}/rates/usd")
+      .response(toBody[FiatRatesInfoUSD])
       .send(backend)
 //
 //  def useWebSocket(ws: WebSocket[Future]): Future[Unit] = {

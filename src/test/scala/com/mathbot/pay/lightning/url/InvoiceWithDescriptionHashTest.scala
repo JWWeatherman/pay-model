@@ -1,6 +1,6 @@
 package com.mathbot.pay.lightning.url
 
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import fr.acinq.eclair.MilliSatoshi
 import org.scalatest.wordspec.AnyWordSpec
 
 import java.util.Base64

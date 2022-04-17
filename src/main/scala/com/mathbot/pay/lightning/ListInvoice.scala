@@ -1,6 +1,6 @@
 package com.mathbot.pay.lightning
 
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import fr.acinq.eclair.MilliSatoshi
 import com.mathbot.pay.json.EpochSecondInstantFormatter
 import com.mathbot.pay.lightning.LightningInvoiceStatus.LightningInvoiceStatus
 import play.api.libs.json.{Json, OFormat}
