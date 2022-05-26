@@ -1,9 +1,15 @@
 package fr.acinq.bitcoin
 
+import play.api.libs.json.{JsNumber, JsSuccess, JsValue, Reads, Writes}
+
 sealed trait BtcAmount {
   def toLong: Long
 }
 
+object Satoshi {
+  implicit lazy val formatB: Writes[Satoshi] = (o: Satoshi) => JsNumber(o.toLong)
+  implicit lazy val readsSat: Reads[Satoshi] = (json: JsValue) => JsSuccess(Satoshi(json.as[Long]))
+}
 case class Satoshi(private val underlying: Long) extends BtcAmount with Ordered[Satoshi] {
   // @formatter:off
   def +(other: Satoshi) = Satoshi(underlying + other.underlying)
