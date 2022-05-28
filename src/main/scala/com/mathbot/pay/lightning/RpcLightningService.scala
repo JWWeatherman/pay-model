@@ -2,7 +2,7 @@ package com.mathbot.pay.lightning
 
 import com.github.dwickern.macros.NameOf.nameOf
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
-import play.api.libs.json.{JsObject, JsValue, Json, Reads}
+import play.api.libs.json.{JsArray, JsNull, JsObject, JsValue, Json, Reads}
 import sttp.capabilities.akka.AkkaStreams
 
 import scala.concurrent.Future
@@ -29,7 +29,7 @@ trait RpcLightningService extends LightningService {
   override def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]] = {
     val r = base
       .post(uri"$baseUrl")
-      .body(makeBody(nameOf(getInfo _), Json.obj()))
+      .body(makeBody(nameOf(getInfo _), JsArray()))
       .response(toBody[LightningNodeInfo])
 
     r.send(backend)

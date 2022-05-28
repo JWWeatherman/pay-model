@@ -50,6 +50,17 @@ object PayService {
   def makeLabel(source: String, playerId: String, s: Int = 8) =
     s"$source$SEPARATOR$playerId$SEPARATOR${SecureIdentifier(s)}"
 
+  /**
+   *
+   * @param label ListInvoice.label
+   * @param source application name
+   * @return (playerId, secureIdentifier)
+   */
+  def parseLabel(label: String, source: String): Option[(String, String)] = label.split(SEPARATOR).toSeq match {
+    case Seq(`source`, playerId, id) => Some(playerId, id)
+    case o => None
+  }
+
   def invoice(inv: PlayerInvoice__IN): LightningInvoice = {
     import inv._
     val label = makeLabel(source, playerId)
@@ -67,12 +78,6 @@ object PayService {
     p.copy(pay = p.pay.copy(label = Some(label)))
   }
 
-  def parseLabel(label: String, playerId: String): Boolean =
-    label.split(SEPARATOR).toSeq match {
-      case Seq(_, `playerId`, _) => true
-      case o => false
-    }
-
   def parseAppLabel(label: String, source: String): Boolean =
     label.split(SEPARATOR).toSeq match {
       case Seq(`source`, _, _) => true
@@ -86,8 +91,8 @@ object PayService {
       subtractFromBalance: MilliSatoshi
   ): PlayerStatement = {
 
-    val ii = i.filter(j => parseLabel(j.label, playerId))
-    val pp = p.filter(_.label.exists(parseLabel(_, playerId)))
+    val ii = i.filter(j => parseLabel(j.label, playerId).isDefined)
+    val pp = p.filter(_.label.exists(parseLabel(_, playerId).isDefined))
     PlayerStatement(ii, pp, playerId, subtractFromBalance)
   }
 

@@ -5,6 +5,7 @@ import fr.acinq.eclair.MilliSatoshi
 import java.time.Instant
 import com.mathbot.pay.json.EpochSecondInstantFormatter
 import com.mathbot.pay.lightning.PayStatus.{complete, paid, pending, PayStatus}
+import fr.acinq.eclair.payment.Bolt11Invoice
 import play.api.libs.json.{Json, OFormat}
 // https://github.com/ElementsProject/lightning/blob/master/doc/lightning-listpays.7.md
 // For old payments (pre-0.7) we didn’t save the bolt11 string, so in its place are three other fields: payment_hash,destination,amount_msat
@@ -41,5 +42,21 @@ case class ListPay(
 }
 
 object ListPay extends EpochSecondInstantFormatter {
+  def apply(bolt11: Bolt11, payment: Payment, label: Option[String]): ListPay =
+    ListPay(
+      bolt11 = Some(bolt11),
+      status = payment.status,
+      destination = payment.destination,
+      amount_msat = Some(payment.amount_msat),
+      amount_sent_msat = payment.amount_sent_msat,
+      created_at = payment.created_at,
+      preimage = payment.payment_preimage,
+      payment_hash = Some(payment.payment_hash),
+      label = label,
+      bolt12 = None,
+      number_of_parts = payment.parts.map(_.toLong),
+      erroronion = None
+    )
+
   lazy implicit val formatListPay: OFormat[ListPay] = Json.format[ListPay]
 }
