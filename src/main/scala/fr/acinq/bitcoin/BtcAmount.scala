@@ -1,6 +1,8 @@
 package fr.acinq.bitcoin
 
-import play.api.libs.json.{JsNumber, JsSuccess, JsValue, Reads, Writes}
+import play.api.libs.json._
+
+import java.text.DecimalFormat
 
 sealed trait BtcAmount {
   def toLong: Long
@@ -92,6 +94,18 @@ case class Btc(private val underlying: BigDecimal) extends BtcAmount with Ordere
   def toLong: Long = underlying.toLong
   override def toString = s"$underlying BTC"
   // @formatter:on
+}
+
+object Btc {
+  implicit val writesBtc: Writes[Btc] = (b: Btc) => JsString(stringify(b))
+  implicit val readsBtc: Reads[Btc] = {
+    case JsNumber(btc) => JsSuccess(Btc(btc))
+    case JsString(btc) => JsSuccess(Btc(BigDecimal(btc)))
+    case a => JsError(s"Not a btc $a")
+  }
+  final val btcFormat = new DecimalFormat("0.########")
+  def stringify(btc: Btc): String = btcFormat.format(btc.underlying)
+
 }
 
 object BtcAmount {
