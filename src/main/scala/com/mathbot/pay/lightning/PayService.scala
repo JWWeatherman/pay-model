@@ -1,5 +1,6 @@
 package com.mathbot.pay.lightning
 
+import akka.stream.scaladsl.Flow
 import com.mathbot.pay.FiatRatesService.FiatRatesInfo
 import com.mathbot.pay.json.{FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
@@ -11,6 +12,7 @@ import sttp.capabilities
 import sttp.capabilities.akka.AkkaStreams
 import sttp.client3.SttpBackend
 import sttp.model.MediaType
+import sttp.ws.{WebSocket, WebSocketFrame}
 
 import java.time.Instant
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -316,35 +318,37 @@ class PayService(config: PayService.PayInvoiceServiceConfig,
       .response(toBody[FiatRatesInfoUSD])
       .send(backend)
 //
-//  def useWebSocket(ws: WebSocket[Future]): Future[Unit] = {
-//    def send(i: Int) = ws.sendText(s"Hello $i!")
-//    def receive() = ws.receiveText().map(t => println(s"RECEIVED: $t"))
-//    for {
-//      _ <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
-////      _ <- send(2)
-////      _ <- receive()
-////      _ <- receive()
-//    } yield ()
-//  }
-//
-//  def flow(onPayload: String => Unit): AkkaStreams.Pipe[WebSocketFrame.Data[_], WebSocketFrame] =
-//    Flow[WebSocketFrame.Data[_]].map {
-//      case d @ WebSocketFrame.Text(payload, finalFragment, rsv) =>
-//        println("payload = " + d.payload)
-//        onPayload(d.payload)
-//        WebSocketFrame.ping
-//      case WebSocketFrame.Binary(payload, finalFragment, rsv) =>
-//        println("payload binary = " + new String(payload))
-//        WebSocketFrame.close
-//    }
-//
-//  def send = {
-//    base.get(uri"${config.wsBaseUrl}/ws").response(asWebSocket(useWebSocket)).send(backend)
-//  }
-//  def openWs = {
-//    base
-//      .get(uri"${config.wsBaseUrl}/ws")
-//      .response(asWebSocketStream(AkkaStreams)(flow))
-//      .send(backend)
 
+  def useWebSocket(ws: WebSocket[Future]): Future[Unit] = {
+    def receive() = ws.receiveText().map(t => println(s"RECEIVED: $t"))
+    for {
+      _ <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
+      _ <- receive()
+//      _ <- receive()
+    } yield ()
+  }
+
+  lazy val wsBase = base.get(uri"${config.wsBaseUrl}/ws")
+  def testWs: Future[Response[Either[String, Unit]]] = {
+    wsBase.response(asWebSocket(useWebSocket)).send(backend)
+  }
+  def testWs(useWebSocket: WebSocket[Future] => Future[Unit]): Future[Response[Either[String, Unit]]] =
+    wsBase.response(asWebSocket(useWebSocket)).send(backend)
+
+  def openWs(onMessage: String => Unit): Future[Response[Either[String, Unit]]] = {
+    wsBase
+      .response(
+        asWebSocketStream(AkkaStreams)(
+          Flow[WebSocketFrame.Data[_]].map {
+            case d @ WebSocketFrame.Text(payload, finalFragment, rsv) =>
+              onMessage(d.payload)
+              WebSocketFrame.ping
+            case WebSocketFrame.Binary(payload, finalFragment, rsv) =>
+              onMessage(new String(payload))
+              WebSocketFrame.ping
+          }
+        )
+      )
+      .send(backend)
+  }
 }
