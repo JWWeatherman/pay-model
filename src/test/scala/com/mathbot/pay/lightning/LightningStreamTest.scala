@@ -35,7 +35,7 @@ class LightningStreamTest
       val lightningStream: LightningStream = {
         val fakeFlow: Flow[ByteString, ByteString, NotUsed] = Flow[ByteString].map(b => b)
         val lightingFlow = Flow
-          .fromFunction[LightningJson, LightningRpcRequest](LightningRpcRequest(_, idAtom))
+          .fromFunction[LightningJson, LightningRpcRequest](LightningRpcRequest(_, idAtom.getAndIncrement().toString))
           .map(_ => Json.toJson(getinfoRes))
           .recover {
             case t =>
@@ -51,8 +51,8 @@ class LightningStreamTest
         // todo: partial function error
 //        s <- lightningStream.enqueue(LightningGetInfoRequest())(f)
       } yield {
-        println(s"done getting info $s")
-        assert(true)
+
+        assert(s.body.isRight)
       }).recover(e => {
         println("Error " + e)
         assert(false)

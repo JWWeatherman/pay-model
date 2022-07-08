@@ -1,5 +1,6 @@
 package com.mathbot.pay.bitcoin
 
+import fr.acinq.bitcoin.{Btc, Satoshi}
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec

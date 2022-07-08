@@ -2,6 +2,7 @@ package com.mathbot.pay
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
+import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.wordspec.AsyncWordSpecLike
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.mockito.MockitoSugar
@@ -14,10 +15,10 @@ abstract class BaseIntegrationTest
     with ImplicitSender
     with MockitoSugar
     with BeforeAndAfterAll
-    with EitherValues {
+    with EitherValues
+    with StrictLogging {
 
   override def afterAll(): Unit = TestKit.shutdownActorSystem(system)
   implicit lazy val backend = AkkaHttpBackend.usingActorSystem(system)
-  val logger = LoggerFactory.getLogger("Spec")
 
 }

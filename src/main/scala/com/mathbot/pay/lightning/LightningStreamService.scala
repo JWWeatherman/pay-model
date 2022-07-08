@@ -5,9 +5,10 @@ import play.api.libs.json.Reads
 import sttp.client3.Response
 
 import java.util.concurrent.atomic.AtomicInteger
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
-class LightningStreamService(lightningStream: LightningStream) extends LightningService {
+class LightningStreamService(lightningStream: LightningStream)(implicit val ec: ExecutionContext)
+    extends LightningService {
 
   def listPays(
       l: ListPaysRequest = ListPaysRequest()
@@ -38,7 +39,7 @@ class LightningStreamService(lightningStream: LightningStream) extends Lightning
   ): Future[Response[Either[LightningRequestError, LightningOffers]]] =
     wrap[LightningOffers](r)
 
-  def createOffer(
+  def offer(
       offerRequest: LightningOfferRequest
   ): Future[Response[Either[LightningRequestError, LightningOffer]]] =
     wrap[LightningOffer](offerRequest)

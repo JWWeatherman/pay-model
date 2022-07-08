@@ -1,22 +1,15 @@
 package com.mathbot.pay.lightning
 
-import java.util.concurrent.atomic.AtomicInteger
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.{Flow, GraphDSL, Source, SourceQueueWithComplete, Unzip, Zip}
-import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult, SourceShape}
-import com.github.dwickern.macros.NameOf.nameOf
-import com.mathbot.pay.lightning.url.InvoiceWithDescriptionHash
+import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
+import akka.stream.{OverflowStrategy, QueueOfferResult, SourceShape}
 import com.typesafe.scalalogging.LazyLogging
-import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsValue, Json}
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.Future
 
 /**
- * @param system operating in
- * @param ec to run
  * @param lightingFlow Flow i.e. json -> unix socket -> json
  */
 class LightningStream(
@@ -27,7 +20,8 @@ class LightningStream(
   private lazy val graph =
     Source.fromGraph(
       GraphDSL.create(
-        Source.queue[(JsValue => Unit, LightningJson)](bufferSize = 32, overflowStrategy = OverflowStrategy.fail)
+        Source
+          .queue[(JsValue => Unit, LightningJson)](bufferSize = 32, overflowStrategy = OverflowStrategy.fail)
       ) { implicit builder => queue =>
         import GraphDSL.Implicits._
 
@@ -66,4 +60,4 @@ class LightningStream(
       }(system.dispatcher)
 
 }
-object LightningStream extends LazyLogging {}
+object LightningStream

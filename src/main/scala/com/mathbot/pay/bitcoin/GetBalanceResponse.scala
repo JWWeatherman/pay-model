@@ -1,6 +1,7 @@
 package com.mathbot.pay.bitcoin
 
 import com.mathbot.pay.json.PlayJsonSupport
+import fr.acinq.bitcoin.Btc
 import play.api.libs.json.{Json, OFormat}
 
 case class GetBalanceResponse(result: Btc, id: String) extends RpcResponse[Btc]

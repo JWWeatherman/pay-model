@@ -1,9 +1,9 @@
 package com.mathbot.pay.bitcoin
 
-import java.util.concurrent.TimeUnit
-
+import fr.acinq.bitcoin.Btc
 import play.api.libs.json.Json
 
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 object Scanning {

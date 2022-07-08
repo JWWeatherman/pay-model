@@ -4,6 +4,8 @@ import com.mathbot.pay.BaseIntegrationTest
 import com.softwaremill.macwire.wire
 import sttp.client3.akkahttp.AkkaHttpBackend
 
+import java.util.concurrent.atomic.AtomicInteger
+
 //noinspection SpellCheckingInspection
 class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {
 
@@ -11,6 +13,7 @@ class BitcoinJsonRpcClientIntegrationTest extends BaseIntegrationTest {
                                     username = sys.env("BITCOIN_RPC_USER"),
                                     password = sys.env("BITCOIN_RPC_PASS"))
   val be = AkkaHttpBackend()
+  val idGen = new AtomicInteger()
   val service = wire[BitcoinJsonRpcClient]
 
   def validateRight[T](value: Either[RpcResponseError, T]) = {

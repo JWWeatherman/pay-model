@@ -4,11 +4,9 @@ import com.github.dwickern.macros.NameOf.nameOf
 import com.mathbot.pay.lightning.url.InvoiceWithDescriptionHash
 import play.api.libs.json.{JsObject, Json, OFormat}
 
-import java.util.concurrent.atomic.AtomicInteger
-
 case class LightningRpcRequest(
     method: String,
-    id: Int,
+    id: String,
     params: JsObject = Json.obj(),
     jsonrpc: String = LightningRpcRequest.json2
 )
@@ -17,7 +15,7 @@ object LightningRpcRequest {
   val json2 = "2.0"
   lazy implicit val formatRequest: OFormat[LightningRpcRequest] = Json.format[LightningRpcRequest]
 
-  def apply(lj: LightningJson, idGen: AtomicInteger): LightningRpcRequest = {
+  def apply(lj: LightningJson, id: String): LightningRpcRequest = {
     val (method, params) = lj match {
       case i: InvoiceWithDescriptionHash =>
         (nameOf(InvoiceWithDescriptionHash).toLowerCase, Json.toJsObject(i))
@@ -36,13 +34,9 @@ object LightningRpcRequest {
       case DecodePayRequest(bolt11) =>
         ("decodepay", Json.obj("bolt11" -> bolt11.bolt11))
       case i: LightningInvoice =>
-        ("invoice", Json.obj("msatoshi" -> i.msatoshi.toLong, "label" -> i.label, "description" -> i.description))
+        ("invoice", Json.toJsObject(i))
       case i: MultiFundChannel => ??? // TODO: implement
-      case s: SetChannelFee =>
-        ("setchannelfee", Json.obj("id" -> s.id, "base" -> s.base.map(_.toLong), "ppm" -> s.ppm.map(_.toLong)))
-      case i: NewAddressRequest =>
-        ("newaddr", Json.obj("addresstype" -> i.addresstype.toString))
     }
-    LightningRpcRequest(method = method, id = idGen.getAndIncrement(), params = params)
+    LightningRpcRequest(method = method, id = id, params = params)
   }
 }

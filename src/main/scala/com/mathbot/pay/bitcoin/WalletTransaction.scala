@@ -1,9 +1,9 @@
 package com.mathbot.pay.bitcoin
 
 import java.time.Instant
-
 import com.mathbot.pay.bitcoin.TransactionCategory.TransactionCategory
 import com.mathbot.pay.json.{EpochSecondInstantFormatter, PlayJsonSupport}
+import fr.acinq.bitcoin.Btc
 import play.api.libs.json.{Json, OFormat}
 
 /**

@@ -22,6 +22,6 @@ class BtcDebitRequestTest extends AnyFunSuite {
       """.stripMargin
     val r = Json.parse(json).validate[BtcDebitRequest]
     assert(r.isSuccess)
-    assert(r.get.amount === (100 satoshi))
+    assert(r.get.amount.toLong === 100)
   }
 }

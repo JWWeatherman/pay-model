@@ -1,6 +1,6 @@
 package com.mathbot.pay.lightning
 
-import com.mathbot.pay.bitcoin.MilliSatoshi
+import fr.acinq.eclair.MilliSatoshi
 import com.mathbot.pay.json.{FiniteDurationToSecondsReader, FiniteDurationToSecondsWriter}
 import play.api.libs.json._
 

@@ -1,6 +1,7 @@
 package com.mathbot.pay.bitcoin
 
 import com.mathbot.pay.bitcoin.PsbtRole.PsbtRole
+import fr.acinq.bitcoin.Btc
 import play.api.libs.json.{Json, OFormat}
 
 object Missing {

@@ -1,11 +1,10 @@
 package com.mathbot.pay.bitcoin
 
 import com.mathbot.pay.bitcoin.AddressType.AddressType
-import com.mathbot.pay.bitcoin.Btc.stringify
 import com.mathbot.pay.bitcoin.EstimateFeeMode.EstimateFeeMode
 import com.mathbot.pay.bitcoin.SigHashType.SigHashType
 import com.typesafe.scalalogging.LazyLogging
-import org.slf4j.{Logger, LoggerFactory}
+import fr.acinq.bitcoin.Btc
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import sttp.client3._
@@ -227,7 +226,13 @@ case class BitcoinJsonRpcClient(
       locktime: Option[Int] = None,
       replaceable: Option[Boolean] = None
   ): Future[Either[RpcResponseError, String]] =
-    send[String]("createpsbt", inputs, outputs.map { case (a, b) => a.address -> stringify(b) }, locktime, replaceable)
+    send[String](
+      "createpsbt",
+      inputs,
+      outputs.map { case (a, b) => a.address -> Btc.stringify(b) },
+      locktime,
+      replaceable
+    )
 
   def getblockcount: Future[Either[RpcResponseError, Int]] =
     send[Int]("getblockcount")

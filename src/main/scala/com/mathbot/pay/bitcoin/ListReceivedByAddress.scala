@@ -1,5 +1,6 @@
 package com.mathbot.pay.bitcoin
 
+import fr.acinq.bitcoin.Btc
 import play.api.libs.json.{Json, OFormat}
 
 object ListReceivedByAddress {
