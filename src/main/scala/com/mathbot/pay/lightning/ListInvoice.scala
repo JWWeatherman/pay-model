@@ -41,14 +41,14 @@ case class ListInvoice(
   val isExpired: Boolean = status == LightningInvoiceStatus.expired
   val isUnpaid: Boolean = status == LightningInvoiceStatus.unpaid
 
-  require(bolt11.isDefined || bolt12.isDefined, "Missing 'bolt11' and 'bolt12'")
-  if (isPaid) {
-    require(pay_index.isDefined, "Missing 'pay_index' for paid invoice")
-    require(amount_received_msat.isDefined, "Missing 'amount_received_msat' for paid invoice")
-    require(paid_at.isDefined, "Missing 'paid_at' for paid invoice")
-    require(payment_preimage.isDefined, "Missing 'payment_preimage' for paid invoice")
-
-  }
+//  require(bolt11.isDefined || bolt12.isDefined, "Missing 'bolt11' and 'bolt12'")
+//  if (isPaid) {
+//    require(pay_index.isDefined, "Missing 'pay_index' for paid invoice")
+//    require(amount_received_msat.isDefined, "Missing 'amount_received_msat' for paid invoice")
+//    require(paid_at.isDefined, "Missing 'paid_at' for paid invoice")
+//    require(payment_preimage.isDefined, "Missing 'payment_preimage' for paid invoice")
+//
+//  }
 }
 
 object ListInvoice extends EpochSecondInstantFormatter {
