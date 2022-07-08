@@ -16,7 +16,7 @@ object QueryChannelRangeTlv {
   case object QueryFlags {
     val WANT_TIMESTAMPS: Long = 1
     val WANT_CHECKSUMS: Long = 2
-    val WANT_ALL: Long = (WANT_TIMESTAMPS | WANT_CHECKSUMS)
+    val WANT_ALL: Long = WANT_TIMESTAMPS | WANT_CHECKSUMS
 
     def wantTimestamps(flag: Long) = (flag & WANT_TIMESTAMPS) != 0
     def wantChecksums(flag: Long) = (flag & WANT_CHECKSUMS) != 0

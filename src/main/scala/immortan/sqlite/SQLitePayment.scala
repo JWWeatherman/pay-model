@@ -29,11 +29,11 @@ case class PaymentSummary(
     count: Long
 )
 
-class SQLitePayment(db: DBInterface, preimageDb: DBInterface)
-    extends PaymentBag {
-  def getPaymentInfo(paymentHash: ByteVector32): Try[PaymentInfo] = db
-    .select(PaymentTable.selectByHashSql, paymentHash.toHex)
-    .headTry(toPaymentInfo)
+class SQLitePayment(db: DBInterface, preimageDb: DBInterface) extends PaymentBag {
+  def getPaymentInfo(paymentHash: ByteVector32): Try[PaymentInfo] =
+    db
+      .select(PaymentTable.selectByHashSql, paymentHash.toHex)
+      .headTry(toPaymentInfo)
 
   def removePaymentInfo(paymentHash: ByteVector32): Unit = {
     db.change(PaymentTable.killSql, paymentHash.toHex)
@@ -225,10 +225,11 @@ class SQLitePayment(db: DBInterface, preimageDb: DBInterface)
 
   // Preimage storage
 
-  def getPreimage(hash: ByteVector32): Try[ByteVector32] = preimageDb
-    .select(PreimageTable.selectByHashSql, hash.toHex)
-    .headTry(_ string PreimageTable.preimage)
-    .map(ByteVector32.fromValidHex)
+  def getPreimage(hash: ByteVector32): Try[ByteVector32] =
+    preimageDb
+      .select(PreimageTable.selectByHashSql, hash.toHex)
+      .headTry(_ string PreimageTable.preimage)
+      .map(ByteVector32.fromValidHex)
 
   def setPreimage(paymentHash: ByteVector32, preimage: ByteVector32): Unit =
     preimageDb.change(PreimageTable.newSql, paymentHash.toHex, preimage.toHex)

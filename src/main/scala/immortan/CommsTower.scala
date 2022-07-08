@@ -9,7 +9,7 @@ import fr.acinq.eclair._
 import fr.acinq.eclair.wire.LightningMessageCodecs.lightningMessageCodecWithFallback
 import fr.acinq.eclair.wire._
 import immortan.crypto.Noise.KeyPair
-import immortan.crypto.Tools.{Bytes, none}
+import immortan.crypto.Tools.{none, Bytes}
 import rx.lang.scala.{Observable, Subscription}
 import scodec.bits.ByteVector
 
@@ -34,31 +34,33 @@ object CommsTower {
       listeners1: Set[ConnectionListener],
       pair: KeyPairAndPubKey,
       info: RemoteNodeInfo
-  ): Unit = synchronized {
-    // Update and either insert a new worker or fire onOperational on NEW listeners if worker currently exists and online
-    // First add listeners, then try to add worker because we may already have a connected worker, but no listeners
-    listeners(pair) ++= listeners1
+  ): Unit =
+    synchronized {
+      // Update and either insert a new worker or fire onOperational on NEW listeners if worker currently exists and online
+      // First add listeners, then try to add worker because we may already have a connected worker, but no listeners
+      listeners(pair) ++= listeners1
 
-    workers.get(pair) match {
-      case Some(worker) =>
-        for (init <- worker.theirInit)
-          worker.handleTheirRemoteInitMessage(listeners1, init)
-      case None =>
-        workers(pair) = new Worker(
-          pair,
-          info,
-          new Bytes(1024),
-          LNParams.connectionProvider.getSocket
-        )
+      workers.get(pair) match {
+        case Some(worker) =>
+          for (init <- worker.theirInit)
+            worker.handleTheirRemoteInitMessage(listeners1, init)
+        case None =>
+          workers(pair) = new Worker(
+            pair,
+            info,
+            new Bytes(1024),
+            LNParams.connectionProvider.getSocket
+          )
+      }
     }
-  }
 
   def sendMany(
       messages: Traversable[LightningMessage],
       pair: KeyPairAndPubKey
-  ): Unit = CommsTower.workers
-    .get(pair)
-    .foreach(worker => messages foreach worker.handler.process)
+  ): Unit =
+    CommsTower.workers
+      .get(pair)
+      .foreach(worker => messages foreach worker.handler.process)
   // Add or remove listeners to a connection where our nodeId is stable, not a randomly generated one (one which makes us seen as a constant peer by remote)
   def listenNative(
       listeners1: Set[ConnectionListener],
@@ -166,8 +168,9 @@ object CommsTower {
       workers -= pair
     }
 
-    def disconnect: Unit = try sock.close
-    catch none
+    def disconnect: Unit =
+      try sock.close
+      catch none
 
     def handleTheirRemoteInitMessage(
         listeners1: Set[ConnectionListener],

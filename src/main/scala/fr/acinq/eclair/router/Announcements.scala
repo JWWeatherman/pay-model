@@ -16,21 +16,10 @@
 
 package fr.acinq.eclair.router
 
-import fr.acinq.bitcoin.Crypto.{PrivateKey, PublicKey, sha256, verifySignature}
-import fr.acinq.bitcoin.{
-  ByteVector32,
-  ByteVector64,
-  Crypto,
-  LexicographicalOrdering
-}
+import fr.acinq.bitcoin.Crypto.{sha256, verifySignature, PrivateKey, PublicKey}
+import fr.acinq.bitcoin.{ByteVector32, ByteVector64, Crypto, LexicographicalOrdering}
 import fr.acinq.eclair.wire._
-import fr.acinq.eclair.{
-  CltvExpiryDelta,
-  FeatureScope,
-  Features,
-  MilliSatoshi,
-  serializationResult
-}
+import fr.acinq.eclair.{serializationResult, CltvExpiryDelta, FeatureScope, Features, MilliSatoshi}
 import scodec.bits.{BitVector, ByteVector}
 import shapeless.HNil
 
@@ -205,15 +194,17 @@ object Announcements {
 
   def isEnabled(channelFlags: Byte): Boolean = (channelFlags & 2) == 0
 
-  def areSame(u1: ChannelUpdate, u2: ChannelUpdate): Boolean = u1.copy(
-    signature = ByteVector64.Zeroes,
-    timestamp = 0
-  ) == u2.copy(signature = ByteVector64.Zeroes, timestamp = 0)
+  def areSame(u1: ChannelUpdate, u2: ChannelUpdate): Boolean =
+    u1.copy(
+      signature = ByteVector64.Zeroes,
+      timestamp = 0
+    ) == u2.copy(signature = ByteVector64.Zeroes, timestamp = 0)
 
-  def makeMessageFlags(hasOptionChannelHtlcMax: Boolean): Byte = BitVector
-    .bits(hasOptionChannelHtlcMax :: Nil)
-    .padLeft(8)
-    .toByte(signed = true)
+  def makeMessageFlags(hasOptionChannelHtlcMax: Boolean): Byte =
+    BitVector
+      .bits(hasOptionChannelHtlcMax :: Nil)
+      .padLeft(8)
+      .toByte(signed = true)
 
   def makeChannelFlags(isNode1: Boolean, enable: Boolean): Byte =
     BitVector.bits(!enable :: !isNode1 :: Nil).padLeft(8).toByte(signed = true)
@@ -231,9 +222,7 @@ object Announcements {
       enable: Boolean = true,
       timestamp: Long = System.currentTimeMillis.milliseconds.toSeconds
   ): ChannelUpdate = {
-    val messageFlags = makeMessageFlags(hasOptionChannelHtlcMax =
-      true
-    ) // NB: we always support option_channel_htlc_max
+    val messageFlags = makeMessageFlags(hasOptionChannelHtlcMax = true) // NB: we always support option_channel_htlc_max
     val channelFlags = makeChannelFlags(
       isNode1 = isNode1(nodeSecret.publicKey, remoteNodeId),
       enable = enable

@@ -3,29 +3,22 @@ package fr.acinq.eclair.wire
 import fr.acinq.eclair.UInt64
 import fr.acinq.eclair.wire.CommonCodecs.{varint, varintoverflow}
 import scodec.Codec
-import scodec.codecs.{
-  byte,
-  discriminated,
-  list,
-  provide,
-  variableSizeBytesLong,
-  zlib
-}
+import scodec.codecs.{byte, discriminated, list, provide, variableSizeBytesLong, zlib}
 
 sealed trait QueryShortChannelIdsTlv extends Tlv
 
 object QueryShortChannelIdsTlv {
 
-  /** Optional TLV-based query message that can be appended to
-    * QueryShortChannelIds
-    * @param encoding
-    *   0 means uncompressed, 1 means compressed with zlib
-    * @param array
-    *   array of query flags, each flags specifies the info we want for a given
-    *   channel
-    */
-  case class EncodedQueryFlags(encoding: EncodingType, array: List[Long])
-      extends QueryShortChannelIdsTlv
+  /**
+   * Optional TLV-based query message that can be appended to
+   * QueryShortChannelIds
+   * @param encoding
+   *   0 means uncompressed, 1 means compressed with zlib
+   * @param array
+   *   array of query flags, each flags specifies the info we want for a given
+   *   channel
+   */
+  case class EncodedQueryFlags(encoding: EncodingType, array: List[Long]) extends QueryShortChannelIdsTlv
 
   case object QueryFlagType {
     val INCLUDE_CHANNEL_ANNOUNCEMENT: Long = 1
@@ -56,8 +49,9 @@ object QueryShortChannelIdsTlv {
           varintoverflow
         )).as[EncodedQueryFlags]
       )
-      .\(1) { case a @ EncodedQueryFlags(EncodingType.COMPRESSED_ZLIB, _) =>
-        a
+      .\(1) {
+        case a @ EncodedQueryFlags(EncodingType.COMPRESSED_ZLIB, _) =>
+          a
       }(
         (provide[EncodingType](EncodingType.COMPRESSED_ZLIB) :: zlib(
           list(varintoverflow)

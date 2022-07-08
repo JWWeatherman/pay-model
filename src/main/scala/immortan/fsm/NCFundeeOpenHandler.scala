@@ -31,14 +31,14 @@ abstract class NCFundeeOpenHandler(
     override def onMessage(
         worker: CommsTower.Worker,
         message: LightningMessage
-    ): Unit = message match {
-      case msg: HasTemporaryChannelId
-          if msg.temporaryChannelId == theirOpen.temporaryChannelId =>
-        freshChannel process msg
-      case msg: HasChannelId if msg.channelId == theirOpen.temporaryChannelId =>
-        freshChannel process msg
-      case _ => // Do nothing to avoid conflicts
-    }
+    ): Unit =
+      message match {
+        case msg: HasTemporaryChannelId if msg.temporaryChannelId == theirOpen.temporaryChannelId =>
+          freshChannel process msg
+        case msg: HasChannelId if msg.channelId == theirOpen.temporaryChannelId =>
+          freshChannel process msg
+        case _ => // Do nothing to avoid conflicts
+      }
 
     override def onOperational(
         worker: CommsTower.Worker,

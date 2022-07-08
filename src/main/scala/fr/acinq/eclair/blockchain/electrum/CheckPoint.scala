@@ -18,7 +18,7 @@ package fr.acinq.eclair.blockchain.electrum
 
 import java.io.InputStream
 
-import fr.acinq.bitcoin.{Block, ByteVector32, encodeCompact}
+import fr.acinq.bitcoin.{encodeCompact, Block, ByteVector32}
 import fr.acinq.eclair.blockchain.electrum.db.HeaderDb
 import org.json4s.JsonAST.{JArray, JInt, JString}
 import org.json4s.native.JsonMethods
@@ -42,7 +42,7 @@ object CheckPoint {
         )
       )
     case Block.RegtestGenesisBlock.hash => Vector.empty[CheckPoint]
-    case _                              => throw new RuntimeException
+    case _ => throw new RuntimeException
   }
 
   def load(stream: InputStream): Vector[CheckPoint] = {

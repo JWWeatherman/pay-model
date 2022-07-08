@@ -85,20 +85,17 @@ abstract class ChannelAnnouncementTable(val table: String) extends Table {
   val selectFromRelatedUpdateTable: String
 }
 
-object NormalChannelAnnouncementTable
-    extends ChannelAnnouncementTable("normal_announcements") {
+object NormalChannelAnnouncementTable extends ChannelAnnouncementTable("normal_announcements") {
   val selectFromRelatedUpdateTable =
     s"SELECT ${NormalChannelUpdateTable.sid} FROM ${NormalChannelUpdateTable.table}"
 }
 
-object HostedChannelAnnouncementTable
-    extends ChannelAnnouncementTable("hosted_announcements") {
+object HostedChannelAnnouncementTable extends ChannelAnnouncementTable("hosted_announcements") {
   val selectFromRelatedUpdateTable =
     s"SELECT ${HostedChannelUpdateTable.sid} FROM ${HostedChannelUpdateTable.table}"
 }
 
-abstract class ChannelUpdateTable(val table: String, val useHeuristics: Boolean)
-    extends Table {
+abstract class ChannelUpdateTable(val table: String, val useHeuristics: Boolean) extends Table {
   val (
     sid,
     timestamp,
@@ -159,11 +156,9 @@ abstract class ChannelUpdateTable(val table: String, val useHeuristics: Boolean)
   }
 }
 
-object NormalChannelUpdateTable
-    extends ChannelUpdateTable("normal_updates", useHeuristics = true)
+object NormalChannelUpdateTable extends ChannelUpdateTable("normal_updates", useHeuristics = true)
 
-object HostedChannelUpdateTable
-    extends ChannelUpdateTable("hosted_updates", useHeuristics = false)
+object HostedChannelUpdateTable extends ChannelUpdateTable("hosted_updates", useHeuristics = false)
 
 abstract class ExcludedChannelTable(val table: String) extends Table {
   val Tuple2(shortChannelId, until) = ("shortchannelid", "excludeduntilstamp")
@@ -190,14 +185,12 @@ abstract class ExcludedChannelTable(val table: String) extends Table {
   val selectFromRelatedUpdateTable: String
 }
 
-object NormalExcludedChannelTable
-    extends ExcludedChannelTable("normal_excluded_updates") {
+object NormalExcludedChannelTable extends ExcludedChannelTable("normal_excluded_updates") {
   val selectFromRelatedUpdateTable =
     s"SELECT ${NormalChannelUpdateTable.sid} FROM ${NormalChannelUpdateTable.table}"
 }
 
-object HostedExcludedChannelTable
-    extends ExcludedChannelTable("hosted_excluded_updates") {
+object HostedExcludedChannelTable extends ExcludedChannelTable("hosted_excluded_updates") {
   val selectFromRelatedUpdateTable =
     s"SELECT ${HostedChannelUpdateTable.sid} FROM ${HostedChannelUpdateTable.table}"
 }

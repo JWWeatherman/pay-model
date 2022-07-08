@@ -25,7 +25,7 @@ object PaymentTagTlv {
 
   val shortPaymentTagCodec = {
     (bytes32 withContext "paymentSecret") ::
-      (int32 withContext "tag")
+    (int32 withContext "tag")
   }.as[ShortPaymentTag]
 
   private val encryptedPaymentSecretCodec =

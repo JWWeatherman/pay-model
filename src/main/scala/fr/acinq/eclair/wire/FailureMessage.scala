@@ -4,14 +4,10 @@ import fr.acinq.bitcoin.ByteVector32
 import fr.acinq.eclair.crypto.Mac32
 import fr.acinq.eclair.wire.CommonCodecs._
 import fr.acinq.eclair.wire.FailureMessageCodecs.failureMessageCodec
-import fr.acinq.eclair.wire.LightningMessageCodecs.{
-  channelUpdateCodec,
-  lightningMessageCodec
-}
+import fr.acinq.eclair.wire.LightningMessageCodecs.{channelUpdateCodec, lightningMessageCodec}
 import fr.acinq.eclair.{CltvExpiry, MilliSatoshi, MilliSatoshiLong, UInt64}
 import scodec.codecs._
 import scodec.{Attempt, Codec}
-
 
 // @formatter:off
 sealed trait FailureMessage {
@@ -152,7 +148,7 @@ object FailureMessageCodecs {
     uint16.xmap(
       code => {
         val failureMessage = code match {
-        // @formatter:off
+          // @formatter:off
         case fc if (fc & PERM) != 0 && (fc & NODE) != 0 => new UnknownFailureMessage with Perm with Node { override lazy val code = fc }
         case fc if (fc & NODE) != 0 => new UnknownFailureMessage with Node { override lazy val code = fc }
         case fc if (fc & PERM) != 0 => new UnknownFailureMessage with Perm { override lazy val code = fc }
@@ -165,13 +161,14 @@ object FailureMessageCodecs {
     )
   )
 
-  /** An onion-encrypted failure from an intermediate node:
-    * \+----------------+----------------------------------+-----------------+----------------------+-----+
-    * \| HMAC(32 bytes) | failure message length (2 bytes) | failure message |
-    * pad length (2 bytes) | pad |
-    * \+----------------+----------------------------------+-----------------+----------------------+-----+
-    * with failure message length + pad length = 256
-    */
+  /**
+   * An onion-encrypted failure from an intermediate node:
+   * \+----------------+----------------------------------+-----------------+----------------------+-----+
+   * \| HMAC(32 bytes) | failure message length (2 bytes) | failure message |
+   * pad length (2 bytes) | pad |
+   * \+----------------+----------------------------------+-----------------+----------------------+-----+
+   * with failure message length + pad length = 256
+   */
   def failureOnionCodec(mac: Mac32): Codec[FailureMessage] =
     CommonCodecs.prependmac(
       paddedFixedSizeBytesDependent(

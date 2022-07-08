@@ -69,7 +69,7 @@ object Sync {
     val data = serializationResult(
       LightningMessageCodecs.channelUpdateChecksumCodec.encode(
         u.chainHash :: u.shortChannelId :: u.messageFlags :: u.channelFlags ::
-          u.cltvExpiryDelta :: u.htlcMinimumMsat :: u.feeBaseMsat :: u.feeProportionalMillionths :: u.htlcMaximumMsat :: HNil
+        u.cltvExpiryDelta :: u.htlcMinimumMsat :: u.feeBaseMsat :: u.feeProportionalMillionths :: u.htlcMaximumMsat :: HNil
       )
     )
     crc32c(data)

@@ -4,11 +4,7 @@ import fr.acinq.bitcoin.Crypto.PublicKey
 import fr.acinq.bitcoin.DeterministicWallet.ExtendedPublicKey
 import fr.acinq.bitcoin.{ByteVector32, Satoshi}
 import fr.acinq.eclair.MilliSatoshi
-import fr.acinq.eclair.blockchain.electrum.db.{
-  ChainWalletInfo,
-  SigningWallet,
-  WatchingWallet
-}
+import fr.acinq.eclair.blockchain.electrum.db.{ChainWalletInfo, SigningWallet, WatchingWallet}
 import fr.acinq.eclair.blockchain.fee._
 import fr.acinq.eclair.wire.ChannelCodecs.extendedPublicKeyCodec
 import fr.acinq.eclair.wire.ChannelUpdate
@@ -26,9 +22,10 @@ object ImplicitJsonFormats extends DefaultJsonProtocol {
 
   final val TAG = "tag"
 
-  def writeExt[T](ext: (String, JsValue), base: JsValue): JsObject = JsObject(
-    base.asJsObject.fields + ext
-  )
+  def writeExt[T](ext: (String, JsValue), base: JsValue): JsObject =
+    JsObject(
+      base.asJsObject.fields + ext
+    )
 
   def to[T: JsonFormat](raw: String): T = raw.parseJson.convertTo[T]
 
@@ -72,17 +69,19 @@ object ImplicitJsonFormats extends DefaultJsonProtocol {
   // Chain wallet types
 
   implicit object ChainWalletInfoFmt extends JsonFormat[ChainWalletInfo] {
-    def read(raw: JsValue): ChainWalletInfo = raw.asJsObject.fields(TAG) match {
-      case JsString("WatchingWallet") => raw.convertTo[WatchingWallet]
-      case JsString("SigningWallet")  => raw.convertTo[SigningWallet]
-      case _                          => throw new Exception
-    }
+    def read(raw: JsValue): ChainWalletInfo =
+      raw.asJsObject.fields(TAG) match {
+        case JsString("WatchingWallet") => raw.convertTo[WatchingWallet]
+        case JsString("SigningWallet") => raw.convertTo[SigningWallet]
+        case _ => throw new Exception
+      }
 
-    def write(internal: ChainWalletInfo): JsValue = internal match {
-      case walletInfo: WatchingWallet => walletInfo.toJson
-      case walletInfo: SigningWallet  => walletInfo.toJson
-      case _                          => throw new Exception
-    }
+    def write(internal: ChainWalletInfo): JsValue =
+      internal match {
+        case walletInfo: WatchingWallet => walletInfo.toJson
+        case walletInfo: SigningWallet => walletInfo.toJson
+        case _ => throw new Exception
+      }
   }
 
   implicit val signingWalletFmt: JsonFormat[SigningWallet] =
@@ -128,30 +127,32 @@ object ImplicitJsonFormats extends DefaultJsonProtocol {
     )
 
   implicit object TxDescriptionFmt extends JsonFormat[TxDescription] {
-    def read(raw: JsValue): TxDescription = raw.asJsObject.fields(TAG) match {
-      case JsString("PlainTxDescription") => raw.convertTo[PlainTxDescription]
-      case JsString("OpReturnTxDescription") =>
-        raw.convertTo[OpReturnTxDescription]
-      case JsString("ChanFundingTxDescription") =>
-        raw.convertTo[ChanFundingTxDescription]
-      case JsString("ChanRefundingTxDescription") =>
-        raw.convertTo[ChanRefundingTxDescription]
-      case JsString("HtlcClaimTxDescription") =>
-        raw.convertTo[HtlcClaimTxDescription]
-      case JsString("PenaltyTxDescription") =>
-        raw.convertTo[PenaltyTxDescription]
-      case _ => throw new Exception
-    }
+    def read(raw: JsValue): TxDescription =
+      raw.asJsObject.fields(TAG) match {
+        case JsString("PlainTxDescription") => raw.convertTo[PlainTxDescription]
+        case JsString("OpReturnTxDescription") =>
+          raw.convertTo[OpReturnTxDescription]
+        case JsString("ChanFundingTxDescription") =>
+          raw.convertTo[ChanFundingTxDescription]
+        case JsString("ChanRefundingTxDescription") =>
+          raw.convertTo[ChanRefundingTxDescription]
+        case JsString("HtlcClaimTxDescription") =>
+          raw.convertTo[HtlcClaimTxDescription]
+        case JsString("PenaltyTxDescription") =>
+          raw.convertTo[PenaltyTxDescription]
+        case _ => throw new Exception
+      }
 
-    def write(internal: TxDescription): JsValue = internal match {
-      case txDescription: PlainTxDescription         => txDescription.toJson
-      case txDescription: OpReturnTxDescription      => txDescription.toJson
-      case txDescription: ChanFundingTxDescription   => txDescription.toJson
-      case txDescription: ChanRefundingTxDescription => txDescription.toJson
-      case txDescription: HtlcClaimTxDescription     => txDescription.toJson
-      case txDescription: PenaltyTxDescription       => txDescription.toJson
-      case _                                         => throw new Exception
-    }
+    def write(internal: TxDescription): JsValue =
+      internal match {
+        case txDescription: PlainTxDescription => txDescription.toJson
+        case txDescription: OpReturnTxDescription => txDescription.toJson
+        case txDescription: ChanFundingTxDescription => txDescription.toJson
+        case txDescription: ChanRefundingTxDescription => txDescription.toJson
+        case txDescription: HtlcClaimTxDescription => txDescription.toJson
+        case txDescription: PenaltyTxDescription => txDescription.toJson
+        case _ => throw new Exception
+      }
   }
 
   implicit val rbfParams: JsonFormat[RBFParams] =
@@ -195,8 +196,7 @@ object ImplicitJsonFormats extends DefaultJsonProtocol {
       tag = "OpReturnTxDescription"
     )
 
-  implicit val chanFundingTxDescriptionFmt
-      : JsonFormat[ChanFundingTxDescription] =
+  implicit val chanFundingTxDescriptionFmt: JsonFormat[ChanFundingTxDescription] =
     taggedJsonFmt(
       jsonFormat[PublicKey, Option[String], Option[SemanticOrder], Option[
         ByteVector32
@@ -212,8 +212,7 @@ object ImplicitJsonFormats extends DefaultJsonProtocol {
       tag = "ChanFundingTxDescription"
     )
 
-  implicit val chanRefundingTxDescriptionFmt
-      : JsonFormat[ChanRefundingTxDescription] =
+  implicit val chanRefundingTxDescriptionFmt: JsonFormat[ChanRefundingTxDescription] =
     taggedJsonFmt(
       jsonFormat[PublicKey, Option[String], Option[SemanticOrder], Option[
         ByteVector32
@@ -288,19 +287,21 @@ object ImplicitJsonFormats extends DefaultJsonProtocol {
   // Payment action
 
   implicit object PaymentActionFmt extends JsonFormat[PaymentAction] {
-    def read(raw: JsValue): PaymentAction = raw.asJsObject.fields(TAG) match {
-      case JsString("message") => raw.convertTo[MessageAction]
-      case JsString("aes")     => raw.convertTo[AESAction]
-      case JsString("url")     => raw.convertTo[UrlAction]
-      case _                   => throw new Exception
-    }
+    def read(raw: JsValue): PaymentAction =
+      raw.asJsObject.fields(TAG) match {
+        case JsString("message") => raw.convertTo[MessageAction]
+        case JsString("aes") => raw.convertTo[AESAction]
+        case JsString("url") => raw.convertTo[UrlAction]
+        case _ => throw new Exception
+      }
 
-    def write(internal: PaymentAction): JsValue = internal match {
-      case paymentAction: MessageAction => paymentAction.toJson
-      case paymentAction: UrlAction     => paymentAction.toJson
-      case paymentAction: AESAction     => paymentAction.toJson
-      case _                            => throw new Exception
-    }
+    def write(internal: PaymentAction): JsValue =
+      internal match {
+        case paymentAction: MessageAction => paymentAction.toJson
+        case paymentAction: UrlAction => paymentAction.toJson
+        case paymentAction: AESAction => paymentAction.toJson
+        case _ => throw new Exception
+      }
   }
 
   implicit val aesActionFmt: JsonFormat[AESAction] = taggedJsonFmt(
@@ -346,7 +347,7 @@ object ImplicitJsonFormats extends DefaultJsonProtocol {
         case JsString("withdrawRequest") =>
           serialized.convertTo[WithdrawRequest]
         case JsString("payRequest") => serialized.convertTo[PayRequest]
-        case _                      => throw new Exception
+        case _ => throw new Exception
       }
   }
 

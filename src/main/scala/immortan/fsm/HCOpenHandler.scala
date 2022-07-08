@@ -1,11 +1,7 @@
 package immortan.fsm
 
 import fr.acinq.bitcoin.ByteVector32
-import fr.acinq.eclair.channel.{
-  CMD_SOCKET_ONLINE,
-  Commitments,
-  PersistentChannelData
-}
+import fr.acinq.eclair.channel.{CMD_SOCKET_ONLINE, Commitments, PersistentChannelData}
 import fr.acinq.eclair.wire._
 import immortan.Channel.{OPEN, WAIT_FOR_ACCEPT}
 import immortan.ChannelListener.{Malfunction, Transition}
@@ -23,10 +19,11 @@ abstract class HCOpenHandler(
     Tools.hostedChanId(info.nodeSpecificPubKey.value, info.nodeId.value)
 
   private val freshChannel = new ChannelHosted {
-    def SEND(msgs: LightningMessage*): Unit = CommsTower.sendMany(
-      msgs.map(LightningMessageCodecs.prepareNormal),
-      info.nodeSpecificPair
-    )
+    def SEND(msgs: LightningMessage*): Unit =
+      CommsTower.sendMany(
+        msgs.map(LightningMessageCodecs.prepareNormal),
+        info.nodeSpecificPair
+      )
     def STORE(hostedData: PersistentChannelData): PersistentChannelData =
       cm.chanBag.put(hostedData)
   }
@@ -50,12 +47,13 @@ abstract class HCOpenHandler(
     override def onMessage(
         worker: CommsTower.Worker,
         message: LightningMessage
-    ): Unit = message match {
-      case msg: HasChannelId if msg.channelId == channelId =>
-        freshChannel process msg
-      case msg: ChannelUpdate => freshChannel process msg
-      case _                  =>
-    }
+    ): Unit =
+      message match {
+        case msg: HasChannelId if msg.channelId == channelId =>
+          freshChannel process msg
+        case msg: ChannelUpdate => freshChannel process msg
+        case _ =>
+      }
 
     override def onBecome: PartialFunction[Transition, Unit] = {
       case (_, _, hostedCommits: HostedCommits, WAIT_FOR_ACCEPT, OPEN) =>

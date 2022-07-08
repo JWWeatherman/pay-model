@@ -46,8 +46,7 @@ case class INPUT_INIT_FUNDER(
 )
 
 sealed trait BitcoinEvent
-case class BITCOIN_PARENT_TX_CONFIRMED(childTx: Transaction)
-    extends BitcoinEvent
+case class BITCOIN_PARENT_TX_CONFIRMED(childTx: Transaction) extends BitcoinEvent
 case class BITCOIN_TX_CONFIRMED(tx: Transaction) extends BitcoinEvent
 case object BITCOIN_FUNDING_DEPTHOK extends BitcoinEvent
 case object BITCOIN_FUNDING_SPENT extends BitcoinEvent
@@ -91,8 +90,7 @@ sealed trait FinalResolution extends IncomingResolution with Command {
   val theirAdd: UpdateAddHtlc
 }
 
-case class CMD_FULFILL_HTLC(preimage: ByteVector32, theirAdd: UpdateAddHtlc)
-    extends FinalResolution
+case class CMD_FULFILL_HTLC(preimage: ByteVector32, theirAdd: UpdateAddHtlc) extends FinalResolution
 
 case class CMD_FAIL_MALFORMED_HTLC(
     onionHash: ByteVector32,
@@ -143,8 +141,7 @@ object CMD_CLOSE {
   final val CHANNEL_BUSY = "channel-busy"
 }
 
-case class CMD_CLOSE(scriptPubKey: Option[ByteVector], force: Boolean)
-    extends Command
+case class CMD_CLOSE(scriptPubKey: Option[ByteVector], force: Boolean) extends Command
 case class CMD_HOSTED_STATE_OVERRIDE(so: StateOverride) extends Command
 case class HC_CMD_RESIZE(delta: Satoshi) extends Command
 case object CMD_SOCKET_OFFLINE extends Command
@@ -225,8 +222,7 @@ case class RevokedCommitPublished(
     claimMainOutputTx.toList ++ mainPenaltyTx.toList ++ htlcPenaltyTxs ++ claimHtlcDelayedPenaltyTxs
 }
 
-final case class DATA_WAIT_FOR_OPEN_CHANNEL(initFundee: INPUT_INIT_FUNDEE)
-    extends ChannelData
+final case class DATA_WAIT_FOR_OPEN_CHANNEL(initFundee: INPUT_INIT_FUNDEE) extends ChannelData
 
 final case class DATA_WAIT_FOR_ACCEPT_CHANNEL(
     initFunder: INPUT_INIT_FUNDER,
@@ -271,11 +267,12 @@ final case class DATA_WAIT_FOR_FUNDING_CONFIRMED(
     with HasNormalCommitments {
 
   // Remote peer may send a tx which is unrelated to our agreed upon channel funding, that is, we won't be able to spend our commit tx, check this right away!
-  def checkSpend(tx: Transaction): Unit = Transaction.correctlySpends(
-    commitments.localCommit.publishableTxs.commitTx.tx,
-    Seq(tx),
-    ScriptFlags.STANDARD_SCRIPT_VERIFY_FLAGS
-  )
+  def checkSpend(tx: Transaction): Unit =
+    Transaction.correctlySpends(
+      commitments.localCommit.publishableTxs.commitTx.tx,
+      Seq(tx),
+      ScriptFlags.STANDARD_SCRIPT_VERIFY_FLAGS
+    )
   override def withNewCommits(cs: NormalCommits): HasNormalCommitments =
     copy(commitments = cs)
 }
@@ -317,12 +314,13 @@ final case class DATA_NEGOTIATING(
 ) extends ChannelData
     with HasNormalCommitments {
 
-  def toClosed: DATA_CLOSING = DATA_CLOSING(
-    commitments,
-    System.currentTimeMillis,
-    closingTxProposed.flatten.map(_.unsignedTx),
-    bestUnpublishedClosingTxOpt.toList
-  )
+  def toClosed: DATA_CLOSING =
+    DATA_CLOSING(
+      commitments,
+      System.currentTimeMillis,
+      closingTxProposed.flatten.map(_.unsignedTx),
+      bestUnpublishedClosingTxOpt.toList
+    )
   override def withNewCommits(cs: NormalCommits): HasNormalCommitments =
     copy(commitments = cs)
 }
@@ -342,34 +340,18 @@ final case class DATA_CLOSING(
 
   lazy val balanceRefunds: Seq[Transaction] =
     // Txs which are not related to HTLC UTXOs but only involved in getting our balance back
-    remoteCommitPublished.toList.flatMap(rcp =>
-      rcp.commitTx +: rcp.claimMainOutputTx.toList
-    ) ++
-      nextRemoteCommitPublished.toList.flatMap(rcp =>
-        rcp.commitTx +: rcp.claimMainOutputTx.toList
-      ) ++
-      futureRemoteCommitPublished.toList.flatMap(rcp =>
-        rcp.commitTx +: rcp.claimMainOutputTx.toList
-      ) ++
-      localCommitPublished.toList.flatMap(lcp =>
-        lcp.commitTx +: lcp.claimMainDelayedOutputTx.toList
-      ) ++
-      mutualCloseProposed ++ mutualClosePublished
+    remoteCommitPublished.toList.flatMap(rcp => rcp.commitTx +: rcp.claimMainOutputTx.toList) ++
+    nextRemoteCommitPublished.toList.flatMap(rcp => rcp.commitTx +: rcp.claimMainOutputTx.toList) ++
+    futureRemoteCommitPublished.toList.flatMap(rcp => rcp.commitTx +: rcp.claimMainOutputTx.toList) ++
+    localCommitPublished.toList.flatMap(lcp => lcp.commitTx +: lcp.claimMainDelayedOutputTx.toList) ++
+    mutualCloseProposed ++ mutualClosePublished
 
   lazy val paymentLeftoverRefunds: Seq[Transaction] =
     // Txs which are involved in getting our success/timeout HTLC UTXOs back
-    remoteCommitPublished.toList.flatMap(rcp =>
-      rcp.claimHtlcSuccessTxs ++ rcp.claimHtlcTimeoutTxs
-    ) ++
-      nextRemoteCommitPublished.toList.flatMap(rcp =>
-        rcp.claimHtlcSuccessTxs ++ rcp.claimHtlcTimeoutTxs
-      ) ++
-      futureRemoteCommitPublished.toList.flatMap(rcp =>
-        rcp.claimHtlcSuccessTxs ++ rcp.claimHtlcTimeoutTxs
-      ) ++
-      localCommitPublished.toList.flatMap(lcp =>
-        lcp.claimHtlcDelayedTxs ++ lcp.htlcSuccessTxs ++ lcp.htlcTimeoutTxs
-      )
+    remoteCommitPublished.toList.flatMap(rcp => rcp.claimHtlcSuccessTxs ++ rcp.claimHtlcTimeoutTxs) ++
+    nextRemoteCommitPublished.toList.flatMap(rcp => rcp.claimHtlcSuccessTxs ++ rcp.claimHtlcTimeoutTxs) ++
+    futureRemoteCommitPublished.toList.flatMap(rcp => rcp.claimHtlcSuccessTxs ++ rcp.claimHtlcTimeoutTxs) ++
+    localCommitPublished.toList.flatMap(lcp => lcp.claimHtlcDelayedTxs ++ lcp.htlcSuccessTxs ++ lcp.htlcTimeoutTxs)
 
   lazy val forceCloseCommitPublished: Option[ForceCloseCommitPublished] = {
     // We must select a single candidate here because its delayed refunds will be displayed to user, so we can't show a total sum of all possible refunds
@@ -451,24 +433,26 @@ case class ChannelKeys(
       remoteSecret: PrivateKey,
       txOwner: TxOwner,
       format: CommitmentFormat
-  ): ByteVector64 = Transactions.sign(
-    tx,
-    Generators.revocationPrivKey(key, remoteSecret),
-    txOwner,
-    format
-  )
+  ): ByteVector64 =
+    Transactions.sign(
+      tx,
+      Generators.revocationPrivKey(key, remoteSecret),
+      txOwner,
+      format
+    )
   def sign(
       tx: TransactionWithInputInfo,
       key: PrivateKey,
       remotePoint: PublicKey,
       txOwner: TxOwner,
       format: CommitmentFormat
-  ): ByteVector64 = Transactions.sign(
-    tx,
-    Generators.derivePrivKey(key, remotePoint),
-    txOwner,
-    format
-  )
+  ): ByteVector64 =
+    Transactions.sign(
+      tx,
+      Generators.derivePrivKey(key, remotePoint),
+      txOwner,
+      format
+    )
   def commitmentSecret(index: Long): PrivateKey =
     Generators.perCommitSecret(shaSeed, index)
   def commitmentPoint(index: Long): PublicKey =

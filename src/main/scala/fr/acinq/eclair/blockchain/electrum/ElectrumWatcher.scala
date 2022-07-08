@@ -22,18 +22,12 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Stash, Terminated}
 import fr.acinq.bitcoin.{BlockHeader, ByteVector32, Transaction}
 import fr.acinq.eclair.blockchain._
 import fr.acinq.eclair.blockchain.electrum.ElectrumClient.computeScriptHash
-import fr.acinq.eclair.channel.{
-  BITCOIN_FUNDING_DEPTHOK,
-  BITCOIN_PARENT_TX_CONFIRMED
-}
+import fr.acinq.eclair.channel.{BITCOIN_FUNDING_DEPTHOK, BITCOIN_PARENT_TX_CONFIRMED}
 import fr.acinq.eclair.transactions.Scripts
 
 import scala.collection.immutable.{Queue, SortedMap}
 
-class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef)
-    extends Actor
-    with Stash
-    with ActorLogging {
+class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef) extends Actor with Stash with ActorLogging {
 
   client ! ElectrumClient.AddStatusListener(self)
 
@@ -91,14 +85,14 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef)
       block2tx: SortedMap[Long, Seq[Transaction]],
       sent: Queue[Transaction]
   ): Receive = {
-    case ElectrumClient.HeaderSubscriptionResponse(_, newtip)
-        if tip == newtip =>
+    case ElectrumClient.HeaderSubscriptionResponse(_, newtip) if tip == newtip =>
       ()
 
     case ElectrumClient.HeaderSubscriptionResponse(newheight, newtip) =>
-      watches collect { case watch: WatchConfirmed =>
-        val scriptHash = computeScriptHash(watch.publicKeyScript)
-        client ! ElectrumClient.GetScriptHashHistory(scriptHash)
+      watches collect {
+        case watch: WatchConfirmed =>
+          val scriptHash = computeScriptHash(watch.publicKeyScript)
+          client ! ElectrumClient.GetScriptHashHistory(scriptHash)
       }
       val toPublish = block2tx.filterKeys(_ <= newheight)
       toPublish.values.flatten.foreach(publish)
@@ -189,8 +183,7 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef)
         .map(_.outPoint)
         .flatMap(outPoint =>
           watches.collect {
-            case WatchSpent(channel, txid, pos, _, event, _)
-                if txid == outPoint.txid && pos == outPoint.index.toInt =>
+            case WatchSpent(channel, txid, pos, _, event, _) if txid == outPoint.txid && pos == outPoint.index.toInt =>
               // NB: WatchSpent are permanent because we need to detect multiple spending of the funding tx
               // They are never cleaned up but it is not a big deal for now (1 channel == 1 watch)
               log.info(s"output $txid:$pos spent by transaction ${tx.txid}")
@@ -218,8 +211,7 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef)
             dummyTxIndex
           )
           Some(w)
-        case WatchConfirmed(_, txid, _, minDepth, _)
-            if txid == tx.txid && minDepth > 0 && item.height > 0 =>
+        case WatchConfirmed(_, txid, _, minDepth, _) if txid == tx.txid && minDepth > 0 && item.height > 0 =>
           // min depth > 0 here
           val txheight = item.height
           val confirmations = height - txheight + 1
@@ -251,8 +243,7 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef)
         ) =>
       val confirmations = height - txheight + 1
       val triggered = watches.collect {
-        case w @ WatchConfirmed(channel, txid, _, minDepth, event)
-            if txid == tx_hash && confirmations >= minDepth =>
+        case w @ WatchConfirmed(channel, txid, _, minDepth, event) if txid == tx_hash && confirmations >= minDepth =>
           log.info(
             s"txid=$txid had confirmations=$confirmations in block=$txheight pos=$pos"
           )
@@ -291,21 +282,22 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef)
       if (csvTimeouts.nonEmpty) {
         // watcher supports txs with multiple csv-delayed inputs: we watch all delayed parents and try to publish every
         // time a parent's relative delays are satisfied, so we will eventually succeed.
-        csvTimeouts.foreach { case (parentTxId, csvTimeout) =>
-          log.info(
-            s"txid=${tx.txid} has a relative timeout of $csvTimeout blocks, watching parentTxId=$parentTxId tx={}",
-            tx
-          )
-          val parentPublicKeyScript = WatchConfirmed.extractPublicKeyScript(
-            tx.txIn.find(_.outPoint.txid == parentTxId).get.witness
-          )
-          self ! WatchConfirmed(
-            self,
-            parentTxId,
-            parentPublicKeyScript,
-            minDepth = csvTimeout,
-            BITCOIN_PARENT_TX_CONFIRMED(tx)
-          )
+        csvTimeouts.foreach {
+          case (parentTxId, csvTimeout) =>
+            log.info(
+              s"txid=${tx.txid} has a relative timeout of $csvTimeout blocks, watching parentTxId=$parentTxId tx={}",
+              tx
+            )
+            val parentPublicKeyScript = WatchConfirmed.extractPublicKeyScript(
+              tx.txIn.find(_.outPoint.txid == parentTxId).get.witness
+            )
+            self ! WatchConfirmed(
+              self,
+              parentTxId,
+              parentPublicKeyScript,
+              minDepth = csvTimeout,
+              BITCOIN_PARENT_TX_CONFIRMED(tx)
+            )
         }
       } else if (cltvTimeout > blockCount) {
         log.info(
@@ -371,8 +363,7 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef)
       error_opt match {
         case None =>
           log.info(s"broadcast succeeded for txid=${tx.txid} tx={}", tx)
-        case Some(error)
-            if error.message.contains("transaction already in block chain") =>
+        case Some(error) if error.message.contains("transaction already in block chain") =>
           log.info(
             s"broadcast ignored for txid=${tx.txid} tx={} (tx was already in blockchain)",
             tx

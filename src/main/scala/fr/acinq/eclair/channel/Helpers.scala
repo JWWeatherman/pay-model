@@ -1,6 +1,6 @@
 package fr.acinq.eclair.channel
 
-import fr.acinq.bitcoin.Crypto.{PrivateKey, PublicKey, ripemd160, sha256}
+import fr.acinq.bitcoin.Crypto.{ripemd160, sha256, PrivateKey, PublicKey}
 import fr.acinq.bitcoin.Script._
 import fr.acinq.bitcoin._
 import fr.acinq.eclair._
@@ -12,7 +12,7 @@ import fr.acinq.eclair.transactions.Scripts._
 import fr.acinq.eclair.transactions.Transactions._
 import fr.acinq.eclair.transactions._
 import fr.acinq.eclair.wire._
-import immortan.crypto.Tools.{Any2Some, newFeerate}
+import immortan.crypto.Tools.{newFeerate, Any2Some}
 import immortan.{ChannelBag, LNParams}
 import scodec.bits.ByteVector
 
@@ -77,9 +77,7 @@ object Helpers {
       throw FeerateTooSmall(open.temporaryChannelId, open.feeratePerKw)
 
     val minFunding = LNParams.minChanDustLimit * 100
-    if (
-      open.fundingSatoshis < minFunding || open.fundingSatoshis > LNParams.maxFundingSatoshis
-    ) {
+    if (open.fundingSatoshis < minFunding || open.fundingSatoshis > LNParams.maxFundingSatoshis) {
       throw InvalidFundingAmount(
         open.temporaryChannelId,
         open.fundingSatoshis,
@@ -258,31 +256,29 @@ object Helpers {
   def checkRemoteCommit(
       d: HasNormalCommitments,
       nextLocalCommitmentNumber: Long
-  ): Boolean = d.commitments.remoteNextCommitInfo match {
-    case Left(waitingForRevocation)
-        if nextLocalCommitmentNumber == waitingForRevocation.nextRemoteCommit.index =>
-      true // We just sent a new commit_sig but they didn't receive it
-    case Left(waitingForRevocation)
-        if nextLocalCommitmentNumber == (waitingForRevocation.nextRemoteCommit.index + 1) =>
-      true // We sent a new commitSig, they have received it but we haven't received their revocation
-    case Left(waitingForRevocation)
-        if nextLocalCommitmentNumber < waitingForRevocation.nextRemoteCommit.index =>
-      true // They are behind: we return true because things are fine on our side
-    case pk
-        if pk.isRight && nextLocalCommitmentNumber == (d.commitments.remoteCommit.index + 1) =>
-      true // They have acknowledged the last commit_sig we sent
-    case pk
-        if pk.isRight && nextLocalCommitmentNumber < (d.commitments.remoteCommit.index + 1) =>
-      true // They are behind
-    case _ => false // We are behind
-  }
+  ): Boolean =
+    d.commitments.remoteNextCommitInfo match {
+      case Left(waitingForRevocation) if nextLocalCommitmentNumber == waitingForRevocation.nextRemoteCommit.index =>
+        true // We just sent a new commit_sig but they didn't receive it
+      case Left(waitingForRevocation)
+          if nextLocalCommitmentNumber == (waitingForRevocation.nextRemoteCommit.index + 1) =>
+        true // We sent a new commitSig, they have received it but we haven't received their revocation
+      case Left(waitingForRevocation) if nextLocalCommitmentNumber < waitingForRevocation.nextRemoteCommit.index =>
+        true // They are behind: we return true because things are fine on our side
+      case pk if pk.isRight && nextLocalCommitmentNumber == (d.commitments.remoteCommit.index + 1) =>
+        true // They have acknowledged the last commit_sig we sent
+      case pk if pk.isRight && nextLocalCommitmentNumber < (d.commitments.remoteCommit.index + 1) =>
+        true // They are behind
+      case _ => false // We are behind
+    }
 
   type HashToPreimage = Map[ByteVector32, ByteVector32]
   def extractRevealedPreimages(
       updates: Iterable[UpdateMessage] = Nil
   ): HashToPreimage =
-    updates.collect { case upd: UpdateFulfillHtlc =>
-      upd.paymentHash -> upd.paymentPreimage
+    updates.collect {
+      case upd: UpdateFulfillHtlc =>
+        upd.paymentHash -> upd.paymentPreimage
     }.toMap
 
   object Closing {
@@ -307,10 +303,8 @@ object Helpers {
         remoteCommit: RemoteCommit,
         remoteCommitPublished: RemoteCommitPublished
     ) extends RemoteClose
-    case class RevokedClose(revokedCommitPublished: RevokedCommitPublished)
-        extends ClosingType
-    case class RecoveryClose(remoteCommitPublished: RemoteCommitPublished)
-        extends ClosingType
+    case class RevokedClose(revokedCommitPublished: RevokedCommitPublished) extends ClosingType
+    case class RecoveryClose(remoteCommitPublished: RemoteCommitPublished) extends ClosingType
 
     def isClosingTypeAlreadyKnown(c: DATA_CLOSING): Option[ClosingType] =
       c match {
@@ -337,25 +331,19 @@ object Helpers {
 
     def isValidFinalScriptPubkey(scriptPubKey: ByteVector): Boolean =
       Try(Script parse scriptPubKey).toOption.exists {
-        case (OP_1 | OP_2 | OP_3 | OP_4 | OP_5 | OP_6 | OP_7 | OP_8 | OP_9 |
-            OP_10 | OP_11 | OP_12 | OP_13 | OP_14 | OP_15 |
-            OP_16) :: OP_PUSHDATA(exe, _) :: Nil
-            if 2 <= exe.length && exe.length <= 40 =>
+        case (OP_1 | OP_2 | OP_3 | OP_4 | OP_5 | OP_6 | OP_7 | OP_8 | OP_9 | OP_10 | OP_11 | OP_12 | OP_13 | OP_14 |
+            OP_15 | OP_16) :: OP_PUSHDATA(exe, _) :: Nil if 2 <= exe.length && exe.length <= 40 =>
           true
         case OP_DUP :: OP_HASH160 :: OP_PUSHDATA(
               pubkeyHash,
               _
-            ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: Nil
-            if pubkeyHash.size == 20 =>
+            ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: Nil if pubkeyHash.size == 20 =>
           true
-        case OP_HASH160 :: OP_PUSHDATA(scriptHash, _) :: OP_EQUAL :: Nil
-            if scriptHash.size == 20 =>
+        case OP_HASH160 :: OP_PUSHDATA(scriptHash, _) :: OP_EQUAL :: Nil if scriptHash.size == 20 =>
           true
-        case OP_0 :: OP_PUSHDATA(pubkeyHash, _) :: Nil
-            if pubkeyHash.size == 20 =>
+        case OP_0 :: OP_PUSHDATA(pubkeyHash, _) :: Nil if pubkeyHash.size == 20 =>
           true
-        case OP_0 :: OP_PUSHDATA(scriptHash, _) :: Nil
-            if scriptHash.size == 32 =>
+        case OP_0 :: OP_PUSHDATA(scriptHash, _) :: Nil if scriptHash.size == 32 =>
           true
         case _ => false
       }
@@ -509,25 +497,19 @@ object Helpers {
     def checkClosingDustAmounts(closingTx: ClosingTx): Boolean = {
       closingTx.tx.txOut.forall { txOut =>
         Try(Script parse txOut.publicKeyScript).toOption.collectFirst {
-          case (OP_1 | OP_2 | OP_3 | OP_4 | OP_5 | OP_6 | OP_7 | OP_8 | OP_9 |
-              OP_10 | OP_11 | OP_12 | OP_13 | OP_14 | OP_15 |
-              OP_16) :: OP_PUSHDATA(exe, _) :: Nil
-              if 2 <= exe.length && exe.length <= 40 =>
+          case (OP_1 | OP_2 | OP_3 | OP_4 | OP_5 | OP_6 | OP_7 | OP_8 | OP_9 | OP_10 | OP_11 | OP_12 | OP_13 | OP_14 |
+              OP_15 | OP_16) :: OP_PUSHDATA(exe, _) :: Nil if 2 <= exe.length && exe.length <= 40 =>
             txOut.amount >= 354.sat
           case OP_DUP :: OP_HASH160 :: OP_PUSHDATA(
                 pubkeyHash,
                 _
-              ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: Nil
-              if pubkeyHash.size == 20 =>
+              ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: Nil if pubkeyHash.size == 20 =>
             txOut.amount >= 546.sat
-          case OP_HASH160 :: OP_PUSHDATA(scriptHash, _) :: OP_EQUAL :: Nil
-              if scriptHash.size == 20 =>
+          case OP_HASH160 :: OP_PUSHDATA(scriptHash, _) :: OP_EQUAL :: Nil if scriptHash.size == 20 =>
             txOut.amount >= 540.sat
-          case OP_0 :: OP_PUSHDATA(pubkeyHash, _) :: Nil
-              if pubkeyHash.size == 20 =>
+          case OP_0 :: OP_PUSHDATA(pubkeyHash, _) :: Nil if pubkeyHash.size == 20 =>
             txOut.amount >= 294.sat
-          case OP_0 :: OP_PUSHDATA(scriptHash, _) :: Nil
-              if scriptHash.size == 32 =>
+          case OP_0 :: OP_PUSHDATA(scriptHash, _) :: Nil if scriptHash.size == 32 =>
             txOut.amount >= 330.sat
         } getOrElse txOut.amount >= 546.sat
       }
@@ -539,7 +521,7 @@ object Helpers {
     ): Option[TransactionWithInputInfo] =
       Try(attempt) map {
         case Right(txinfo) => Some(txinfo)
-        case _             => None
+        case _ => None
       } getOrElse None
 
     def claimCurrentLocalCommitTxOutputs(
@@ -591,8 +573,7 @@ object Helpers {
       }
 
       val htlcTxes = cs.localCommit.publishableTxs.htlcTxsAndSigs.flatMap {
-        case HtlcTxAndSigs(info: HtlcSuccessTx, localSig, remoteSig)
-            if preimages.contains(info.paymentHash) =>
+        case HtlcTxAndSigs(info: HtlcSuccessTx, localSig, remoteSig) if preimages.contains(info.paymentHash) =>
           generateTx {
             val info1 = Transactions.addSigs(
               info,
@@ -649,11 +630,13 @@ object Helpers {
 
       val mainDelayedTxOpt = for (info <- mainDelayedTx) yield info.tx
       val htlcDelayedTxesSeq = for (info <- htlcDelayedTxes) yield info.tx
-      val successTxs = htlcTxes.collect { case success: HtlcSuccessTx =>
-        success.tx
+      val successTxs = htlcTxes.collect {
+        case success: HtlcSuccessTx =>
+          success.tx
       }
-      val timeoutTxs = htlcTxes.collect { case timeout: HtlcTimeoutTx =>
-        timeout.tx
+      val timeoutTxs = htlcTxes.collect {
+        case timeout: HtlcTimeoutTx =>
+          timeout.tx
       }
       LocalCommitPublished(
         tx,
@@ -731,8 +714,7 @@ object Helpers {
       val preimages = extractRevealedPreimages(cs.localChanges.all)
 
       val htlcTxes = remoteCommit.spec.htlcs.toList.flatMap {
-        case OutgoingHtlc(add: UpdateAddHtlc)
-            if preimages.contains(add.paymentHash) =>
+        case OutgoingHtlc(add: UpdateAddHtlc) if preimages.contains(add.paymentHash) =>
           generateTx {
             // Incoming (seen as outgoing from their side) htlc for which we have the preimage: we spend it directly right away
             val claimToSig = cs.localParams.keys.sign(
@@ -795,11 +777,13 @@ object Helpers {
           None
       }
 
-      val successTxs = htlcTxes.collect { case success: ClaimHtlcSuccessTx =>
-        success.tx
+      val successTxs = htlcTxes.collect {
+        case success: ClaimHtlcSuccessTx =>
+          success.tx
       }
-      val timeoutTxs = htlcTxes.collect { case timeout: ClaimHtlcTimeoutTx =>
-        timeout.tx
+      val timeoutTxs = htlcTxes.collect {
+        case timeout: ClaimHtlcTimeoutTx =>
+          timeout.tx
       }
       RemoteCommitPublished(
         tx,
@@ -903,8 +887,7 @@ object Helpers {
           val htlcsRedeemScriptsMap = htlcsRedeemScripts.toMap
 
           val htlcPenaltyTxs = commitTx.txOut.zipWithIndex.toList.flatMap {
-            case (txOut, outputIndex)
-                if htlcsRedeemScriptsMap.contains(txOut.publicKeyScript) =>
+            case (txOut, outputIndex) if htlcsRedeemScriptsMap.contains(txOut.publicKeyScript) =>
               generateTx {
                 val claimToSig = cs.localParams.keys.sign(
                   _: HtlcPenaltyTx,
@@ -1026,9 +1009,7 @@ object Helpers {
           val claimHtlcDelayedPenaltyTxs1 =
             revokedCommitPublished.claimHtlcDelayedPenaltyTxs :+ penaltyInfo.tx
           val revokedCommitPublished1 =
-            revokedCommitPublished.copy(claimHtlcDelayedPenaltyTxs =
-              claimHtlcDelayedPenaltyTxs1
-            )
+            revokedCommitPublished.copy(claimHtlcDelayedPenaltyTxs = claimHtlcDelayedPenaltyTxs1)
           Tuple2(penaltyInfo.tx.asSome, revokedCommitPublished1)
         } getOrElse Tuple2(None, revokedCommitPublished)
       } else Tuple2(None, revokedCommitPublished)
@@ -1084,13 +1065,14 @@ object Helpers {
         localCommitPublished: LocalCommitPublished,
         tx: Transaction
     ): (Set[UpdateAddHtlc], Boolean) = {
-      def finder(hash: ByteVector): Option[UpdateAddHtlc] = findTimedOutHtlc(
-        tx,
-        hash,
-        untrimmedHtlcs,
-        Scripts.extractPaymentHashFromHtlcTimeout,
-        localCommitPublished.htlcTimeoutTxs
-      )
+      def finder(hash: ByteVector): Option[UpdateAddHtlc] =
+        findTimedOutHtlc(
+          tx,
+          hash,
+          untrimmedHtlcs,
+          Scripts.extractPaymentHashFromHtlcTimeout,
+          localCommitPublished.htlcTimeoutTxs
+        )
       lazy val untrimmedHtlcs = trimOfferedHtlcs(
         cs.localParams.dustLimit,
         localCommit.spec,
@@ -1117,13 +1099,14 @@ object Helpers {
         remoteCommitPublished: RemoteCommitPublished,
         tx: Transaction
     ): (Set[UpdateAddHtlc], Boolean) = {
-      def finder(hash: ByteVector): Option[UpdateAddHtlc] = findTimedOutHtlc(
-        tx,
-        hash,
-        untrimmedHtlcs,
-        Scripts.extractPaymentHashFromClaimHtlcTimeout,
-        remoteCommitPublished.claimHtlcTimeoutTxs
-      )
+      def finder(hash: ByteVector): Option[UpdateAddHtlc] =
+        findTimedOutHtlc(
+          tx,
+          hash,
+          untrimmedHtlcs,
+          Scripts.extractPaymentHashFromClaimHtlcTimeout,
+          remoteCommitPublished.claimHtlcTimeoutTxs
+        )
       lazy val untrimmedHtlcs = trimReceivedHtlcs(
         cs.remoteParams.dustLimit,
         remoteCommit.spec,
@@ -1144,10 +1127,11 @@ object Helpers {
         )
     }
 
-    /** If a commitment tx reaches min_depth, we need to fail the outgoing htlcs
-      * that will never reach the blockchain. It could be because only us had
-      * signed them, or because a revoked commitment got confirmed.
-      */
+    /**
+     * If a commitment tx reaches min_depth, we need to fail the outgoing htlcs
+     * that will never reach the blockchain. It could be because only us had
+     * signed them, or because a revoked commitment got confirmed.
+     */
     def overriddenOutgoingHtlcs(
         d: DATA_CLOSING,
         tx: Transaction
@@ -1177,9 +1161,7 @@ object Helpers {
       } else if (nextRemoteCommit_opt.map(_.txid).contains(tx.txid)) {
         // their last commitment got confirmed, so no htlcs will be overridden, they will timeout or be fulfilled on chain
         Set.empty
-      } else if (
-        d.revokedCommitPublished.map(_.commitTx.txid).contains(tx.txid)
-      ) {
+      } else if (d.revokedCommitPublished.map(_.commitTx.txid).contains(tx.txid)) {
         // a revoked commitment got confirmed: we will claim its outputs, but we also need to fail htlcs that are pending in the latest commitment:
         //  - outgoing htlcs that are in the local commitment but not in remote/nextRemote have already been fulfilled/failed so we don't care about them
         //  - outgoing htlcs that are in the remote/nextRemote commitment may not really be overridden, but since we are going to claim their output as a
@@ -1190,16 +1172,17 @@ object Helpers {
       }
     }
 
-    /** In CLOSING state, when we are notified that a transaction has been
-      * confirmed, we check if this tx belongs in the local commit scenario and
-      * keep track of it.
-      *
-      * We need to keep track of all transactions spending the outputs of the
-      * commitment tx, because some outputs can be spent both by us and our
-      * counterparty. Because of that, some of our transactions may never
-      * confirm and we don't want to wait forever before declaring that the
-      * channel is CLOSED.
-      */
+    /**
+     * In CLOSING state, when we are notified that a transaction has been
+     * confirmed, we check if this tx belongs in the local commit scenario and
+     * keep track of it.
+     *
+     * We need to keep track of all transactions spending the outputs of the
+     * commitment tx, because some outputs can be spent both by us and our
+     * counterparty. Because of that, some of our transactions may never
+     * confirm and we don't want to wait forever before declaring that the
+     * channel is CLOSED.
+     */
     def updateLocalCommitPublished(
         localCommitPublished: LocalCommitPublished,
         at: TxConfirmedAt
@@ -1285,18 +1268,19 @@ object Helpers {
     def isLocalCommitDone(
         localCommitPublished: LocalCommitPublished
     ): Boolean = {
-      def unconfirmedParents(tx: Transaction): Set[ByteVector32] = tx.txIn
-        .map(_.outPoint.txid)
-        .toSet -- localCommitPublished.irrevocablySpent.values.map(_.tx.txid)
+      def unconfirmedParents(tx: Transaction): Set[ByteVector32] =
+        tx.txIn
+          .map(_.outPoint.txid)
+          .toSet -- localCommitPublished.irrevocablySpent.values.map(_.tx.txid)
       val unconfirmedHtlcDelayedTxes = localCommitPublished.claimHtlcDelayedTxs
         .filter(tx => unconfirmedParents(tx).isEmpty)
         .filterNot(localCommitPublished.isIrrevocablySpent)
       val ourNextStageTxs =
         localCommitPublished.claimMainDelayedOutputTx.toSeq ++ localCommitPublished.htlcSuccessTxs ++ localCommitPublished.htlcTimeoutTxs
       val commitOutputsSpendableByUs = ourNextStageTxs
-        .flatMap(_.txIn)
-        .map(_.outPoint)
-        .toSet -- localCommitPublished.irrevocablySpent.keys
+          .flatMap(_.txIn)
+          .map(_.outPoint)
+          .toSet -- localCommitPublished.irrevocablySpent.keys
       localCommitPublished.isCommitConfirmed && commitOutputsSpendableByUs.isEmpty && unconfirmedHtlcDelayedTxes.isEmpty
     }
 
@@ -1306,9 +1290,9 @@ object Helpers {
       val ourNextStageTxs =
         remoteCommitPublished.claimMainOutputTx.toSeq ++ remoteCommitPublished.claimHtlcSuccessTxs ++ remoteCommitPublished.claimHtlcTimeoutTxs
       val commitOutputsSpendableByUs = ourNextStageTxs
-        .flatMap(_.txIn)
-        .map(_.outPoint)
-        .toSet -- remoteCommitPublished.irrevocablySpent.keys
+          .flatMap(_.txIn)
+          .map(_.outPoint)
+          .toSet -- remoteCommitPublished.irrevocablySpent.keys
       remoteCommitPublished.isCommitConfirmed && commitOutputsSpendableByUs.isEmpty
     }
 
@@ -1316,12 +1300,12 @@ object Helpers {
         revokedCommitPublished: RevokedCommitPublished
     ): Boolean = {
       // If one of the tx inputs has been spent, the tx has already been confirmed or a competing tx has been confirmed
-      def alreadySpent(tx: Transaction): Boolean = tx.txIn.exists(input =>
-        revokedCommitPublished.irrevocablySpent contains input.outPoint
-      )
-      def unconfirmedParents(tx: Transaction): Set[ByteVector32] = tx.txIn
-        .map(_.outPoint.txid)
-        .toSet -- revokedCommitPublished.irrevocablySpent.values.map(_.tx.txid)
+      def alreadySpent(tx: Transaction): Boolean =
+        tx.txIn.exists(input => revokedCommitPublished.irrevocablySpent contains input.outPoint)
+      def unconfirmedParents(tx: Transaction): Set[ByteVector32] =
+        tx.txIn
+          .map(_.outPoint.txid)
+          .toSet -- revokedCommitPublished.irrevocablySpent.values.map(_.tx.txid)
       val unconfirmedHtlcDelayedTxs =
         revokedCommitPublished.claimHtlcDelayedPenaltyTxs
           .filter(tx => unconfirmedParents(tx).isEmpty)
@@ -1329,9 +1313,9 @@ object Helpers {
       val ourNextStageTxs =
         revokedCommitPublished.claimMainOutputTx.toSeq ++ revokedCommitPublished.mainPenaltyTx ++ revokedCommitPublished.htlcPenaltyTxs
       val commitOutputsSpendableByUs = ourNextStageTxs
-        .flatMap(_.txIn)
-        .map(_.outPoint)
-        .toSet -- revokedCommitPublished.irrevocablySpent.keys
+          .flatMap(_.txIn)
+          .map(_.outPoint)
+          .toSet -- revokedCommitPublished.irrevocablySpent.keys
       revokedCommitPublished.isCommitConfirmed && commitOutputsSpendableByUs.isEmpty && unconfirmedHtlcDelayedTxs.isEmpty
     }
   }

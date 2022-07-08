@@ -4,22 +4,12 @@ import java.util.concurrent.Executors
 
 import fr.acinq.bitcoin.{ByteVector32, Crypto}
 import fr.acinq.eclair.channel.Helpers.HashToPreimage
-import fr.acinq.eclair.wire.{
-  HostedChannelMessage,
-  Init,
-  QueryPreimages,
-  ReplyPreimages
-}
+import fr.acinq.eclair.wire.{HostedChannelMessage, Init, QueryPreimages, ReplyPreimages}
 import immortan.crypto.StateMachine
 import immortan.crypto.Tools.randomKeyPair
 import immortan.fsm.PreimageCheck.{FINALIZED, OPERATIONAL}
 import immortan.utils.Rx
-import immortan.{
-  CommsTower,
-  ConnectionListener,
-  KeyPairAndPubKey,
-  RemoteNodeInfo
-}
+import immortan.{CommsTower, ConnectionListener, KeyPairAndPubKey, RemoteNodeInfo}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
@@ -68,44 +58,45 @@ abstract class PreimageCheck extends StateMachine[PreimageCheck.CheckData] {
     ): Unit = me process PreimageCheck.PeerResponse(msg, worker)
   }
 
-  def doProcess(change: Any): Unit = (change, state) match {
-    case (msg: PreimageCheck.PeerDisconnected, OPERATIONAL) =>
-      // Keep trying to reconnect with delays until final timeout
-      Rx.ioQueue.delay(3.seconds).foreach(_ => me process msg.worker)
-      CommsTower forget msg.worker.pair
+  def doProcess(change: Any): Unit =
+    (change, state) match {
+      case (msg: PreimageCheck.PeerDisconnected, OPERATIONAL) =>
+        // Keep trying to reconnect with delays until final timeout
+        Rx.ioQueue.delay(3.seconds).foreach(_ => me process msg.worker)
+        CommsTower forget msg.worker.pair
 
-    case (worker: CommsTower.Worker, OPERATIONAL) =>
-      val newPair @ (info, pair) = randomPair(worker.info)
-      CommsTower.listen(listeners1 = Set(listener), pair, info)
-      become(data.copy(pairs = data.pairs + newPair), OPERATIONAL)
+      case (worker: CommsTower.Worker, OPERATIONAL) =>
+        val newPair @ (info, pair) = randomPair(worker.info)
+        CommsTower.listen(listeners1 = Set(listener), pair, info)
+        become(data.copy(pairs = data.pairs + newPair), OPERATIONAL)
 
-    case (
-          PreimageCheck.PeerResponse(msg: ReplyPreimages, worker),
+      case (
+            PreimageCheck.PeerResponse(msg: ReplyPreimages, worker),
+            OPERATIONAL
+          ) =>
+        // One of remote nodes replies, check if we have all preimages of interest collected
+        become(
+          merge(data, msg).copy(pending = data.pending - worker.info),
           OPERATIONAL
-        ) =>
-      // One of remote nodes replies, check if we have all preimages of interest collected
-      become(
-        merge(data, msg).copy(pending = data.pending - worker.info),
-        OPERATIONAL
-      )
-      doCheck(force = false)
+        )
+        doCheck(force = false)
 
-    case (PreimageCheck.CMDCancel, OPERATIONAL) =>
-      // User has manually cancelled a check, disconnect all peers
-      for (pair <- data.pairs.values) CommsTower forget pair
-      become(data, FINALIZED)
+      case (PreimageCheck.CMDCancel, OPERATIONAL) =>
+        // User has manually cancelled a check, disconnect all peers
+        for (pair <- data.pairs.values) CommsTower forget pair
+        become(data, FINALIZED)
 
-    case (PreimageCheck.CMDStart(hashes, hosts), -1) =>
-      become(
-        PreimageCheck.CheckData(hosts.map(randomPair).toMap, hosts, hashes),
-        OPERATIONAL
-      )
-      for (Tuple2(info, pair) <- data.pairs)
-        CommsTower.listen(Set(listener), pair, info)
-      Rx.ioQueue.delay(30.seconds).foreach(_ => me doCheck true)
+      case (PreimageCheck.CMDStart(hashes, hosts), -1) =>
+        become(
+          PreimageCheck.CheckData(hosts.map(randomPair).toMap, hosts, hashes),
+          OPERATIONAL
+        )
+        for (Tuple2(info, pair) <- data.pairs)
+          CommsTower.listen(Set(listener), pair, info)
+        Rx.ioQueue.delay(30.seconds).foreach(_ => me doCheck true)
 
-    case _ =>
-  }
+      case _ =>
+    }
 
   def doCheck(force: Boolean): Unit = {
     // IMPORTANT: of all peer replies filter our preimages of interest
@@ -134,8 +125,8 @@ abstract class PreimageCheck extends StateMachine[PreimageCheck.CheckData] {
       msg: ReplyPreimages
   ): PreimageCheck.CheckData = {
     val hashToPreimage1 = data1.hashToPreimage ++ msg.preimages
-      .map(Crypto sha256 _)
-      .zip(msg.preimages)
+        .map(Crypto sha256 _)
+        .zip(msg.preimages)
     data1.copy(hashToPreimage = hashToPreimage1)
   }
 }

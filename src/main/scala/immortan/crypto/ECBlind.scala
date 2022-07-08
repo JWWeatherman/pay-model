@@ -14,9 +14,10 @@ case class BlindMemo(
     clearTokens: List[BigInteger],
     key: String
 ) {
-  def makeBlindTokens: Seq[String] = params zip clearTokens map {
-    case (param, token) => param.blind(token).toString
-  }
+  def makeBlindTokens: Seq[String] =
+    params zip clearTokens map {
+      case (param, token) => param.blind(token).toString
+    }
 
   def makeClearSigs(blindSigs: BigInteger*): Seq[BigInteger] =
     params zip blindSigs map { case (param, sig) => param unblind sig }

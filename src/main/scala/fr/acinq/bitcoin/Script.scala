@@ -1,20 +1,16 @@
 package fr.acinq.bitcoin
 
-import java.io.{
-  ByteArrayInputStream,
-  ByteArrayOutputStream,
-  InputStream,
-  OutputStream
-}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 
 import fr.acinq.bitcoin.Crypto._
 import scodec.bits.ByteVector
 
-import scala.annotation.{tailrec, nowarn}
+import scala.annotation.{nowarn, tailrec}
 import scala.collection.mutable.ArrayBuffer
 
-/** script execution flags
-  */
+/**
+ * script execution flags
+ */
 object ScriptFlags {
   val SCRIPT_VERIFY_NONE = 0
 
@@ -97,20 +93,22 @@ object ScriptFlags {
   //
   val SCRIPT_VERIFY_CONST_SCRIPTCODE = 1 << 16
 
-  /** Mandatory script verification flags that all new blocks must comply with
-    * for them to be valid. (but old blocks may not comply with) Currently just
-    * P2SH, but in the future other flags may be added, such as a soft-fork to
-    * enforce strict DER encoding.
-    *
-    * Failing one of these tests may trigger a DoS ban - see CheckInputs() for
-    * details.
-    */
+  /**
+   * Mandatory script verification flags that all new blocks must comply with
+   * for them to be valid. (but old blocks may not comply with) Currently just
+   * P2SH, but in the future other flags may be added, such as a soft-fork to
+   * enforce strict DER encoding.
+   *
+   * Failing one of these tests may trigger a DoS ban - see CheckInputs() for
+   * details.
+   */
   val MANDATORY_SCRIPT_VERIFY_FLAGS = SCRIPT_VERIFY_P2SH
 
-  /** Standard script verification flags that standard transactions will comply
-    * with. However scripts violating these flags may still be present in valid
-    * blocks and we must accept those blocks.
-    */
+  /**
+   * Standard script verification flags that standard transactions will comply
+   * with. However scripts violating these flags may still be present in valid
+   * blocks and we must accept those blocks.
+   */
   val STANDARD_SCRIPT_VERIFY_FLAGS = MANDATORY_SCRIPT_VERIFY_FLAGS |
     SCRIPT_VERIFY_DERSIG |
     SCRIPT_VERIFY_STRICTENC |
@@ -146,15 +144,16 @@ object Script {
 
   private val False = ByteVector.empty
 
-  /** parse a script from a input stream of binary data
-    *
-    * @param input
-    *   input stream
-    * @param stack
-    *   initial command stack
-    * @return
-    *   an updated command stack
-    */
+  /**
+   * parse a script from a input stream of binary data
+   *
+   * @param input
+   *   input stream
+   * @param stack
+   *   initial command stack
+   * @return
+   *   an updated command stack
+   */
   @tailrec
   def parse(
       input: InputStream,
@@ -163,7 +162,7 @@ object Script {
     val code = input.read()
     code match {
       case -1 => stack.toList
-      case 0  => parse(input, stack :+ OP_0)
+      case 0 => parse(input, stack :+ OP_0)
       case opCode if opCode > 0 && opCode < 0x4c =>
         parse(input, stack :+ OP_PUSHDATA(bytes(input, opCode), opCode))
       case 0x4c =>
@@ -182,31 +181,32 @@ object Script {
     }
   }
 
-  def parse(blob: ByteVector): List[ScriptElt] = if (blob.length > 10000)
-    throw new RuntimeException("script is too large")
-  else parse(new ByteArrayInputStream(blob.toArray))
+  def parse(blob: ByteVector): List[ScriptElt] =
+    if (blob.length > 10000)
+      throw new RuntimeException("script is too large")
+    else parse(new ByteArrayInputStream(blob.toArray))
 
   def parse(blob: Array[Byte]): List[ScriptElt] = parse(ByteVector.view(blob))
 
   @tailrec
-  def write(script: Seq[ScriptElt], out: OutputStream): Unit = script match {
-    case Nil => ()
-    case OP_PUSHDATA(data, length) :: tail
-        if data.length < 0x4c && data.length == length =>
-      out.write(data.length.toInt); out.write(data.toArray); write(tail, out)
-    case OP_PUSHDATA(data, 0x4c) :: tail if data.length < 0xff =>
-      writeUInt8(0x4c, out); writeUInt8(data.length.toInt, out);
-      out.write(data.toArray); write(tail, out)
-    case OP_PUSHDATA(data, 0x4d) :: tail if data.length < 0xffff =>
-      writeUInt8(0x4d, out); writeUInt16(data.length.toInt, out);
-      out.write(data.toArray); write(tail, out)
-    case OP_PUSHDATA(data, 0x4e) :: tail if data.length < 0xffffffff =>
-      writeUInt8(0x4e, out); writeUInt32(data.length, out);
-      out.write(data.toArray); write(tail, out)
-    case op @ OP_PUSHDATA(data, code) :: tail =>
-      throw new RuntimeException(s"invalid element $op")
-    case head :: tail => out.write(elt2code(head)); write(tail, out)
-  }
+  def write(script: Seq[ScriptElt], out: OutputStream): Unit =
+    script match {
+      case Nil => ()
+      case OP_PUSHDATA(data, length) :: tail if data.length < 0x4c && data.length == length =>
+        out.write(data.length.toInt); out.write(data.toArray); write(tail, out)
+      case OP_PUSHDATA(data, 0x4c) :: tail if data.length < 0xff =>
+        writeUInt8(0x4c, out); writeUInt8(data.length.toInt, out);
+        out.write(data.toArray); write(tail, out)
+      case OP_PUSHDATA(data, 0x4d) :: tail if data.length < 0xffff =>
+        writeUInt8(0x4d, out); writeUInt16(data.length.toInt, out);
+        out.write(data.toArray); write(tail, out)
+      case OP_PUSHDATA(data, 0x4e) :: tail if data.length < 0xffffffff =>
+        writeUInt8(0x4e, out); writeUInt32(data.length, out);
+        out.write(data.toArray); write(tail, out)
+      case op @ OP_PUSHDATA(data, code) :: tail =>
+        throw new RuntimeException(s"invalid element $op")
+      case head :: tail => out.write(elt2code(head)); write(tail, out)
+    }
 
   def write(script: Seq[ScriptElt]): ByteVector = {
     val out = new ByteArrayOutputStream()
@@ -214,39 +214,41 @@ object Script {
     ByteVector.view(out.toByteArray)
   }
 
-  def isUpgradableNop(op: ScriptElt) = op match {
-    case OP_NOP1 | OP_NOP4 | OP_NOP5 | OP_NOP6 | OP_NOP7 | OP_NOP8 | OP_NOP9 |
-        OP_NOP10 =>
-      true
-    case _ => false
-  }
+  def isUpgradableNop(op: ScriptElt) =
+    op match {
+      case OP_NOP1 | OP_NOP4 | OP_NOP5 | OP_NOP6 | OP_NOP7 | OP_NOP8 | OP_NOP9 | OP_NOP10 =>
+        true
+      case _ => false
+    }
 
-  def isSimpleValue(op: ScriptElt) = op match {
-    case OP_1NEGATE | OP_0 | OP_1 | OP_2 | OP_3 | OP_4 | OP_5 | OP_6 | OP_7 |
-        OP_8 | OP_9 | OP_10 | OP_11 | OP_12 | OP_13 | OP_14 | OP_15 | OP_16 =>
-      true
-    case _ => false
-  }
+  def isSimpleValue(op: ScriptElt) =
+    op match {
+      case OP_1NEGATE | OP_0 | OP_1 | OP_2 | OP_3 | OP_4 | OP_5 | OP_6 | OP_7 | OP_8 | OP_9 | OP_10 | OP_11 | OP_12 |
+          OP_13 | OP_14 | OP_15 | OP_16 =>
+        true
+      case _ => false
+    }
 
   def simpleValue(op: ScriptElt): Byte = {
     require(isSimpleValue(op))
     if (op == OP_0) 0 else (elt2code(op) - 0x50).toByte
   }
 
-  def isDisabled(op: ScriptElt) = op match {
-    case OP_CAT | OP_SUBSTR | OP_LEFT | OP_RIGHT | OP_INVERT | OP_AND | OP_OR |
-        OP_XOR | OP_2MUL | OP_2DIV | OP_MUL | OP_DIV | OP_MOD | OP_LSHIFT |
-        OP_RSHIFT =>
-      true
-    case _ => false
-  }
+  def isDisabled(op: ScriptElt) =
+    op match {
+      case OP_CAT | OP_SUBSTR | OP_LEFT | OP_RIGHT | OP_INVERT | OP_AND | OP_OR | OP_XOR | OP_2MUL | OP_2DIV | OP_MUL |
+          OP_DIV | OP_MOD | OP_LSHIFT | OP_RSHIFT =>
+        true
+      case _ => false
+    }
 
-  def cost(op: ScriptElt): Int = op match {
-    case _ if isSimpleValue(op) => 0
-    case OP_PUSHDATA(_, _)      => 0
-    case OP_RESERVED            => 0
-    case _                      => 1
-  }
+  def cost(op: ScriptElt): Int =
+    op match {
+      case _ if isSimpleValue(op) => 0
+      case OP_PUSHDATA(_, _) => 0
+      case OP_RESERVED => 0
+      case _ => 1
+    }
 
   def encodeNumber(value: Long): ByteVector = {
     if (value == 0) ByteVector.empty
@@ -324,38 +326,40 @@ object Script {
     }
   }
 
-  def castToBoolean(input: ByteVector): Boolean = input.toSeq.reverse match {
-    case head +: tail if head == 0x80.toByte && tail.forall(_ == 0) => false
-    case something if something.exists(_ != 0)                      => true
-    case _                                                          => false
-  }
+  def castToBoolean(input: ByteVector): Boolean =
+    input.toSeq.reverse match {
+      case head +: tail if head == 0x80.toByte && tail.forall(_ == 0) => false
+      case something if something.exists(_ != 0) => true
+      case _ => false
+    }
 
-  def isPushOnly(script: Seq[ScriptElt]): Boolean = !script.exists {
-    case op if isSimpleValue(op) => false
-    case OP_PUSHDATA(_, _)       => false
-    case _                       => true
-  }
+  def isPushOnly(script: Seq[ScriptElt]): Boolean =
+    !script.exists {
+      case op if isSimpleValue(op) => false
+      case OP_PUSHDATA(_, _) => false
+      case _ => true
+    }
 
-  def isPayToScript(script: Seq[ScriptElt]): Boolean = script match {
-    case OP_HASH160 :: OP_PUSHDATA(multisigAddress, _) :: OP_EQUAL :: Nil
-        if multisigAddress.length == 20 =>
-      true
-    case _ => false
-  }
+  def isPayToScript(script: Seq[ScriptElt]): Boolean =
+    script match {
+      case OP_HASH160 :: OP_PUSHDATA(multisigAddress, _) :: OP_EQUAL :: Nil if multisigAddress.length == 20 =>
+        true
+      case _ => false
+    }
 
   def isPayToScript(script: ByteVector): Boolean =
     script.length == 23 && script(0) == elt2code(OP_HASH160).toByte && script(
       1
     ) == 0x14 && script(22) == elt2code(OP_EQUAL).toByte
 
-  def isNativeWitnessScript(script: Seq[ScriptElt]): Boolean = script match {
-    case (OP_0 | OP_1 | OP_2 | OP_3 | OP_4 | OP_5 | OP_6 | OP_7 | OP_8 | OP_9 |
-        OP_10 | OP_11 | OP_12 | OP_13 | OP_14 | OP_15 |
-        OP_16) :: OP_PUSHDATA(witnessProgram, _) :: Nil
-        if witnessProgram.length >= 2 && witnessProgram.length <= 40 =>
-      true
-    case _ => false
-  }
+  def isNativeWitnessScript(script: Seq[ScriptElt]): Boolean =
+    script match {
+      case (OP_0 | OP_1 | OP_2 | OP_3 | OP_4 | OP_5 | OP_6 | OP_7 | OP_8 | OP_9 | OP_10 | OP_11 | OP_12 | OP_13 |
+          OP_14 | OP_15 | OP_16) :: OP_PUSHDATA(witnessProgram, _) :: Nil
+          if witnessProgram.length >= 2 && witnessProgram.length <= 40 =>
+        true
+      case _ => false
+    }
 
   def isNativeWitnessScript(script: ByteVector): Boolean =
     isNativeWitnessScript(parse(script))
@@ -388,7 +392,7 @@ object Script {
     if (
       !(
         (tx.lockTime < Transaction.LOCKTIME_THRESHOLD && lockTime < Transaction.LOCKTIME_THRESHOLD) ||
-          (tx.lockTime >= Transaction.LOCKTIME_THRESHOLD && lockTime >= Transaction.LOCKTIME_THRESHOLD)
+        (tx.lockTime >= Transaction.LOCKTIME_THRESHOLD && lockTime >= Transaction.LOCKTIME_THRESHOLD)
       )
     ) {
       return false
@@ -453,7 +457,7 @@ object Script {
     if (
       !(
         (txToSequenceMasked < TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked < TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG) ||
-          (txToSequenceMasked >= TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked >= TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG)
+        (txToSequenceMasked >= TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked >= TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG)
       )
     ) {
       return false
@@ -467,14 +471,15 @@ object Script {
     true
   }
 
-  /** Execution context of a tx script. A script is always executed in the
-    * "context" of a transaction that is being verified.
-    *
-    * @param tx
-    *   transaction that is being verified
-    * @param inputIndex
-    *   0-based index of the tx input that is being processed
-    */
+  /**
+   * Execution context of a tx script. A script is always executed in the
+   * "context" of a transaction that is being verified.
+   *
+   * @param tx
+   *   transaction that is being verified
+   * @param inputIndex
+   *   0-based index of the tx input that is being processed
+   */
   case class Context(tx: Transaction, inputIndex: Int, amount: Satoshi) {
     require(
       inputIndex >= 0 && inputIndex < tx.txIn.length,
@@ -484,17 +489,18 @@ object Script {
 
   object Runner {
 
-    /** This class represents the state of the script execution engine
-      *
-      * @param conditions
-      *   current "position" wrt if/notif/else/endif
-      * @param altstack
-      *   initial alternate stack
-      * @param opCount
-      *   initial op count
-      * @param scriptCode
-      *   initial script (can be modified by OP_CODESEPARATOR for example)
-      */
+    /**
+     * This class represents the state of the script execution engine
+     *
+     * @param conditions
+     *   current "position" wrt if/notif/else/endif
+     * @param altstack
+     *   initial alternate stack
+     * @param opCount
+     *   initial op count
+     * @param scriptCode
+     *   initial script (can be modified by OP_CODESEPARATOR for example)
+     */
     case class State(
         conditions: List[Boolean],
         altstack: Stack,
@@ -505,15 +511,16 @@ object Script {
     type Callback = (List[ScriptElt], Stack, State) => Boolean
   }
 
-  /** Bitcoin script runner
-    *
-    * @param context
-    *   script execution context
-    * @param scriptFlag
-    *   script flags
-    * @param callback
-    *   optional callback
-    */
+  /**
+   * Bitcoin script runner
+   *
+   * @param context
+   *   script execution context
+   * @param scriptFlag
+   *   script flags
+   * @param callback
+   *   optional callback
+   */
   class Runner(
       context: Context,
       scriptFlag: Int = MANDATORY_SCRIPT_VERIFY_FLAGS,
@@ -531,9 +538,8 @@ object Script {
       if (sigBytes.isEmpty) false
       else if (!Crypto.checkSignatureEncoding(sigBytes, scriptFlag))
         throw new RuntimeException("invalid signature")
-      else if (
-        !Crypto.checkPubKeyEncoding(pubKey, scriptFlag, signatureVersion)
-      ) throw new RuntimeException("invalid public key")
+      else if (!Crypto.checkPubKeyEncoding(pubKey, scriptFlag, signatureVersion))
+        throw new RuntimeException("invalid public key")
       else if (!Crypto.isPubKeyValidLax(pubKey))
         false // see how this is different from above ?
       else {
@@ -565,17 +571,18 @@ object Script {
         sigs: Seq[ByteVector],
         scriptCode: ByteVector,
         signatureVersion: Int
-    ): Boolean = sigs match {
-      case Nil                               => true
-      case _ if sigs.length > pubKeys.length => false
-      case sig :: _ if !Crypto.checkSignatureEncoding(sig, scriptFlag) =>
-        throw new RuntimeException("invalid signature")
-      case sig :: _ =>
-        if (checkSignature(pubKeys.head, sig, scriptCode, signatureVersion))
-          checkSignatures(pubKeys.tail, sigs.tail, scriptCode, signatureVersion)
-        else
-          checkSignatures(pubKeys.tail, sigs, scriptCode, signatureVersion)
-    }
+    ): Boolean =
+      sigs match {
+        case Nil => true
+        case _ if sigs.length > pubKeys.length => false
+        case sig :: _ if !Crypto.checkSignatureEncoding(sig, scriptFlag) =>
+          throw new RuntimeException("invalid signature")
+        case sig :: _ =>
+          if (checkSignature(pubKeys.head, sig, scriptCode, signatureVersion))
+            checkSignatures(pubKeys.tail, sigs.tail, scriptCode, signatureVersion)
+          else
+            checkSignatures(pubKeys.tail, sigs, scriptCode, signatureVersion)
+      }
 
     def checkMinimalEncoding: Boolean =
       (scriptFlag & SCRIPT_VERIFY_MINIMALDATA) != 0
@@ -583,49 +590,53 @@ object Script {
     def decodeNumber(input: ByteVector, maximumSize: Int = 4): Long =
       Script.decodeNumber(input, checkMinimalEncoding, maximumSize)
 
-    /** execute a serialized script, starting from an empty stack
-      *
-      * @param script
-      *   serialized script
-      * @return
-      *   the stack created by the script
-      */
+    /**
+     * execute a serialized script, starting from an empty stack
+     *
+     * @param script
+     *   serialized script
+     * @return
+     *   the stack created by the script
+     */
     def run(script: ByteVector): Stack = run(parse(script))
 
-    /** execute a script, starting from an empty stack
-      *
-      * @param script
-      * @return
-      *   the stack created by the script
-      */
+    /**
+     * execute a script, starting from an empty stack
+     *
+     * @param script
+     * @return
+     *   the stack created by the script
+     */
     def run(script: List[ScriptElt]): Stack =
       run(script, List.empty[ByteVector])
 
-    /** execute a serialized script, starting from an existing stack
-      *
-      * @param script
-      *   serialized script
-      * @param stack
-      *   initial stack
-      * @return
-      *   the stack updated by the script
-      */
+    /**
+     * execute a serialized script, starting from an existing stack
+     *
+     * @param script
+     *   serialized script
+     * @param stack
+     *   initial stack
+     * @return
+     *   the stack updated by the script
+     */
     def run(script: ByteVector, stack: Stack): Stack = run(parse(script), stack)
 
     def run(script: List[ScriptElt], stack: Stack): Stack =
       run(script, stack, SigVersion.SIGVERSION_BASE)
 
-    /** execute a script, starting from an existing stack
-      *
-      * @param script
-      *   serialized script
-      * @param stack
-      *   initial stack
-      * @param signatureVersion
-      *   signature version (0: use pre-segwit tx hash, 1: use segwit tx hash)
-      * @return
-      *   the stack updated by the script
-      */
+    /**
+     * execute a script, starting from an existing stack
+     *
+     * @param script
+     *   serialized script
+     * @param stack
+     *   initial stack
+     * @param signatureVersion
+     *   signature version (0: use pre-segwit tx hash, 1: use segwit tx hash)
+     * @return
+     *   the stack updated by the script
+     */
     def run(
         script: List[ScriptElt],
         stack: Stack,
@@ -643,17 +654,18 @@ object Script {
         signatureVersion
       )
 
-    /** execute a bitcoin script
-      *
-      * @param script
-      *   script
-      * @param stack
-      *   initial stack
-      * @param state
-      *   initial state
-      * @return
-      *   the stack updated by the script
-      */
+    /**
+     * execute a bitcoin script
+     *
+     * @param script
+     *   script
+     * @param stack
+     *   initial stack
+     * @param state
+     *   initial state
+     * @return
+     *   the stack updated by the script
+     */
     @tailrec
     final def run(
         script: List[ScriptElt],
@@ -911,8 +923,7 @@ object Script {
                 "cannot run OP_BOOLOR on a stack with less than 2 elements"
               )
           }
-        case OP_CHECKLOCKTIMEVERIFY :: tail
-            if ((scriptFlag & SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0) =>
+        case OP_CHECKLOCKTIMEVERIFY :: tail if (scriptFlag & SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0 =>
           stack match {
             case head :: _ =>
               // Note that elsewhere numeric opcodes are limited to
@@ -946,13 +957,11 @@ object Script {
                 "cannot run OP_CHECKLOCKTIMEVERIFY on an empty stack"
               )
           }
-        case OP_CHECKLOCKTIMEVERIFY :: _
-            if ((scriptFlag & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS) != 0) =>
+        case OP_CHECKLOCKTIMEVERIFY :: _ if (scriptFlag & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS) != 0 =>
           throw new RuntimeException("use of upgradable NOP is discouraged")
         case OP_CHECKLOCKTIMEVERIFY :: tail =>
           run(tail, stack, state.copy(opCount = opCount + 1), signatureVersion)
-        case OP_CHECKSEQUENCEVERIFY :: tail
-            if ((scriptFlag & SCRIPT_VERIFY_CHECKSEQUENCEVERIFY) != 0) =>
+        case OP_CHECKSEQUENCEVERIFY :: tail if (scriptFlag & SCRIPT_VERIFY_CHECKSEQUENCEVERIFY) != 0 =>
           stack match {
             case head :: _ =>
               // nSequence, like nLockTime, is a 32-bit unsigned integer
@@ -987,8 +996,7 @@ object Script {
                 "cannot run OP_CHECKSEQUENCEVERIFY on an empty stack"
               )
           }
-        case OP_CHECKSEQUENCEVERIFY :: _
-            if ((scriptFlag & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS) != 0) =>
+        case OP_CHECKSEQUENCEVERIFY :: _ if (scriptFlag & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS) != 0 =>
           throw new RuntimeException("use of upgradable NOP is discouraged")
         case OP_CHECKSEQUENCEVERIFY :: tail =>
           run(tail, stack, state.copy(opCount = opCount + 1), signatureVersion)
@@ -999,9 +1007,7 @@ object Script {
               val scriptCode1 =
                 if (signatureVersion == SigVersion.SIGVERSION_BASE) {
                   val scriptCode1 = removeSignature(scriptCode, sigBytes)
-                  if (
-                    scriptCode1.length != scriptCode.length && (scriptFlag & SCRIPT_VERIFY_CONST_SCRIPTCODE) != 0
-                  )
+                  if (scriptCode1.length != scriptCode.length && (scriptFlag & SCRIPT_VERIFY_CONST_SCRIPTCODE) != 0)
                     throw new RuntimeException(
                       "Signature is found in scriptCode"
                     )
@@ -1070,9 +1076,7 @@ object Script {
           val scriptCode1 =
             if (signatureVersion == SigVersion.SIGVERSION_BASE) {
               val scriptCode1 = removeSignatures(scriptCode, sigs)
-              if (
-                scriptCode1.length != scriptCode.length && (scriptFlag & SCRIPT_VERIFY_CONST_SCRIPTCODE) != 0
-              )
+              if (scriptCode1.length != scriptCode.length && (scriptFlag & SCRIPT_VERIFY_CONST_SCRIPTCODE) != 0)
                 throw new RuntimeException("Signature is found in scriptCode")
               scriptCode1
             } else scriptCode
@@ -1689,8 +1693,7 @@ object Script {
           throw new IllegalArgumentException(
             s"Invalid witness program length: ${program.length}"
           )
-        case _
-            if (scriptFlag & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM) != 0 =>
+        case _ if (scriptFlag & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM) != 0 =>
           throw new IllegalArgumentException(
             s"Invalid witness version: ${witnessVersion}"
           )
@@ -1719,18 +1722,19 @@ object Script {
         scriptPubKey: ByteVector
     ): Boolean = verifyScripts(scriptSig, scriptPubKey, ScriptWitness.empty)
 
-    /** verify a script sig/script pubkey pair: <ul> <li>parse and run script
-      * sig</li> <li>parse and run script pubkey using the stack generated by
-      * the previous step</li> <li>check the final stack</li> <li>extract and
-      * run embedded pay2sh scripts if any and check the stack again</li> </ul>
-      *
-      * @param scriptSig
-      *   signature script
-      * @param scriptPubKey
-      *   public key script
-      * @return
-      *   true if the scripts were successfully verified
-      */
+    /**
+     * verify a script sig/script pubkey pair: <ul> <li>parse and run script
+     * sig</li> <li>parse and run script pubkey using the stack generated by
+     * the previous step</li> <li>check the final stack</li> <li>extract and
+     * run embedded pay2sh scripts if any and check the stack again</li> </ul>
+     *
+     * @param scriptSig
+     *   signature script
+     * @param scriptPubKey
+     *   public key script
+     * @return
+     *   true if the scripts were successfully verified
+     */
     def verifyScripts(
         scriptSig: ByteVector,
         scriptPubKey: ByteVector,
@@ -1839,57 +1843,61 @@ object Script {
     }
   }
 
-  /** extract a public key hash from a public key script
-    *
-    * @param script
-    *   public key script
-    * @return
-    *   the public key hash wrapped in the script
-    */
-  def publicKeyHash(script: List[ScriptElt]): ByteVector = script match {
-    case OP_DUP :: OP_HASH160 :: OP_PUSHDATA(
-          data,
-          _
-        ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: OP_NOP :: Nil =>
-      data // non standard pay to pubkey...
-    case OP_DUP :: OP_HASH160 :: OP_PUSHDATA(
-          data,
-          _
-        ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: Nil =>
-      data // standard pay to pubkey
-    case OP_HASH160 :: OP_PUSHDATA(data, _) :: OP_EQUAL :: Nil
-        if data.size == 20 =>
-      data // standard pay to script
-  }
+  /**
+   * extract a public key hash from a public key script
+   *
+   * @param script
+   *   public key script
+   * @return
+   *   the public key hash wrapped in the script
+   */
+  def publicKeyHash(script: List[ScriptElt]): ByteVector =
+    script match {
+      case OP_DUP :: OP_HASH160 :: OP_PUSHDATA(
+            data,
+            _
+          ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: OP_NOP :: Nil =>
+        data // non standard pay to pubkey...
+      case OP_DUP :: OP_HASH160 :: OP_PUSHDATA(
+            data,
+            _
+          ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: Nil =>
+        data // standard pay to pubkey
+      case OP_HASH160 :: OP_PUSHDATA(data, _) :: OP_EQUAL :: Nil if data.size == 20 =>
+        data // standard pay to script
+    }
 
-  def publicKeyHash(script: ByteVector): ByteVector = publicKeyHash(
-    parse(script)
-  )
+  def publicKeyHash(script: ByteVector): ByteVector =
+    publicKeyHash(
+      parse(script)
+    )
 
-  /** extract a public key from a signature script
-    *
-    * @param script
-    *   signature script
-    * @return
-    *   the public key wrapped in the script
-    */
-  def publicKey(script: List[ScriptElt]): ByteVector = script match {
-    case OP_PUSHDATA(data1, _) :: OP_PUSHDATA(data2, _) :: Nil
-        if data1.length > 2 && data2.length > 2 =>
-      data2
-    case OP_PUSHDATA(data, _) :: OP_CHECKSIG :: Nil => data
-  }
+  /**
+   * extract a public key from a signature script
+   *
+   * @param script
+   *   signature script
+   * @return
+   *   the public key wrapped in the script
+   */
+  def publicKey(script: List[ScriptElt]): ByteVector =
+    script match {
+      case OP_PUSHDATA(data1, _) :: OP_PUSHDATA(data2, _) :: Nil if data1.length > 2 && data2.length > 2 =>
+        data2
+      case OP_PUSHDATA(data, _) :: OP_CHECKSIG :: Nil => data
+    }
 
-  /** Creates a m-of-n multisig script.
-    *
-    * @param m
-    *   is the number of required signatures
-    * @param pubkeys
-    *   are the public keys signatures will be checked against (there should be
-    *   at least as many public keys as required signatures)
-    * @return
-    *   a multisig redeem script
-    */
+  /**
+   * Creates a m-of-n multisig script.
+   *
+   * @param m
+   *   is the number of required signatures
+   * @param pubkeys
+   *   are the public keys signatures will be checked against (there should be
+   *   at least as many public keys as required signatures)
+   * @return
+   *   a multisig redeem script
+   */
   def createMultiSigMofN(m: Int, pubkeys: Seq[PublicKey]): Seq[ScriptElt] = {
     require(
       m > 0 && m <= 16,
@@ -1906,16 +1914,15 @@ object Script {
     val op_m = ScriptElt.code2elt(m + 0x50)
     // 1 -> OP_1, 2 -> OP_2, ... 16 -> OP_16
     val op_n = ScriptElt.code2elt(pubkeys.size + 0x50)
-    op_m :: pubkeys.toList.map(pub =>
-      OP_PUSHDATA(pub.value)
-    ) ::: op_n :: OP_CHECKMULTISIG :: Nil
+    op_m :: pubkeys.toList.map(pub => OP_PUSHDATA(pub.value)) ::: op_n :: OP_CHECKMULTISIG :: Nil
   }
 
-  /** @param pubKeyHash
-    *   public key hash
-    * @return
-    *   a pay-to-public-key-hash script
-    */
+  /**
+   * @param pubKeyHash
+   *   public key hash
+   * @return
+   *   a pay-to-public-key-hash script
+   */
   def pay2pkh(pubKeyHash: ByteVector): Seq[ScriptElt] = {
     require(pubKeyHash.length == 20, "pubkey hash length must be 20 bytes")
     OP_DUP :: OP_HASH160 :: OP_PUSHDATA(
@@ -1923,11 +1930,12 @@ object Script {
     ) :: OP_EQUALVERIFY :: OP_CHECKSIG :: Nil
   }
 
-  /** @param pubKey
-    *   public key
-    * @return
-    *   a pay-to-public-key-hash script
-    */
+  /**
+   * @param pubKey
+   *   public key
+   * @return
+   *   a pay-to-public-key-hash script
+   */
   def pay2pkh(pubKey: PublicKey): Seq[ScriptElt] = pay2pkh(pubKey.hash160)
 
   def isPay2pkh(script: Seq[ScriptElt]): Boolean = {
@@ -1941,88 +1949,96 @@ object Script {
     }
   }
 
-  /** @param script
-    *   bitcoin script
-    * @return
-    *   a pay-to-script script
-    */
-  def pay2sh(script: Seq[ScriptElt]): Seq[ScriptElt] = pay2sh(
-    Script.write(script)
-  )
+  /**
+   * @param script
+   *   bitcoin script
+   * @return
+   *   a pay-to-script script
+   */
+  def pay2sh(script: Seq[ScriptElt]): Seq[ScriptElt] =
+    pay2sh(
+      Script.write(script)
+    )
 
-  /** @param script
-    *   bitcoin script
-    * @return
-    *   a pay-to-script script
-    */
+  /**
+   * @param script
+   *   bitcoin script
+   * @return
+   *   a pay-to-script script
+   */
   def pay2sh(script: ByteVector): Seq[ScriptElt] =
     OP_HASH160 :: OP_PUSHDATA(hash160(script)) :: OP_EQUAL :: Nil
 
   def isPay2sh(script: Seq[ScriptElt]): Boolean = {
     script match {
-      case OP_HASH160 :: OP_PUSHDATA(data, _) :: OP_EQUAL :: Nil
-          if data.length == 20 =>
+      case OP_HASH160 :: OP_PUSHDATA(data, _) :: OP_EQUAL :: Nil if data.length == 20 =>
         true
       case _ => false
     }
   }
 
-  /** @param script
-    *   bitcoin script
-    * @return
-    *   a pay-to-witness-script script
-    */
-  def pay2wsh(script: Seq[ScriptElt]): Seq[ScriptElt] = pay2wsh(
-    Script.write(script)
-  )
+  /**
+   * @param script
+   *   bitcoin script
+   * @return
+   *   a pay-to-witness-script script
+   */
+  def pay2wsh(script: Seq[ScriptElt]): Seq[ScriptElt] =
+    pay2wsh(
+      Script.write(script)
+    )
 
-  /** @param script
-    *   bitcoin script
-    * @return
-    *   a pay-to-witness-script script
-    */
+  /**
+   * @param script
+   *   bitcoin script
+   * @return
+   *   a pay-to-witness-script script
+   */
   def pay2wsh(script: ByteVector): Seq[ScriptElt] =
     OP_0 :: OP_PUSHDATA(sha256(script)) :: Nil
 
   def isPay2wsh(script: Seq[ScriptElt]): Boolean = {
     script match {
       case OP_0 :: OP_PUSHDATA(data, _) :: Nil if data.length == 32 => true
-      case _                                                        => false
+      case _ => false
     }
   }
 
-  /** @param pubKeyHash
-    *   public key hash
-    * @return
-    *   a pay-to-witness-public-key-hash script
-    */
+  /**
+   * @param pubKeyHash
+   *   public key hash
+   * @return
+   *   a pay-to-witness-public-key-hash script
+   */
   def pay2wpkh(pubKeyHash: ByteVector): Seq[ScriptElt] = {
     require(pubKeyHash.length == 20, "pubkey hash length must be 20 bytes")
     OP_0 :: OP_PUSHDATA(pubKeyHash) :: Nil
   }
 
-  /** @param pubKey
-    *   public key
-    * @return
-    *   a pay-to-witness-public-key-hash script
-    */
+  /**
+   * @param pubKey
+   *   public key
+   * @return
+   *   a pay-to-witness-public-key-hash script
+   */
   def pay2wpkh(pubKey: PublicKey): Seq[ScriptElt] = pay2wpkh(pubKey.hash160)
 
   def isPay2wpkh(script: Seq[ScriptElt]): Boolean = {
     script match {
       case OP_0 :: OP_PUSHDATA(data, _) :: Nil if data.length == 20 => true
-      case _                                                        => false
+      case _ => false
     }
   }
 
-  /** @param pubKey
-    *   public key
-    * @param sig
-    *   signature matching the public key
-    * @return
-    *   script witness for the corresponding pay-to-witness-public-key-hash
-    *   script
-    */
+  /**
+   * @param pubKey
+   *   public key
+   * @param sig
+   *   signature matching the public key
+   * @return
+   *   script witness for the corresponding pay-to-witness-public-key-hash
+   *   script
+   */
   def witnessPay2wpkh(pubKey: PublicKey, sig: ByteVector): ScriptWitness =
     ScriptWitness(sig :: pubKey.value :: Nil)
 

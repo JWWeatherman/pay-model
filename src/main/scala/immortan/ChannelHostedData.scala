@@ -6,7 +6,7 @@ import fr.acinq.eclair._
 import fr.acinq.eclair.channel._
 import fr.acinq.eclair.transactions._
 import fr.acinq.eclair.wire._
-import immortan.crypto.Tools.{Any2Some, hostedChanId}
+import immortan.crypto.Tools.{hostedChanId, Any2Some}
 import scodec.bits.ByteVector
 
 case class WaitRemoteHostedReply(
@@ -53,9 +53,7 @@ case class HostedCommits(
 
   lazy val allOutgoing: Set[UpdateAddHtlc] = {
     val allOutgoingAdds = localSpec.outgoingAdds ++ nextLocalSpec.outgoingAdds
-    allOutgoingAdds.filterNot(add =>
-      postErrorOutgoingResolvedIds contains add.id
-    )
+    allOutgoingAdds.filterNot(add => postErrorOutgoingResolvedIds contains add.id)
   }
 
   lazy val crossSignedIncoming: Set[UpdateAddHtlcExt] =
@@ -114,12 +112,10 @@ case class HostedCommits(
       return InPrincipleNotSendable(cmd.incompleteAdd).asLeft
     if (LNParams.maxCltvExpiryDelta.toCltvExpiry(blockHeight) < cmd.cltvExpiry)
       return InPrincipleNotSendable(cmd.incompleteAdd).asLeft
-    if (
-      commits1.nextLocalSpec.outgoingAdds.size > lastCrossSignedState.initHostedChannel.maxAcceptedHtlcs
-    ) return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
-    if (
-      commits1.allOutgoing.foldLeft(0L.msat)(_ + _.amountMsat) > maxSendInFlight
-    ) return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
+    if (commits1.nextLocalSpec.outgoingAdds.size > lastCrossSignedState.initHostedChannel.maxAcceptedHtlcs)
+      return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
+    if (commits1.allOutgoing.foldLeft(0L.msat)(_ + _.amountMsat) > maxSendInFlight)
+      return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
     if (commits1.nextLocalSpec.toLocal < 0L.msat)
       return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
     Right(commits1, completeAdd)
@@ -128,9 +124,8 @@ case class HostedCommits(
   def receiveAdd(add: UpdateAddHtlc): HostedCommits = {
     val commits1: HostedCommits = addRemoteProposal(add)
     // We do not check whether total incoming amount exceeds maxHtlcValueInFlightMsat becase we always accept up to channel capacity
-    if (
-      commits1.nextLocalSpec.incomingAdds.size > lastCrossSignedState.initHostedChannel.maxAcceptedHtlcs
-    ) throw ChannelTransitionFail(channelId, add)
+    if (commits1.nextLocalSpec.incomingAdds.size > lastCrossSignedState.initHostedChannel.maxAcceptedHtlcs)
+      throw ChannelTransitionFail(channelId, add)
     if (commits1.nextLocalSpec.toRemote < 0L.msat)
       throw ChannelTransitionFail(channelId, add)
     if (add.id != nextTotalRemote + 1)
@@ -146,7 +141,7 @@ case class HostedCommits(
       case _ if postErrorOutgoingResolvedIds.contains(fulfill.id) =>
         throw ChannelTransitionFail(channelId, fulfill)
       case Some(ourAdd) => RemoteFulfill(ourAdd.add, fulfill.paymentPreimage)
-      case None         => throw ChannelTransitionFail(channelId, fulfill)
+      case None => throw ChannelTransitionFail(channelId, fulfill)
     }
 
   def withResize(resize: ResizeChannel): HostedCommits =

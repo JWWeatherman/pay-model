@@ -8,8 +8,9 @@ import fr.acinq.bitcoin.Crypto.{PrivateKey, PublicKey}
 import fr.acinq.bitcoin.Protocol._
 import scodec.bits.ByteVector
 
-/** see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
-  */
+/**
+ * see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+ */
 object DeterministicWallet {
 
   case class KeyPath(path: Seq[Long]) {
@@ -24,26 +25,29 @@ object DeterministicWallet {
   object KeyPath {
     val Root = KeyPath(Nil)
 
-    /** @param path
-      *   key path. A list of integers separated by a `/`. May start with "/" or
-      *   "m/". A single quote appended at the end means use the hardened
-      *   version of the ley index (example: m/44'/0'/0'/0)
-      * @return
-      *   a KeyPath instance
-      */
+    /**
+     * @param path
+     *   key path. A list of integers separated by a `/`. May start with "/" or
+     *   "m/". A single quote appended at the end means use the hardened
+     *   version of the ley index (example: m/44'/0'/0'/0)
+     * @return
+     *   a KeyPath instance
+     */
     def apply(path: String): KeyPath = {
-      def toNumber(value: String): Long = if (value.last == '\'')
-        hardened(value.dropRight(1).toLong)
-      else value.toLong
+      def toNumber(value: String): Long =
+        if (value.last == '\'')
+          hardened(value.dropRight(1).toLong)
+        else value.toLong
 
       val path1 = path.stripPrefix("m").stripPrefix("/")
       if (path1.isEmpty) KeyPath.Root
       else new KeyPath(path1.split('/').map(toNumber).toSeq)
     }
 
-    def childNumberToString(childNumber: Long) = if (isHardened(childNumber))
-      (childNumber - hardenedKeyIndex).toString + "'"
-    else childNumber.toString
+    def childNumberToString(childNumber: Long) =
+      if (isHardened(childNumber))
+        (childNumber - hardenedKeyIndex).toString + "'"
+      else childNumber.toString
   }
 
   implicit def keypath2longseq(input: KeyPath): Seq[Long] = input.path
@@ -160,11 +164,12 @@ object DeterministicWallet {
     writeBytes(input.publickeybytes.toArray, output)
   }
 
-  /** @param seed
-    *   random seed
-    * @return
-    *   a "master" private key
-    */
+  /**
+   * @param seed
+   *   random seed
+   * @return
+   *   a "master" private key
+   */
   def generate(seed: ByteVector): ExtendedPrivateKey = {
     val I =
       Crypto.hmac512(ByteVector.view("Bitcoin seed".getBytes("UTF-8")), seed)
@@ -173,11 +178,12 @@ object DeterministicWallet {
     ExtendedPrivateKey(IL, IR, depth = 0, path = List.empty[Long], parent = 0L)
   }
 
-  /** @param input
-    *   extended private key
-    * @return
-    *   the public key for this private key
-    */
+  /**
+   * @param input
+   *   extended private key
+   * @return
+   *   the public key for this private key
+   */
   def publicKey(input: ExtendedPrivateKey): ExtendedPublicKey = {
     ExtendedPublicKey(
       input.publicKey.value,
@@ -188,34 +194,39 @@ object DeterministicWallet {
     )
   }
 
-  /** @param input
-    *   extended public key
-    * @return
-    *   the fingerprint for this public key
-    */
-  def fingerprint(input: ExtendedPublicKey): Long = uint32(
-    new ByteArrayInputStream(
-      Crypto.hash160(input.publickeybytes).take(4).reverse.toArray
+  /**
+   * @param input
+   *   extended public key
+   * @return
+   *   the fingerprint for this public key
+   */
+  def fingerprint(input: ExtendedPublicKey): Long =
+    uint32(
+      new ByteArrayInputStream(
+        Crypto.hash160(input.publickeybytes).take(4).reverse.toArray
+      )
     )
-  )
 
-  /** @param input
-    *   extended private key
-    * @return
-    *   the fingerprint for this private key (which is based on the
-    *   corresponding public key)
-    */
-  def fingerprint(input: ExtendedPrivateKey): Long = fingerprint(
-    publicKey(input)
-  )
+  /**
+   * @param input
+   *   extended private key
+   * @return
+   *   the fingerprint for this private key (which is based on the
+   *   corresponding public key)
+   */
+  def fingerprint(input: ExtendedPrivateKey): Long =
+    fingerprint(
+      publicKey(input)
+    )
 
-  /** @param parent
-    *   extended private key
-    * @param index
-    *   index of the child key
-    * @return
-    *   the derived private key at the specified index
-    */
+  /**
+   * @param parent
+   *   extended private key
+   * @param index
+   *   index of the child key
+   * @return
+   *   the derived private key at the specified index
+   */
   def derivePrivateKey(
       parent: ExtendedPrivateKey,
       index: Long
@@ -254,13 +265,14 @@ object DeterministicWallet {
     )
   }
 
-  /** @param parent
-    *   extended public key
-    * @param index
-    *   index of the child key
-    * @return
-    *   the derived public key at the specified index
-    */
+  /**
+   * @param parent
+   *   extended public key
+   * @param index
+   *   index of the child key
+   * @return
+   *   the derived public key at the specified index
+   */
   def derivePublicKey(
       parent: ExtendedPublicKey,
       index: Long

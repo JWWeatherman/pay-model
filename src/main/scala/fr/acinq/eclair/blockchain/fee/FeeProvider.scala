@@ -30,9 +30,10 @@ case object CannotRetrieveFeerates
     )
 
 object FeeratePerByte {
-  def apply(feeratePerKw: FeeratePerKw): FeeratePerByte = FeeratePerByte(
-    FeeratePerKB(feeratePerKw).feerate / 1000
-  )
+  def apply(feeratePerKw: FeeratePerKw): FeeratePerByte =
+    FeeratePerByte(
+      FeeratePerKB(feeratePerKw).feerate / 1000
+    )
 }
 
 /** Fee rate in satoshi-per-bytes. */
@@ -71,27 +72,29 @@ case class FeeratePerKw(feerate: Satoshi) extends Ordered[FeeratePerKw] {
 
 object FeeratePerKw {
 
-  /** Minimum relay fee rate in satoshi per kilo-vbyte (taken from Bitcoin
-    * Core). Note that Bitcoin Core uses a *virtual size* and not the actual
-    * size in bytes: see [[MinimumFeeratePerKw]] below.
-    */
+  /**
+   * Minimum relay fee rate in satoshi per kilo-vbyte (taken from Bitcoin
+   * Core). Note that Bitcoin Core uses a *virtual size* and not the actual
+   * size in bytes: see [[MinimumFeeratePerKw]] below.
+   */
   val MinimumRelayFeeRate = 1000
 
-  /** Why 253 and not 250 since feerate-per-kw should be feerate-per-kvb / 4 and
-    * the minimum relay fee rate is 1000 satoshi/kvb (see
-    * [[MinimumRelayFeeRate]])?
-    *
-    * Because Bitcoin Core uses neither the actual tx size in bytes nor the tx
-    * weight to check fees, but a "virtual size" which is (3 + weight) / 4. So
-    * we want: fee > 1000 * virtual size feerate-per-kw * weight > 1000 * (3 +
-    * weight / 4) feerate-per-kw > 250 + 3000 / (4 * weight)
-    *
-    * With a conservative minimum weight of 400, assuming the result of the
-    * division may be rounded up and using strict inequality to err on the side
-    * of safety, we get: feerate-per-kw > 252 hence feerate-per-kw >= 253
-    *
-    * See also https://github.com/ElementsProject/lightning/pull/1251
-    */
+  /**
+   * Why 253 and not 250 since feerate-per-kw should be feerate-per-kvb / 4 and
+   * the minimum relay fee rate is 1000 satoshi/kvb (see
+   * [[MinimumRelayFeeRate]])?
+   *
+   * Because Bitcoin Core uses neither the actual tx size in bytes nor the tx
+   * weight to check fees, but a "virtual size" which is (3 + weight) / 4. So
+   * we want: fee > 1000 * virtual size feerate-per-kw * weight > 1000 * (3 +
+   * weight / 4) feerate-per-kw > 250 + 3000 / (4 * weight)
+   *
+   * With a conservative minimum weight of 400, assuming the result of the
+   * division may be rounded up and using strict inequality to err on the side
+   * of safety, we get: feerate-per-kw > 252 hence feerate-per-kw >= 253
+   *
+   * See also https://github.com/ElementsProject/lightning/pull/1251
+   */
   val MinimumFeeratePerKw: FeeratePerKw = FeeratePerKw(253.sat)
 
   // @formatter:off
@@ -100,12 +103,13 @@ object FeeratePerKw {
   // @formatter:on
 }
 
-/** Fee rates in satoshi-per-kilo-bytes (1 kb = 1000 bytes). The mempoolMinFee
-  * is the minimal fee required for a tx to enter the mempool (and then be
-  * relayed to other nodes and eventually get confirmed). If our fee provider
-  * doesn't expose this data, using its biggest block target should be a good
-  * enough estimation.
-  */
+/**
+ * Fee rates in satoshi-per-kilo-bytes (1 kb = 1000 bytes). The mempoolMinFee
+ * is the minimal fee required for a tx to enter the mempool (and then be
+ * relayed to other nodes and eventually get confirmed). If our fee provider
+ * doesn't expose this data, using its biggest block target should be a good
+ * enough estimation.
+ */
 case class FeeratesPerKB(
     mempoolMinFee: FeeratePerKB,
     block_1: FeeratePerKB,
@@ -122,16 +126,17 @@ case class FeeratesPerKB(
     "all feerates must be strictly greater than 0"
   )
 
-  def feePerBlock(target: Int): FeeratePerKB = target match {
-    case 1             => block_1
-    case 2             => blocks_2
-    case t if t <= 6   => blocks_6
-    case t if t <= 12  => blocks_12
-    case t if t <= 36  => blocks_36
-    case t if t <= 72  => blocks_72
-    case t if t <= 144 => blocks_144
-    case _             => blocks_1008
-  }
+  def feePerBlock(target: Int): FeeratePerKB =
+    target match {
+      case 1 => block_1
+      case 2 => blocks_2
+      case t if t <= 6 => blocks_6
+      case t if t <= 12 => blocks_12
+      case t if t <= 36 => blocks_36
+      case t if t <= 72 => blocks_72
+      case t if t <= 144 => blocks_144
+      case _ => blocks_1008
+    }
 }
 
 /** Fee rates in satoshi-per-kilo-weight (1 kw = 1000 weight units). */
@@ -151,41 +156,44 @@ case class FeeratesPerKw(
     "all feerates must be strictly greater than 0"
   )
 
-  def feePerBlock(target: Int): FeeratePerKw = target match {
-    case 1             => block_1
-    case 2             => blocks_2
-    case t if t <= 6   => blocks_6
-    case t if t <= 12  => blocks_12
-    case t if t <= 36  => blocks_36
-    case t if t <= 72  => blocks_72
-    case t if t <= 144 => blocks_144
-    case _             => blocks_1008
-  }
+  def feePerBlock(target: Int): FeeratePerKw =
+    target match {
+      case 1 => block_1
+      case 2 => blocks_2
+      case t if t <= 6 => blocks_6
+      case t if t <= 12 => blocks_12
+      case t if t <= 36 => blocks_36
+      case t if t <= 72 => blocks_72
+      case t if t <= 144 => blocks_144
+      case _ => blocks_1008
+    }
 }
 
 object FeeratesPerKw {
-  def apply(feerates: FeeratesPerKB): FeeratesPerKw = FeeratesPerKw(
-    mempoolMinFee = FeeratePerKw(feerates.mempoolMinFee),
-    block_1 = FeeratePerKw(feerates.block_1),
-    blocks_2 = FeeratePerKw(feerates.blocks_2),
-    blocks_6 = FeeratePerKw(feerates.blocks_6),
-    blocks_12 = FeeratePerKw(feerates.blocks_12),
-    blocks_36 = FeeratePerKw(feerates.blocks_36),
-    blocks_72 = FeeratePerKw(feerates.blocks_72),
-    blocks_144 = FeeratePerKw(feerates.blocks_144),
-    blocks_1008 = FeeratePerKw(feerates.blocks_1008)
-  )
+  def apply(feerates: FeeratesPerKB): FeeratesPerKw =
+    FeeratesPerKw(
+      mempoolMinFee = FeeratePerKw(feerates.mempoolMinFee),
+      block_1 = FeeratePerKw(feerates.block_1),
+      blocks_2 = FeeratePerKw(feerates.blocks_2),
+      blocks_6 = FeeratePerKw(feerates.blocks_6),
+      blocks_12 = FeeratePerKw(feerates.blocks_12),
+      blocks_36 = FeeratePerKw(feerates.blocks_36),
+      blocks_72 = FeeratePerKw(feerates.blocks_72),
+      blocks_144 = FeeratePerKw(feerates.blocks_144),
+      blocks_1008 = FeeratePerKw(feerates.blocks_1008)
+    )
 
   /** Used in tests */
-  def single(feeratePerKw: FeeratePerKw): FeeratesPerKw = FeeratesPerKw(
-    mempoolMinFee = feeratePerKw,
-    block_1 = feeratePerKw,
-    blocks_2 = feeratePerKw,
-    blocks_6 = feeratePerKw,
-    blocks_12 = feeratePerKw,
-    blocks_36 = feeratePerKw,
-    blocks_72 = feeratePerKw,
-    blocks_144 = feeratePerKw,
-    blocks_1008 = feeratePerKw
-  )
+  def single(feeratePerKw: FeeratePerKw): FeeratesPerKw =
+    FeeratesPerKw(
+      mempoolMinFee = feeratePerKw,
+      block_1 = feeratePerKw,
+      blocks_2 = feeratePerKw,
+      blocks_6 = feeratePerKw,
+      blocks_12 = feeratePerKw,
+      blocks_36 = feeratePerKw,
+      blocks_72 = feeratePerKw,
+      blocks_144 = feeratePerKw,
+      blocks_1008 = feeratePerKw
+    )
 }

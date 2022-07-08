@@ -32,22 +32,23 @@ object OutPoint extends BtcSerializer[OutPoint] {
 
 }
 
-/** an out point is a reference to a specific output in a specific transaction
-  * that we want to claim
-  *
-  * @param hash
-  *   reversed sha256(sha256(tx)) where tx is the transaction we want to refer
-  *   to
-  * @param index
-  *   index of the output in tx that we want to refer to
-  */
-case class OutPoint(hash: ByteVector32, index: Long)
-    extends BtcSerializable[OutPoint] {
+/**
+ * an out point is a reference to a specific output in a specific transaction
+ * that we want to claim
+ *
+ * @param hash
+ *   reversed sha256(sha256(tx)) where tx is the transaction we want to refer
+ *   to
+ * @param index
+ *   index of the output in tx that we want to refer to
+ */
+case class OutPoint(hash: ByteVector32, index: Long) extends BtcSerializable[OutPoint] {
   require(index >= -1)
 
-  /** @return
-    *   the id of the transaction this output belongs to
-    */
+  /**
+   * @return
+   *   the id of the transaction this output belongs to
+   */
   val txid: ByteVector32 = hash.reverse
 
   override def serializer: BtcSerializer[OutPoint] = OutPoint
@@ -85,11 +86,12 @@ object TxIn extends BtcSerializer[TxIn] {
    * 9 bits. */
   val SEQUENCE_LOCKTIME_GRANULARITY = 9
 
-  override def read(input: InputStream, protocolVersion: Long): TxIn = TxIn(
-    outPoint = OutPoint.read(input),
-    signatureScript = script(input),
-    sequence = uint32(input)
-  )
+  override def read(input: InputStream, protocolVersion: Long): TxIn =
+    TxIn(
+      outPoint = OutPoint.read(input),
+      signatureScript = script(input),
+      sequence = uint32(input)
+    )
 
   override def write(
       input: TxIn,
@@ -123,21 +125,22 @@ object TxIn extends BtcSerializer[TxIn] {
   def coinbase(script: Seq[ScriptElt]): TxIn = coinbase(Script.write(script))
 }
 
-/** Transaction input
-  *
-  * @param outPoint
-  *   Previous output transaction reference
-  * @param signatureScript
-  *   Signature script which should match the public key script of the output
-  *   that we want to spend
-  * @param sequence
-  *   Transaction version as defined by the sender. Intended for "replacement"
-  *   of transactions when information is updated before inclusion into a block.
-  *   Repurposed for OP_CSV (see BIPs 68 & 112)
-  * @param witness
-  *   Transaction witness (i.e. what is in sig script for standard
-  *   transactions).
-  */
+/**
+ * Transaction input
+ *
+ * @param outPoint
+ *   Previous output transaction reference
+ * @param signatureScript
+ *   Signature script which should match the public key script of the output
+ *   that we want to spend
+ * @param sequence
+ *   Transaction version as defined by the sender. Intended for "replacement"
+ *   of transactions when information is updated before inclusion into a block.
+ *   Repurposed for OP_CSV (see BIPs 68 & 112)
+ * @param witness
+ *   Transaction witness (i.e. what is in sig script for standard
+ *   transactions).
+ */
 case class TxIn(
     outPoint: OutPoint,
     signatureScript: ByteVector,
@@ -181,15 +184,15 @@ object TxOut extends BtcSerializer[TxOut] {
   }
 }
 
-/** Transaction output
-  *
-  * @param amount
-  *   amount in Satoshis
-  * @param publicKeyScript
-  *   public key script which sets the conditions for spending this output
-  */
-case class TxOut(amount: Satoshi, publicKeyScript: ByteVector)
-    extends BtcSerializable[TxOut] {
+/**
+ * Transaction output
+ *
+ * @param amount
+ *   amount in Satoshis
+ * @param publicKeyScript
+ *   public key script which sets the conditions for spending this output
+ */
+case class TxOut(amount: Satoshi, publicKeyScript: ByteVector) extends BtcSerializable[TxOut] {
   override def serializer: BtcSerializer[TxOut] = TxOut
 }
 
@@ -219,14 +222,14 @@ object ScriptWitness extends BtcSerializer[ScriptWitness] {
     )
 }
 
-/** a script witness is just a stack of data there is one script witness per
-  * transaction input
-  *
-  * @param stack
-  *   items to be pushed on the stack
-  */
-case class ScriptWitness(stack: Seq[ByteVector])
-    extends BtcSerializable[ScriptWitness] {
+/**
+ * a script witness is just a stack of data there is one script witness per
+ * transaction input
+ *
+ * @param stack
+ *   items to be pushed on the stack
+ */
+case class ScriptWitness(stack: Seq[ByteVector]) extends BtcSerializable[ScriptWitness] {
   def isNull = stack.isEmpty
 
   def isNotNull = !isNull
@@ -239,11 +242,12 @@ object Transaction extends BtcSerializer[Transaction] {
   // if lockTime >= LOCKTIME_THRESHOLD it is a unix timestamp otherwise it is a block height
   val LOCKTIME_THRESHOLD = 500000000L
 
-  /** @param version
-    *   protocol version (and NOT transaction version !)
-    * @return
-    *   true if protocol version specifies that witness data is to be serialized
-    */
+  /**
+   * @param version
+   *   protocol version (and NOT transaction version !)
+   * @return
+   *   true if protocol version specifies that witness data is to be serialized
+   */
   def serializeTxWitness(version: Long): Boolean =
     (version & SERIALIZE_TRANSACTION_NO_WITNESS) == 0
 
@@ -340,20 +344,21 @@ object Transaction extends BtcSerializer[Transaction] {
   def isCoinbase(input: Transaction) =
     input.txIn.size == 1 && OutPoint.isCoinbase(input.txIn(0).outPoint)
 
-  /** prepare a transaction for signing a specific input
-    *
-    * @param tx
-    *   input transaction
-    * @param inputIndex
-    *   index of the tx input that is being processed
-    * @param previousOutputScript
-    *   public key script of the output claimed by this tx input
-    * @param sighashType
-    *   signature hash type
-    * @return
-    *   a new transaction with proper inputs and outputs according to
-    *   SIGHASH_TYPE rules
-    */
+  /**
+   * prepare a transaction for signing a specific input
+   *
+   * @param tx
+   *   input transaction
+   * @param inputIndex
+   *   index of the tx input that is being processed
+   * @param previousOutputScript
+   *   public key script of the output claimed by this tx input
+   * @param sighashType
+   *   signature hash type
+   * @return
+   *   a new transaction with proper inputs and outputs according to
+   *   SIGHASH_TYPE rules
+   */
   def prepareForSigning(
       tx: Transaction,
       inputIndex: Int,
@@ -374,16 +379,13 @@ object Transaction extends BtcSerializer[Transaction] {
         tx: Transaction,
         index: Int,
         script: ByteVector
-    ): Transaction = tx.copy(txIn =
-      tx.txIn.updated(index, tx.txIn(index).copy(signatureScript = script))
-    )
+    ): Transaction = tx.copy(txIn = tx.txIn.updated(index, tx.txIn(index).copy(signatureScript = script)))
 
-    def resetSequence(txins: Seq[TxIn], inputIndex: Int): Seq[TxIn] = for (
-      i <- txins.indices
-    ) yield {
-      if (i == inputIndex) txins(i)
-      else txins(i).copy(sequence = 0)
-    }
+    def resetSequence(txins: Seq[TxIn], inputIndex: Int): Seq[TxIn] =
+      for (i <- txins.indices) yield {
+        if (i == inputIndex) txins(i)
+        else txins(i).copy(sequence = 0)
+      }
 
     val txCopy = {
       // remove all signature scripts, and replace the sig script for the input that we are processing with the
@@ -414,19 +416,20 @@ object Transaction extends BtcSerializer[Transaction] {
     txCopy
   }
 
-  /** hash a tx for signing (pre-segwit)
-    *
-    * @param tx
-    *   input transaction
-    * @param inputIndex
-    *   index of the tx input that is being processed
-    * @param previousOutputScript
-    *   public key script of the output claimed by this tx input
-    * @param sighashType
-    *   signature hash type
-    * @return
-    *   a hash which can be used to sign the referenced tx input
-    */
+  /**
+   * hash a tx for signing (pre-segwit)
+   *
+   * @param tx
+   *   input transaction
+   * @param inputIndex
+   *   index of the tx input that is being processed
+   * @param previousOutputScript
+   *   public key script of the output claimed by this tx input
+   * @param sighashType
+   *   signature hash type
+   * @return
+   *   a hash which can be used to sign the referenced tx input
+   */
   def hashForSigning(
       tx: Transaction,
       inputIndex: Int,
@@ -447,19 +450,20 @@ object Transaction extends BtcSerializer[Transaction] {
     }
   }
 
-  /** hash a tx for signing (pre-segwit)
-    *
-    * @param tx
-    *   input transaction
-    * @param inputIndex
-    *   index of the tx input that is being processed
-    * @param previousOutputScript
-    *   public key script of the output claimed by this tx input
-    * @param sighashType
-    *   signature hash type
-    * @return
-    *   a hash which can be used to sign the referenced tx input
-    */
+  /**
+   * hash a tx for signing (pre-segwit)
+   *
+   * @param tx
+   *   input transaction
+   * @param inputIndex
+   *   index of the tx input that is being processed
+   * @param previousOutputScript
+   *   public key script of the output claimed by this tx input
+   * @param sighashType
+   *   signature hash type
+   * @return
+   *   a hash which can be used to sign the referenced tx input
+   */
   def hashForSigning(
       tx: Transaction,
       inputIndex: Int,
@@ -473,21 +477,22 @@ object Transaction extends BtcSerializer[Transaction] {
       sighashType
     )
 
-  /** hash a tx for signing
-    *
-    * @param tx
-    *   input transaction
-    * @param inputIndex
-    *   index of the tx input that is being processed
-    * @param previousOutputScript
-    *   public key script of the output claimed by this tx input
-    * @param sighashType
-    *   signature hash type
-    * @param amount
-    *   amount of the output claimed by this input
-    * @return
-    *   a hash which can be used to sign the referenced tx input
-    */
+  /**
+   * hash a tx for signing
+   *
+   * @param tx
+   *   input transaction
+   * @param inputIndex
+   *   index of the tx input that is being processed
+   * @param previousOutputScript
+   *   public key script of the output claimed by this tx input
+   * @param sighashType
+   *   signature hash type
+   * @param amount
+   *   amount of the output claimed by this input
+   * @return
+   *   a hash which can be used to sign the referenced tx input
+   */
   def hashForSigning(
       tx: Transaction,
       inputIndex: Int,
@@ -556,21 +561,22 @@ object Transaction extends BtcSerializer[Transaction] {
     }
   }
 
-  /** hash a tx for signing
-    *
-    * @param tx
-    *   input transaction
-    * @param inputIndex
-    *   index of the tx input that is being processed
-    * @param previousOutputScript
-    *   public key script of the output claimed by this tx input
-    * @param sighashType
-    *   signature hash type
-    * @param amount
-    *   amount of the output claimed by this input
-    * @return
-    *   a hash which can be used to sign the referenced tx input
-    */
+  /**
+   * hash a tx for signing
+   *
+   * @param tx
+   *   input transaction
+   * @param inputIndex
+   *   index of the tx input that is being processed
+   * @param previousOutputScript
+   *   public key script of the output claimed by this tx input
+   * @param sighashType
+   *   signature hash type
+   * @param amount
+   *   amount of the output claimed by this input
+   * @return
+   *   a hash which can be used to sign the referenced tx input
+   */
   def hashForSigning(
       tx: Transaction,
       inputIndex: Int,
@@ -588,25 +594,26 @@ object Transaction extends BtcSerializer[Transaction] {
       signatureVersion
     )
 
-  /** sign a tx input
-    *
-    * @param tx
-    *   input transaction
-    * @param inputIndex
-    *   index of the tx input that is being processed
-    * @param previousOutputScript
-    *   public key script of the output claimed by this tx input
-    * @param sighashType
-    *   signature hash type, which will be appended to the signature
-    * @param amount
-    *   amount of the output claimed by this tx input
-    * @param signatureVersion
-    *   signature version (1: segwit, 0: pre-segwit)
-    * @param privateKey
-    *   private key
-    * @return
-    *   the encoded signature of this tx for this specific tx input
-    */
+  /**
+   * sign a tx input
+   *
+   * @param tx
+   *   input transaction
+   * @param inputIndex
+   *   index of the tx input that is being processed
+   * @param previousOutputScript
+   *   public key script of the output claimed by this tx input
+   * @param sighashType
+   *   signature hash type, which will be appended to the signature
+   * @param amount
+   *   amount of the output claimed by this tx input
+   * @param signatureVersion
+   *   signature version (1: segwit, 0: pre-segwit)
+   * @param privateKey
+   *   private key
+   * @return
+   *   the encoded signature of this tx for this specific tx input
+   */
   def signInput(
       tx: Transaction,
       inputIndex: Int,
@@ -629,25 +636,26 @@ object Transaction extends BtcSerializer[Transaction] {
     Crypto.compact2der(sig) :+ sighashType.toByte
   }
 
-  /** sign a tx input
-    *
-    * @param tx
-    *   input transaction
-    * @param inputIndex
-    *   index of the tx input that is being processed
-    * @param previousOutputScript
-    *   public key script of the output claimed by this tx input
-    * @param sighashType
-    *   signature hash type, which will be appended to the signature
-    * @param amount
-    *   amount of the output claimed by this tx input
-    * @param signatureVersion
-    *   signature version (1: segwit, 0: pre-segwit)
-    * @param privateKey
-    *   private key
-    * @return
-    *   the encoded signature of this tx for this specific tx input
-    */
+  /**
+   * sign a tx input
+   *
+   * @param tx
+   *   input transaction
+   * @param inputIndex
+   *   index of the tx input that is being processed
+   * @param previousOutputScript
+   *   public key script of the output claimed by this tx input
+   * @param sighashType
+   *   signature hash type, which will be appended to the signature
+   * @param amount
+   *   amount of the output claimed by this tx input
+   * @param signatureVersion
+   *   signature version (1: segwit, 0: pre-segwit)
+   * @param privateKey
+   *   private key
+   * @return
+   *   the encoded signature of this tx for this specific tx input
+   */
   def signInput(
       tx: Transaction,
       inputIndex: Int,
@@ -724,17 +732,18 @@ object Transaction extends BtcSerializer[Transaction] {
     correctlySpends(tx, inputs, scriptFlags, None)
 }
 
-/** Transaction
-  *
-  * @param version
-  *   Transaction data format version
-  * @param txIn
-  *   Transaction inputs
-  * @param txOut
-  *   Transaction outputs
-  * @param lockTime
-  *   The block number or timestamp at which this transaction is locked
-  */
+/**
+ * Transaction
+ *
+ * @param version
+ *   Transaction data format version
+ * @param txIn
+ *   Transaction inputs
+ * @param txOut
+ *   Transaction outputs
+ * @param lockTime
+ *   The block number or timestamp at which this transaction is locked
+ */
 case class Transaction(
     version: Long,
     txIn: Seq[TxIn],
@@ -757,40 +766,44 @@ case class Transaction(
   // this is much easier to use than Scala's default toString
   override def toString: String = bin.toHex
 
-  /** @param blockHeight
-    *   current block height
-    * @param blockTime
-    *   current block time
-    * @return
-    *   true if the transaction is final
-    */
-  def isFinal(blockHeight: Long, blockTime: Long): Boolean = lockTime match {
-    case 0                                                          => true
-    case value if value < LOCKTIME_THRESHOLD && value < blockHeight => true
-    case value if value >= LOCKTIME_THRESHOLD && value < blockTime  => true
-    case _ if txIn.exists(!_.isFinal)                               => false
-    case _                                                          => true
-  }
+  /**
+   * @param blockHeight
+   *   current block height
+   * @param blockTime
+   *   current block time
+   * @return
+   *   true if the transaction is final
+   */
+  def isFinal(blockHeight: Long, blockTime: Long): Boolean =
+    lockTime match {
+      case 0 => true
+      case value if value < LOCKTIME_THRESHOLD && value < blockHeight => true
+      case value if value >= LOCKTIME_THRESHOLD && value < blockTime => true
+      case _ if txIn.exists(!_.isFinal) => false
+      case _ => true
+    }
 
-  /** @param i
-    *   index of the tx input to update
-    * @param sigScript
-    *   new signature script
-    * @return
-    *   a new transaction that is of copy of this one but where the signature
-    *   script of the ith input has been replace by sigscript
-    */
+  /**
+   * @param i
+   *   index of the tx input to update
+   * @param sigScript
+   *   new signature script
+   * @return
+   *   a new transaction that is of copy of this one but where the signature
+   *   script of the ith input has been replace by sigscript
+   */
   def updateSigScript(i: Int, sigScript: ByteVector): Transaction =
     this.copy(txIn = txIn.updated(i, txIn(i).copy(signatureScript = sigScript)))
 
-  /** @param i
-    *   index of the tx input to update
-    * @param sigScript
-    *   new signature script
-    * @return
-    *   a new transaction that is of copy of this one but where the signature
-    *   script of the ith input has been replace by sigscript
-    */
+  /**
+   * @param i
+   *   index of the tx input to update
+   * @param sigScript
+   *   new signature script
+   * @return
+   *   a new transaction that is of copy of this one but where the signature
+   *   script of the ith input has been replace by sigscript
+   */
   def updateSigScript(i: Int, sigScript: Seq[ScriptElt]): Transaction =
     updateSigScript(i, Script.write(sigScript))
 
@@ -799,25 +812,28 @@ case class Transaction(
 
   def updateWitnesses(witnesses: Seq[ScriptWitness]): Transaction = {
     require(witnesses.length == txIn.length)
-    witnesses.zipWithIndex.foldLeft(this) { case (tx, (witness, index)) =>
-      tx.updateWitness(index, witness)
+    witnesses.zipWithIndex.foldLeft(this) {
+      case (tx, (witness, index)) =>
+        tx.updateWitness(index, witness)
     }
   }
 
   def hasWitness: Boolean = txIn.exists(_.hasWitness)
 
-  /** @param input
-    *   input to add the tx
-    * @return
-    *   a new transaction which includes the newly added input
-    */
+  /**
+   * @param input
+   *   input to add the tx
+   * @return
+   *   a new transaction which includes the newly added input
+   */
   def addInput(input: TxIn): Transaction = this.copy(txIn = this.txIn :+ input)
 
-  /** @param output
-    *   output to add to the tx
-    * @return
-    *   a new transaction which includes the newly added output
-    */
+  /**
+   * @param output
+   *   output to add to the tx
+   * @return
+   *   a new transaction which includes the newly added output
+   */
   def addOutput(output: TxOut): Transaction =
     this.copy(txOut = this.txOut :+ output)
 

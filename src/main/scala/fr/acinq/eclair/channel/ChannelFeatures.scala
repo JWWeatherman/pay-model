@@ -1,10 +1,7 @@
 package fr.acinq.eclair.channel
 
 import fr.acinq.eclair.Features.{ResizeableHostedChannels, StaticRemoteKey}
-import fr.acinq.eclair.transactions.Transactions.{
-  CommitmentFormat,
-  DefaultCommitmentFormat
-}
+import fr.acinq.eclair.transactions.Transactions.{CommitmentFormat, DefaultCommitmentFormat}
 import fr.acinq.eclair.{Feature, FeatureScope}
 
 case class ChannelFeatures(

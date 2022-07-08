@@ -67,7 +67,8 @@ case class BitcoinJsonRpcClient(
    * @return Error or the method's expected response object
    */
   def send[T](method: String, params: JsValueWrapper*)(implicit
-                                                       jsonReader: Reads[T]): Future[Either[RpcResponseError, T]] = {
+      jsonReader: Reads[T]
+  ): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString
     val body = Json
       .toJson(JsonRpcRequestBody(method = method, params = Json.arr(params: _*), jsonrpc = config.jsonRpc, id = ID))
@@ -225,11 +226,13 @@ case class BitcoinJsonRpcClient(
       locktime: Option[Int] = None,
       replaceable: Option[Boolean] = None
   ): Future[Either[RpcResponseError, String]] =
-    send[String]("createpsbt",
-                 inputs,
-                 outputs.map { case (a, b) => a.address -> Btc.stringify(b) },
-                 locktime,
-                 replaceable)
+    send[String](
+      "createpsbt",
+      inputs,
+      outputs.map { case (a, b) => a.address -> Btc.stringify(b) },
+      locktime,
+      replaceable
+    )
 
   def getblockcount: Future[Either[RpcResponseError, Int]] =
     send[Int]("getblockcount")

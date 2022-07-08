@@ -63,47 +63,53 @@ case class Features[T <: FeatureScope](
   def hasFeature(
       feature: Feature with T,
       support: Option[FeatureSupport] = None
-  ): Boolean = support match {
-    case Some(s) => activated.get(feature).contains(s)
-    case None    => activated.contains(feature)
-  }
+  ): Boolean =
+    support match {
+      case Some(s) => activated.get(feature).contains(s)
+      case None => activated.contains(feature)
+    }
 
   def hasPluginFeature(feature: UnknownFeature): Boolean =
     unknown.contains(feature)
 
-  /** NB: this method is not reflexive, see [[Features.areCompatible]] if you
-    * want symmetric validation.
-    */
+  /**
+   * NB: this method is not reflexive, see [[Features.areCompatible]] if you
+   * want symmetric validation.
+   */
   def areSupported(remoteFeatures: Features[T]): Boolean = {
     // we allow unknown odd features (it's ok to be odd)
     val unknownFeaturesOk = remoteFeatures.unknown.forall(_.bitIndex % 2 == 1)
     // we verify that we activated every mandatory feature they require
     val knownFeaturesOk = remoteFeatures.activated.forall {
-      case (_, Optional)        => true
+      case (_, Optional) => true
       case (feature, Mandatory) => hasFeature(feature)
     }
     unknownFeaturesOk && knownFeaturesOk
   }
 
   def initFeatures(): Features[InitFeature] =
-    Features[InitFeature](activated.collect { case (f: InitFeature, s) =>
-      (f, s)
+    Features[InitFeature](activated.collect {
+      case (f: InitFeature, s) =>
+        (f, s)
     }.toSeq: _*)
 
   def nodeAnnouncementFeatures(): Features[NodeFeature] =
-    Features[NodeFeature](activated.collect { case (f: NodeFeature, s) =>
-      (f, s)
+    Features[NodeFeature](activated.collect {
+      case (f: NodeFeature, s) =>
+        (f, s)
     }.toSeq: _*)
 
   def invoiceFeatures(): Features[InvoiceFeature] =
-    Features[InvoiceFeature](activated.collect { case (f: InvoiceFeature, s) =>
-      (f, s)
+    Features[InvoiceFeature](activated.collect {
+      case (f: InvoiceFeature, s) =>
+        (f, s)
     }.toSeq: _*)
 
-  def unscoped(): Features[FeatureScope] = Features[FeatureScope](
-    activated.collect { case (f, s) => (f: Feature with FeatureScope, s) },
-    unknown
-  )
+  def unscoped(): Features[FeatureScope] =
+    Features[FeatureScope](
+      activated.collect { case (f, s) => (f: Feature with FeatureScope, s) },
+      unknown
+    )
 
   def toByteVector: ByteVector = {
     val activatedFeatureBytes = toByteVectorFromIndex(activated.map {
@@ -153,17 +159,15 @@ object Features {
       case (true, idx) => Left(UnknownFeature(idx))
     }
     Features[FeatureScope](
-      activated = all.collect { case Right((feature, support)) =>
-        feature -> support
+      activated = all.collect {
+        case Right((feature, support)) =>
+          feature -> support
       }.toMap,
       unknown = all.collect { case Left(inf) => inf }.toSet
     )
   }
 
-  case object DataLossProtect
-      extends Feature
-      with InitFeature
-      with NodeFeature {
+  case object DataLossProtect extends Feature with InitFeature with NodeFeature {
     val rfcName = "Data loss protect"
     val mandatory = 0
   }
@@ -173,53 +177,32 @@ object Features {
     val mandatory = 2
   }
 
-  case object ChannelRangeQueries
-      extends Feature
-      with InitFeature
-      with NodeFeature {
+  case object ChannelRangeQueries extends Feature with InitFeature with NodeFeature {
     val rfcName = "Basic gossip queries"
     val mandatory = 6
   }
 
-  case object VariableLengthOnion
-      extends Feature
-      with InitFeature
-      with NodeFeature
-      with InvoiceFeature {
+  case object VariableLengthOnion extends Feature with InitFeature with NodeFeature with InvoiceFeature {
     val rfcName = "Advanced onion"
     val mandatory = 8
   }
 
-  case object ChannelRangeQueriesExtended
-      extends Feature
-      with InitFeature
-      with NodeFeature {
+  case object ChannelRangeQueriesExtended extends Feature with InitFeature with NodeFeature {
     val rfcName = "Fast graph sync"
     val mandatory = 10
   }
 
-  case object StaticRemoteKey
-      extends Feature
-      with InitFeature
-      with NodeFeature {
+  case object StaticRemoteKey extends Feature with InitFeature with NodeFeature {
     val rfcName = "Direct refund"
     val mandatory = 12
   }
 
-  case object PaymentSecret
-      extends Feature
-      with InitFeature
-      with NodeFeature
-      with InvoiceFeature {
+  case object PaymentSecret extends Feature with InitFeature with NodeFeature with InvoiceFeature {
     val rfcName = "Payment secret"
     val mandatory = 14
   }
 
-  case object BasicMultiPartPayment
-      extends Feature
-      with InitFeature
-      with NodeFeature
-      with InvoiceFeature {
+  case object BasicMultiPartPayment extends Feature with InitFeature with NodeFeature with InvoiceFeature {
     val rfcName = "Multipart payments"
     val mandatory = 16
   }
@@ -229,10 +212,7 @@ object Features {
     val mandatory = 18
   }
 
-  case object ShutdownAnySegwit
-      extends Feature
-      with InitFeature
-      with NodeFeature {
+  case object ShutdownAnySegwit extends Feature with InitFeature with NodeFeature {
     val rfcName = "Any shutdown script"
     val mandatory = 26
   }
@@ -247,11 +227,7 @@ object Features {
     val mandatory = 48
   }
 
-  case object TrampolinePayment
-      extends Feature
-      with InitFeature
-      with NodeFeature
-      with InvoiceFeature {
+  case object TrampolinePayment extends Feature with InitFeature with NodeFeature with InvoiceFeature {
     val rfcName = "Trampoline payments"
     val mandatory = 50
   }
@@ -266,10 +242,7 @@ object Features {
     val mandatory = 32972
   }
 
-  case object ResizeableHostedChannels
-      extends Feature
-      with InitFeature
-      with NodeFeature {
+  case object ResizeableHostedChannels extends Feature with InitFeature with NodeFeature {
     val rfcName = "Resizeable Hosted channels"
     val mandatory = 32974
   }
@@ -293,8 +266,7 @@ object Features {
     ResizeableHostedChannels
   )
 
-  case class FeatureException(message: String)
-      extends IllegalArgumentException(message)
+  case class FeatureException(message: String) extends IllegalArgumentException(message)
 
   /** Returns true if both feature sets are compatible. */
   def areCompatible[T <: FeatureScope](

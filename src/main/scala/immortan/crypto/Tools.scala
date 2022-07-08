@@ -49,12 +49,16 @@ object Tools {
   }
 
   implicit class IterableOfTuple2[T, V](underlying: Iterable[(T, V)] = Nil) {
-    def secondItems: Iterable[V] = underlying.map { case (_, secondItem) =>
-      secondItem
-    }
-    def firstItems: Iterable[T] = underlying.map { case (firstItem, _) =>
-      firstItem
-    }
+    def secondItems: Iterable[V] =
+      underlying.map {
+        case (_, secondItem) =>
+          secondItem
+      }
+    def firstItems: Iterable[T] =
+      underlying.map {
+        case (firstItem, _) =>
+          firstItem
+      }
   }
 
   implicit class ThrowableOps(error: Throwable) {
@@ -77,8 +81,9 @@ object Tools {
       mapper: K => K1,
       defVal: V
   ): mutable.Map[K1, V] =
-    items.map { case (key, value) =>
-      mapper(key) -> value
+    items.map {
+      case (key, value) =>
+        mapper(key) -> value
     } withDefaultValue defVal
 
   def memoize[In <: Object, Out <: Object](
@@ -162,15 +167,16 @@ object Tools {
   def chaChaDecrypt(
       key: ByteVector32,
       data: ByteVector
-  ): scala.util.Try[ByteVector] = scala.util.Try {
-    ChaCha20Poly1305.decrypt(
-      key,
-      nonce = data drop 16 take 12,
-      ciphertext = data drop 28,
-      ByteVector.empty,
-      mac = data take 16
-    )
-  }
+  ): scala.util.Try[ByteVector] =
+    scala.util.Try {
+      ChaCha20Poly1305.decrypt(
+        key,
+        nonce = data drop 16 take 12,
+        ciphertext = data drop 28,
+        ByteVector.empty,
+        mac = data take 16
+      )
+    }
 
   def prepareBip84Psbt(
       response: GenerateTxResponse,
@@ -180,38 +186,38 @@ object Tools {
     val psbt1 = Psbt(response.tx)
 
     // Provide info about inputs
-    val psbt2 = response.tx.txIn.foldLeft(psbt1) { case (psbt, txIn) =>
-      val parentTransaction = response.data.transactions(txIn.outPoint.txid)
-      val utxoPubKey = response.data.publicScriptMap(
-        parentTransaction.txOut(txIn.outPoint.index.toInt).publicKeyScript
-      )
-      val derivationPath = Map(
-        KeyPathWithMaster(
-          masterFingerprint,
-          utxoPubKey.path
-        ) -> utxoPubKey.publicKey
-      ).map(_.swap)
-      psbt
-        .updateWitnessInputTx(
-          parentTransaction,
-          txIn.outPoint.index.toInt,
-          derivationPaths = derivationPath
+    val psbt2 = response.tx.txIn.foldLeft(psbt1) {
+      case (psbt, txIn) =>
+        val parentTransaction = response.data.transactions(txIn.outPoint.txid)
+        val utxoPubKey = response.data.publicScriptMap(
+          parentTransaction.txOut(txIn.outPoint.index.toInt).publicKeyScript
         )
-        .get
+        val derivationPath = Map(
+          KeyPathWithMaster(
+            masterFingerprint,
+            utxoPubKey.path
+          ) -> utxoPubKey.publicKey
+        ).map(_.swap)
+        psbt
+          .updateWitnessInputTx(
+            parentTransaction,
+            txIn.outPoint.index.toInt,
+            derivationPaths = derivationPath
+          )
+          .get
     }
 
     // Provide info about our change output
     response.tx.txOut.zipWithIndex.foldLeft(psbt2) {
       case (psbt, txOut ~ index) =>
-        response.data.publicScriptChangeMap.get(txOut.publicKeyScript) map {
-          changeKey =>
-            val changeKeyPathWithMaster =
-              KeyPathWithMaster(masterFingerprint, changeKey.path)
-            val derivationPath =
-              Map(changeKeyPathWithMaster -> changeKey.publicKey).map(_.swap)
-            psbt
-              .updateWitnessOutput(index, derivationPaths = derivationPath)
-              .get
+        response.data.publicScriptChangeMap.get(txOut.publicKeyScript) map { changeKey =>
+          val changeKeyPathWithMaster =
+            KeyPathWithMaster(masterFingerprint, changeKey.path)
+          val derivationPath =
+            Map(changeKeyPathWithMaster -> changeKey.publicKey).map(_.swap)
+          psbt
+            .updateWitnessOutput(index, derivationPaths = derivationPath)
+            .get
         } getOrElse psbt
     }
   }
@@ -219,17 +225,19 @@ object Tools {
   def extractBip84Tx(psbt: Psbt): scala.util.Try[Transaction] = {
     // We ONLY support BIP84 watching wallets so all inputs have witnesses
     psbt.extract orElse psbt.inputs.zipWithIndex
-      .foldLeft(psbt) { case (psbt1, input ~ index) =>
-        val witness = (Script.witnessPay2wpkh _).tupled(input.partialSigs.head)
-        psbt1.finalizeWitnessInput(index, witness).get
+      .foldLeft(psbt) {
+        case (psbt1, input ~ index) =>
+          val witness = (Script.witnessPay2wpkh _).tupled(input.partialSigs.head)
+          psbt1.finalizeWitnessInput(index, witness).get
       }
       .extract
   }
 
-  def obtainPsbt(ur: UR): scala.util.Try[Psbt] = scala.util.Try {
-    val rawPsbt = ur.decodeFromRegistry.asInstanceOf[CryptoPSBT]
-    ByteVector.view(rawPsbt.getPsbt)
-  } flatMap Psbt.read
+  def obtainPsbt(ur: UR): scala.util.Try[Psbt] =
+    scala.util.Try {
+      val rawPsbt = ur.decodeFromRegistry.asInstanceOf[CryptoPSBT]
+      ByteVector.view(rawPsbt.getPsbt)
+    } flatMap Psbt.read
 
   object ~ {
     // Useful for matching nested Tuple2 with less noise

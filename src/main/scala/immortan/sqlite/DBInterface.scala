@@ -17,8 +17,7 @@ trait DBInterface {
     select(sqlSelectQuery, s"${rawQuery.replaceAll("'", "\\'").trim}*")
 }
 
-case class DBInterfaceSQLiteGeneral(connection: java.sql.Connection)
-    extends DBInterface {
+case class DBInterfaceSQLiteGeneral(connection: java.sql.Connection) extends DBInterface {
   def change(sql: String, params: Object*): Unit =
     change(makePreparedQuery(sql), params: _*)
 

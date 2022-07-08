@@ -1,8 +1,9 @@
 package com.mathbot.pay
 
-import com.mathbot.pay.lightning.PayService.PayInvoiceServiceConfig
-import com.mathbot.pay.lightning.{Bolt11, PayService}
+import com.mathbot.pay.lightning.PayService.{PayInvoiceServiceConfig, RpcRequest}
+import com.mathbot.pay.lightning.{Bolt11, LightningGetInfoRequest, ListInvoicesRequest, PayService}
 import com.softwaremill.macwire.wire
+import play.api.libs.json.Json
 
 class PayServiceTest extends BaseIntegrationTest {
   val config =
@@ -58,20 +59,61 @@ class PayServiceTest extends BaseIntegrationTest {
 ////        assert(i.body.isRight)
 //      }
 //    }
+//    "open ws" in {
+//      println("get token")
+//      (for {
+//        tr <- service.getToken
+//        if tr.isSuccess
+//        _ = println("got token")
+//        _ <- service.testWs
+//        _ = println("open ws")
+//        r <- service.openWs { msg =>
+//          println("msg= " + msg)
+//        }
+//        _ = println("opened ws")
+//      } yield {
+//        assert(r.isSuccess)
+//      }) recover (err => {
+//        println(err)
+//        assert(false)
+//      })
+//    }
+
     "open ws" in {
       println("get token")
       (for {
         tr <- service.getToken
+        _ = println(tr)
         if tr.isSuccess
         _ = println("got token")
-        _ <- service.testWs
-        _ = println("open ws")
-        r <- service.openWs { msg =>
-          println("msg= " + msg)
+        _ = println("test ws")
+        _ <- service.testWs { ws =>
+          {
+
+            println("opened ws")
+            val str = Json
+              .obj(
+                "method" -> "listpays",
+                "params" ->
+                Json.obj()
+              )
+              .toString()
+            val str1 = Json.obj("method" -> "decodepay", "params" -> bolt11.bolt11)
+            for {
+//              s <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
+              s <- ws.sendText(
+                str1.toString()
+              )
+              r <- ws.receiveText()
+            } yield {
+              println("msg= " + r)
+              r
+            }
+          }
         }
-        _ = println("opened ws")
+
       } yield {
-        assert(r.isSuccess)
+        assert(true)
       }) recover (err => {
         println(err)
         assert(false)

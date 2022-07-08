@@ -162,8 +162,8 @@ case class PaymentDescription(
 ) extends TransactionDescription {
 
   val queryText: String = invoiceText + SEPARATOR + label.getOrElse(
-    new String
-  ) + SEPARATOR + meta.getOrElse(new String)
+      new String
+    ) + SEPARATOR + meta.getOrElse(new String)
 
   val externalInfo: Option[String] =
     meta.getOrElse(invoiceText).asSome.find(_.nonEmpty)
@@ -222,13 +222,11 @@ sealed trait PaymentAction {
   val finalMessage: String
 }
 
-case class MessageAction(domain: Option[String], message: String)
-    extends PaymentAction {
+case class MessageAction(domain: Option[String], message: String) extends PaymentAction {
   val finalMessage = s"<br>${message take 144}"
 }
 
-case class UrlAction(domain: Option[String], description: String, url: String)
-    extends PaymentAction {
+case class UrlAction(domain: Option[String], description: String, url: String) extends PaymentAction {
   require(
     domain.map(_.toLowerCase).forall(url.toLowerCase.contains),
     "Payment action domain mismatch"
@@ -493,31 +491,30 @@ object TxDescription {
   def defineOpeningRelation(
       chans: Iterable[Channel],
       tx: Transaction
-  ): Option[TxDescription] = chans.map(_.data).collectFirst {
-    case some: HasNormalCommitments
-        if some.commitments.commitInput.outPoint.txid == tx.txid =>
-      ChanFundingTxDescription(some.commitments.remoteInfo.nodeId)
-  }
+  ): Option[TxDescription] =
+    chans.map(_.data).collectFirst {
+      case some: HasNormalCommitments if some.commitments.commitInput.outPoint.txid == tx.txid =>
+        ChanFundingTxDescription(some.commitments.remoteInfo.nodeId)
+    }
 
   def defineClosingRelation(
       chans: Iterable[Channel],
       tx: Transaction
-  ): Option[TxDescription] = chans.map(_.data).collectFirst {
-    case closing: DATA_CLOSING
-        if closing.balanceRefunds.exists(_.txid == tx.txid) =>
-      ChanRefundingTxDescription(closing.commitments.remoteInfo.nodeId)
-    case closing: DATA_CLOSING
-        if closing.paymentLeftoverRefunds.exists(_.txid == tx.txid) =>
-      HtlcClaimTxDescription(closing.commitments.remoteInfo.nodeId)
-    case closing: DATA_CLOSING
-        if closing.revokedCommitPublished
-          .flatMap(_.penaltyTxs)
-          .exists(_.txid == tx.txid) =>
-      PenaltyTxDescription(closing.commitments.remoteInfo.nodeId)
-    case some: HasNormalCommitments
-        if tx.txIn.exists(
-          _.outPoint.txid == some.commitments.commitInput.outPoint.txid
-        ) =>
-      ChanRefundingTxDescription(some.commitments.remoteInfo.nodeId)
-  }
+  ): Option[TxDescription] =
+    chans.map(_.data).collectFirst {
+      case closing: DATA_CLOSING if closing.balanceRefunds.exists(_.txid == tx.txid) =>
+        ChanRefundingTxDescription(closing.commitments.remoteInfo.nodeId)
+      case closing: DATA_CLOSING if closing.paymentLeftoverRefunds.exists(_.txid == tx.txid) =>
+        HtlcClaimTxDescription(closing.commitments.remoteInfo.nodeId)
+      case closing: DATA_CLOSING
+          if closing.revokedCommitPublished
+            .flatMap(_.penaltyTxs)
+            .exists(_.txid == tx.txid) =>
+        PenaltyTxDescription(closing.commitments.remoteInfo.nodeId)
+      case some: HasNormalCommitments
+          if tx.txIn.exists(
+            _.outPoint.txid == some.commitments.commitInput.outPoint.txid
+          ) =>
+        ChanRefundingTxDescription(some.commitments.remoteInfo.nodeId)
+    }
 }

@@ -63,64 +63,63 @@ abstract class SwapInAddressHandler extends StateMachine[AddressData] { me =>
   def onNoProviderSwapInSupport: Unit
   def onTimeoutAndNoResponse: Unit
 
-  def doProcess(change: Any): Unit = (change, state) match {
-    case (
-          NoSwapInSupport(worker),
-          WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
-        ) =>
-      become(data.copy(results = data.results - worker.info), state)
-      doSearch(force = false)
+  def doProcess(change: Any): Unit =
+    (change, state) match {
+      case (
+            NoSwapInSupport(worker),
+            WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
+          ) =>
+        become(data.copy(results = data.results - worker.info), state)
+        doSearch(force = false)
 
-    case (
-          YesSwapInSupport(worker, msg: SwapInResponse),
-          WAITING_FIRST_RESPONSE
-        ) =>
-      val results1 = data.results.updated(
-        worker.info,
-        SwapInResponseExt(msg, worker.info).asSome
-      )
-      become(
-        data.copy(results = results1),
-        WAITING_REST_OF_RESPONSES
-      ) // Start waiting for the rest of responses
-      Rx.ioQueue
-        .delay(5.seconds)
-        .foreach(_ =>
-          me doSearch true
-        ) // Decrease timeout for the rest of responses
-      doSearch(force = false)
-
-    case (
-          YesSwapInSupport(worker, msg: SwapInResponse),
+      case (
+            YesSwapInSupport(worker, msg: SwapInResponse),
+            WAITING_FIRST_RESPONSE
+          ) =>
+        val results1 = data.results.updated(
+          worker.info,
+          SwapInResponseExt(msg, worker.info).asSome
+        )
+        become(
+          data.copy(results = results1),
           WAITING_REST_OF_RESPONSES
-        ) =>
-      val results1 = data.results.updated(
-        worker.info,
-        SwapInResponseExt(msg, worker.info).asSome
-      )
-      become(data.copy(results = results1), state)
-      doSearch(force = false)
+        ) // Start waiting for the rest of responses
+        Rx.ioQueue
+          .delay(5.seconds)
+          .foreach(_ => me doSearch true) // Decrease timeout for the rest of responses
+        doSearch(force = false)
 
-    case (CMDCancel, WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES) =>
-      // Do not disconnect from remote peer because we have a channel with them, but remove this exact SwapIn listener
-      for (cnc <- data.cmdStart.capableCncs)
-        CommsTower.rmListenerNative(cnc.commits.remoteInfo, swapInListener)
-      become(data, FINALIZED)
+      case (
+            YesSwapInSupport(worker, msg: SwapInResponse),
+            WAITING_REST_OF_RESPONSES
+          ) =>
+        val results1 = data.results.updated(
+          worker.info,
+          SwapInResponseExt(msg, worker.info).asSome
+        )
+        become(data.copy(results = results1), state)
+        doSearch(force = false)
 
-    case (cmd: CMDStart, -1) =>
-      become(
-        AddressData(
-          results = cmd.capableCncs.map(_.commits.remoteInfo -> None).toMap,
-          cmd
-        ),
-        WAITING_FIRST_RESPONSE
-      )
-      for (cnc <- cmd.capableCncs)
-        CommsTower.listenNative(Set(swapInListener), cnc.commits.remoteInfo)
-      Rx.ioQueue.delay(30.seconds).foreach(_ => me doSearch true)
+      case (CMDCancel, WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES) =>
+        // Do not disconnect from remote peer because we have a channel with them, but remove this exact SwapIn listener
+        for (cnc <- data.cmdStart.capableCncs)
+          CommsTower.rmListenerNative(cnc.commits.remoteInfo, swapInListener)
+        become(data, FINALIZED)
 
-    case _ =>
-  }
+      case (cmd: CMDStart, -1) =>
+        become(
+          AddressData(
+            results = cmd.capableCncs.map(_.commits.remoteInfo -> None).toMap,
+            cmd
+          ),
+          WAITING_FIRST_RESPONSE
+        )
+        for (cnc <- cmd.capableCncs)
+          CommsTower.listenNative(Set(swapInListener), cnc.commits.remoteInfo)
+        Rx.ioQueue.delay(30.seconds).foreach(_ => me doSearch true)
+
+      case _ =>
+    }
 
   private def doSearch(force: Boolean): Unit = {
     // Remove yet unknown responses, unsupporting peers have been removed earlier

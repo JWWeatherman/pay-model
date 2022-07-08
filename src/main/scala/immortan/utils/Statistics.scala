@@ -2,8 +2,9 @@ package immortan.utils
 
 object Statistics {
   def meanBy[T](items: Seq[T] = Nil)(extractor: T => Long): Double = {
-    val mean = items.foldLeft(0d) { case (total, item) =>
-      extractor(item).toDouble + total
+    val mean = items.foldLeft(0d) {
+      case (total, item) =>
+        extractor(item).toDouble + total
     }
     mean / items.size
   }
@@ -17,8 +18,9 @@ object Statistics {
   def stdDevBy[T](items: Seq[T] = Nil, mean: Double)(
       extractor: T => Long
   ): Double = {
-    val variance = items.foldLeft(0d) { case (total, item) =>
-      math.pow(extractor(item) - mean, 2) + total
+    val variance = items.foldLeft(0d) {
+      case (total, item) =>
+        math.pow(extractor(item) - mean, 2) + total
     }
     math.sqrt(variance / items.size.toDouble)
   }

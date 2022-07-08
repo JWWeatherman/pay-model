@@ -41,25 +41,24 @@ abstract class SwapOutHandler(
     override def onSwapOutMessage(
         worker: CommsTower.Worker,
         msg: SwapOut
-    ): Unit = msg match {
-      case SwapOutTransactionDenied(
-            btcAddr,
-            SwapOutTransactionDenied.UNKNOWN_CHAIN_FEERATES
-          ) if btcAddr == btcAddress =>
-        runAnd(finish)(onPeerCanNotHandle)
-      case SwapOutTransactionDenied(
-            btcAddr,
-            SwapOutTransactionDenied.CAN_NOT_HANDLE_AMOUNT
-          ) if btcAddr == btcAddress =>
-        runAnd(finish)(onPeerCanNotHandle)
-      case message: SwapOutTransactionResponse
-          if message.btcAddress == btcAddress =>
-        runAnd(finish)(me onResponse message)
-      case message: SwapOutTransactionDenied
-          if message.btcAddress == btcAddress =>
-        runAnd(finish)(onInvalidRequest)
-      case _ => // Do nothing, it's unrelated
-    }
+    ): Unit =
+      msg match {
+        case SwapOutTransactionDenied(
+              btcAddr,
+              SwapOutTransactionDenied.UNKNOWN_CHAIN_FEERATES
+            ) if btcAddr == btcAddress =>
+          runAnd(finish)(onPeerCanNotHandle)
+        case SwapOutTransactionDenied(
+              btcAddr,
+              SwapOutTransactionDenied.CAN_NOT_HANDLE_AMOUNT
+            ) if btcAddr == btcAddress =>
+          runAnd(finish)(onPeerCanNotHandle)
+        case message: SwapOutTransactionResponse if message.btcAddress == btcAddress =>
+          runAnd(finish)(me onResponse message)
+        case message: SwapOutTransactionDenied if message.btcAddress == btcAddress =>
+          runAnd(finish)(onInvalidRequest)
+        case _ => // Do nothing, it's unrelated
+      }
   }
 
   def onResponse(message: SwapOutTransactionResponse): Unit

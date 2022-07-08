@@ -56,22 +56,23 @@ object IncomingPaymentPacket {
       case Left(badOnion) => Left(badOnion)
     }
 
-  /** Decrypt the onion packet of a received htlc. If we are the final
-    * recipient, we validate that the HTLC fields match the onion fields (this
-    * prevents intermediate nodes from sending an invalid amount or expiry).
-    *
-    * NB: we can't fully validate RelayPackets because it requires knowing the
-    * channel/route we'll be using, which we don't know yet. Such validation is
-    * the responsibility of downstream components.
-    *
-    * @param add
-    *   incoming htlc
-    * @param privateKey
-    *   this node's private key
-    * @return
-    *   whether the payment is to be relayed or if our node is the final
-    *   recipient (or an error).
-    */
+  /**
+   * Decrypt the onion packet of a received htlc. If we are the final
+   * recipient, we validate that the HTLC fields match the onion fields (this
+   * prevents intermediate nodes from sending an invalid amount or expiry).
+   *
+   * NB: we can't fully validate RelayPackets because it requires knowing the
+   * channel/route we'll be using, which we don't know yet. Such validation is
+   * the responsibility of downstream components.
+   *
+   * @param add
+   *   incoming htlc
+   * @param privateKey
+   *   this node's private key
+   * @return
+   *   whether the payment is to be relayed or if our node is the final
+   *   recipient (or an error).
+   */
   def decrypt(
       add: UpdateAddHtlc,
       privateKey: PrivateKey
@@ -188,8 +189,9 @@ object IncomingPaymentPacket {
 /** Helpers to create outgoing payment packets. */
 object OutgoingPaymentPacket {
 
-  /** Build an encrypted onion packet from onion payloads and node public keys.
-    */
+  /**
+   * Build an encrypted onion packet from onion payloads and node public keys.
+   */
   private def buildOnion(
       sessionKey: PrivateKey,
       packetPayloadLength: Int,
@@ -221,18 +223,19 @@ object OutgoingPaymentPacket {
     )
   }
 
-  /** Build the onion payloads for each hop.
-    *
-    * @param hops
-    *   the hops as computed by the router + extra routes from payment request
-    * @param finalPayload
-    *   payload data for the final node (amount, expiry, etc)
-    * @return
-    *   a (firstAmount, firstExpiry, payloads) tuple where:
-    *   - firstAmount is the amount for the first htlc in the route
-    *   - firstExpiry is the cltv expiry for the first htlc in the route
-    *   - a sequence of payloads that will be used to build the onion
-    */
+  /**
+   * Build the onion payloads for each hop.
+   *
+   * @param hops
+   *   the hops as computed by the router + extra routes from payment request
+   * @param finalPayload
+   *   payload data for the final node (amount, expiry, etc)
+   * @return
+   *   a (firstAmount, firstExpiry, payloads) tuple where:
+   *   - firstAmount is the amount for the first htlc in the route
+   *   - firstExpiry is the cltv expiry for the first htlc in the route
+   *   - a sequence of payloads that will be used to build the onion
+   */
   def buildPayloads(
       hops: Seq[Hop],
       finalPayload: PaymentOnion.FinalPayload
@@ -243,38 +246,40 @@ object OutgoingPaymentPacket {
         finalPayload.expiry,
         Seq[PaymentOnion.PerHopPayload](finalPayload)
       )
-    ) { case ((amount, expiry, payloads), hop) =>
-      val payload = hop match {
-        case hop: ChannelHop =>
-          PaymentOnion.ChannelRelayTlvPayload(
-            hop.edge.updExt.update.shortChannelId,
-            amount,
-            expiry
-          )
-        case hop: NodeHop =>
-          PaymentOnion.createNodeRelayPayload(amount, expiry, hop.nextNodeId)
-      }
-      (
-        amount + hop.fee(amount),
-        expiry + hop.cltvExpiryDelta,
-        payload +: payloads
-      )
+    ) {
+      case ((amount, expiry, payloads), hop) =>
+        val payload = hop match {
+          case hop: ChannelHop =>
+            PaymentOnion.ChannelRelayTlvPayload(
+              hop.edge.updExt.update.shortChannelId,
+              amount,
+              expiry
+            )
+          case hop: NodeHop =>
+            PaymentOnion.createNodeRelayPayload(amount, expiry, hop.nextNodeId)
+        }
+        (
+          amount + hop.fee(amount),
+          expiry + hop.cltvExpiryDelta,
+          payload +: payloads
+        )
     }
   }
 
-  /** Build an encrypted onion packet with the given final payload.
-    *
-    * @param hops
-    *   the hops as computed by the router + extra routes from payment request,
-    *   including ourselves in the first hop
-    * @param finalPayload
-    *   payload data for the final node (amount, expiry, etc)
-    * @return
-    *   a (firstAmount, firstExpiry, onion) tuple where:
-    *   - firstAmount is the amount for the first htlc in the route
-    *   - firstExpiry is the cltv expiry for the first htlc in the route
-    *   - the onion to include in the HTLC
-    */
+  /**
+   * Build an encrypted onion packet with the given final payload.
+   *
+   * @param hops
+   *   the hops as computed by the router + extra routes from payment request,
+   *   including ourselves in the first hop
+   * @param finalPayload
+   *   payload data for the final node (amount, expiry, etc)
+   * @return
+   *   a (firstAmount, firstExpiry, onion) tuple where:
+   *   - firstAmount is the amount for the first htlc in the route
+   *   - firstExpiry is the cltv expiry for the first htlc in the route
+   *   - the onion to include in the HTLC
+   */
   private def buildPacket(
       sessionKey: PrivateKey,
       packetPayloadLength: Int,
@@ -319,25 +324,26 @@ object OutgoingPaymentPacket {
       finalPayload
     )
 
-  /** Build an encrypted trampoline onion packet when the final recipient
-    * doesn't support trampoline. The next-to-last trampoline node payload will
-    * contain instructions to convert to a legacy payment.
-    *
-    * @param invoice
-    *   Bolt 11 invoice (features and routing hints will be provided to the
-    *   next-to-last node).
-    * @param hops
-    *   the trampoline hops (including ourselves in the first hop, and the
-    *   non-trampoline final recipient in the last hop).
-    * @param finalPayload
-    *   payload data for the final node (amount, expiry, etc)
-    * @return
-    *   a (firstAmount, firstExpiry, onion) tuple where:
-    *   - firstAmount is the amount for the trampoline node in the route
-    *   - firstExpiry is the cltv expiry for the first trampoline node in the
-    *     route
-    *   - the trampoline onion to include in final payload of a normal onion
-    */
+  /**
+   * Build an encrypted trampoline onion packet when the final recipient
+   * doesn't support trampoline. The next-to-last trampoline node payload will
+   * contain instructions to convert to a legacy payment.
+   *
+   * @param invoice
+   *   Bolt 11 invoice (features and routing hints will be provided to the
+   *   next-to-last node).
+   * @param hops
+   *   the trampoline hops (including ourselves in the first hop, and the
+   *   non-trampoline final recipient in the last hop).
+   * @param finalPayload
+   *   payload data for the final node (amount, expiry, etc)
+   * @return
+   *   a (firstAmount, firstExpiry, onion) tuple where:
+   *   - firstAmount is the amount for the trampoline node in the route
+   *   - firstExpiry is the cltv expiry for the first trampoline node in the
+   *     route
+   *   - the trampoline onion to include in final payload of a normal onion
+   */
   def buildTrampolineToLegacyPacket(
       sessionKey: PrivateKey,
       invoice: Bolt11Invoice,
@@ -361,24 +367,25 @@ object OutgoingPaymentPacket {
           finalPayload.expiry,
           Seq[PaymentOnion.PerHopPayload](dummyFinalPayload)
         )
-      ) { case ((amount, expiry, payloads1), hop) =>
-        // The next-to-last node in the trampoline route must receive invoice data to indicate the conversion to a non-trampoline payment.
-        val payload = if (payloads1.length == 1) {
-          PaymentOnion.createNodeRelayToNonTrampolinePayload(
-            finalPayload.amount,
-            finalPayload.totalAmount,
-            finalPayload.expiry,
-            hop.nextNodeId,
-            invoice
+      ) {
+        case ((amount, expiry, payloads1), hop) =>
+          // The next-to-last node in the trampoline route must receive invoice data to indicate the conversion to a non-trampoline payment.
+          val payload = if (payloads1.length == 1) {
+            PaymentOnion.createNodeRelayToNonTrampolinePayload(
+              finalPayload.amount,
+              finalPayload.totalAmount,
+              finalPayload.expiry,
+              hop.nextNodeId,
+              invoice
+            )
+          } else {
+            PaymentOnion.createNodeRelayPayload(amount, expiry, hop.nextNodeId)
+          }
+          (
+            amount + hop.fee(amount),
+            expiry + hop.cltvExpiryDelta,
+            payload +: payloads1
           )
-        } else {
-          PaymentOnion.createNodeRelayPayload(amount, expiry, hop.nextNodeId)
-        }
-        (
-          amount + hop.fee(amount),
-          expiry + hop.cltvExpiryDelta,
-          payload +: payloads1
-        )
       }
     val nodes = hops.map(_.nextNodeId)
     val onionTry = buildOnion(

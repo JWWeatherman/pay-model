@@ -21,8 +21,9 @@ import fr.acinq.eclair._
 import fr.acinq.eclair.blockchain.fee.FeeratePerKw
 import fr.acinq.eclair.wire._
 
-/** Created by PM on 07/12/2016.
-  */
+/**
+ * Created by PM on 07/12/2016.
+ */
 
 sealed trait CommitmentOutput
 
@@ -49,8 +50,7 @@ case class IncomingHtlc(add: UpdateAddHtlc) extends DirectedHtlc
 case class OutgoingHtlc(add: UpdateAddHtlc) extends DirectedHtlc
 
 trait RemoteReject { val ourAdd: UpdateAddHtlc }
-case class RemoteUpdateFail(fail: UpdateFailHtlc, ourAdd: UpdateAddHtlc)
-    extends RemoteReject
+case class RemoteUpdateFail(fail: UpdateFailHtlc, ourAdd: UpdateAddHtlc) extends RemoteReject
 case class RemoteUpdateMalform(
     malform: UpdateFailMalformedHtlc,
     ourAdd: UpdateAddHtlc
@@ -79,18 +79,19 @@ object CommitmentSpec {
   def addHtlc(
       spec: CommitmentSpec,
       directedHtlc: DirectedHtlc
-  ): CommitmentSpec = directedHtlc match {
-    case OutgoingHtlc(add) =>
-      spec.copy(
-        toLocal = spec.toLocal - add.amountMsat,
-        htlcs = spec.htlcs + directedHtlc
-      )
-    case IncomingHtlc(add) =>
-      spec.copy(
-        toRemote = spec.toRemote - add.amountMsat,
-        htlcs = spec.htlcs + directedHtlc
-      )
-  }
+  ): CommitmentSpec =
+    directedHtlc match {
+      case OutgoingHtlc(add) =>
+        spec.copy(
+          toLocal = spec.toLocal - add.amountMsat,
+          htlcs = spec.htlcs + directedHtlc
+        )
+      case IncomingHtlc(add) =>
+        spec.copy(
+          toRemote = spec.toRemote - add.amountMsat,
+          htlcs = spec.htlcs + directedHtlc
+        )
+    }
 
   def fulfillIncomingHtlc(spec: CommitmentSpec, htlcId: Long): CommitmentSpec =
     spec.findIncomingHtlcById(htlcId) match {
@@ -139,31 +140,31 @@ object CommitmentSpec {
   ): CommitmentSpec = {
     val spec1 = localChanges.foldLeft(localCommitSpec) {
       case (spec, u: UpdateAddHtlc) => addHtlc(spec, OutgoingHtlc(u))
-      case (spec, _)                => spec
+      case (spec, _) => spec
     }
 
     val spec2 = remoteChanges.foldLeft(spec1) {
       case (spec, u: UpdateAddHtlc) => addHtlc(spec, IncomingHtlc(u))
-      case (spec, _)                => spec
+      case (spec, _) => spec
     }
 
     val spec3 = localChanges.foldLeft(spec2) {
-      case (spec, u: UpdateFulfillHtlc)       => fulfillIncomingHtlc(spec, u.id)
-      case (spec, u: UpdateFailHtlc)          => failIncomingHtlc(spec, u.id)
+      case (spec, u: UpdateFulfillHtlc) => fulfillIncomingHtlc(spec, u.id)
+      case (spec, u: UpdateFailHtlc) => failIncomingHtlc(spec, u.id)
       case (spec, u: UpdateFailMalformedHtlc) => failIncomingHtlc(spec, u.id)
-      case (spec, _)                          => spec
+      case (spec, _) => spec
     }
 
     val spec4 = remoteChanges.foldLeft(spec3) {
-      case (spec, u: UpdateFulfillHtlc)       => fulfillOutgoingHtlc(spec, u.id)
-      case (spec, u: UpdateFailHtlc)          => failOutgoingHtlc(spec, u.id)
+      case (spec, u: UpdateFulfillHtlc) => fulfillOutgoingHtlc(spec, u.id)
+      case (spec, u: UpdateFailHtlc) => failOutgoingHtlc(spec, u.id)
       case (spec, u: UpdateFailMalformedHtlc) => failOutgoingHtlc(spec, u.id)
-      case (spec, _)                          => spec
+      case (spec, _) => spec
     }
 
     val spec5 = (localChanges ++ remoteChanges).foldLeft(spec4) {
       case (spec, u: UpdateFee) => spec.copy(feeratePerKw = u.feeratePerKw)
-      case (spec, _)            => spec
+      case (spec, _) => spec
     }
 
     spec5

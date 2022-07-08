@@ -30,20 +30,21 @@ object LNUrl {
     LNUrl(request)
   }
 
-  def checkHost(host: String): Uri = Uri.parse(host) match {
-    case uri =>
-      val isOnion = host.startsWith("http://") && uri.getHost.endsWith(
-        NodeAddress.onionSuffix
-      )
-      val isSSLPlain = host.startsWith("https://") && !uri.getHost.endsWith(
-        NodeAddress.onionSuffix
-      )
-      require(
-        isSSLPlain || isOnion,
-        "URI is neither Plain/HTTPS nor Onion/HTTP request"
-      )
-      uri
-  }
+  def checkHost(host: String): Uri =
+    Uri.parse(host) match {
+      case uri =>
+        val isOnion = host.startsWith("http://") && uri.getHost.endsWith(
+            NodeAddress.onionSuffix
+          )
+        val isSSLPlain = host.startsWith("https://") && !uri.getHost.endsWith(
+            NodeAddress.onionSuffix
+          )
+        require(
+          isSSLPlain || isOnion,
+          "URI is neither Plain/HTTPS nor Onion/HTTP request"
+        )
+        uri
+    }
 
   def guardResponse(raw: String): String = {
     val parseAttempt = Try(raw.parseJson.asJsObject.fields)
@@ -92,9 +93,10 @@ case class LNUrl(request: String) {
     )
   }
 
-  def level1DataResponse: Observable[LNUrlData] = Rx.ioQueue.map { _ =>
-    to[LNUrlData](LNParams.connectionProvider.get(uri.toString))
-  }
+  def level1DataResponse: Observable[LNUrlData] =
+    Rx.ioQueue.map { _ =>
+      to[LNUrlData](LNParams.connectionProvider.get(uri.toString))
+    }
 }
 
 sealed trait LNUrlData
@@ -119,24 +121,26 @@ case class NormalChannelRequest(uri: String, callback: String, k1: String)
     extends CallbackLNUrlData
     with HasRemoteInfo {
 
-  def requestChannel: Observable[String] = LNUrl.level2DataResponse {
-    callbackUri.buildUpon
-      .appendQueryParameter("k1", k1)
-      .appendQueryParameter("private", "1")
-      .appendQueryParameter("remoteid", remoteInfo.nodeSpecificPubKey.toString)
-  }
-
-  override def cancel: Unit = LNUrl
-    .level2DataResponse {
+  def requestChannel: Observable[String] =
+    LNUrl.level2DataResponse {
       callbackUri.buildUpon
         .appendQueryParameter("k1", k1)
-        .appendQueryParameter("cancel", "1")
-        .appendQueryParameter(
-          "remoteid",
-          remoteInfo.nodeSpecificPubKey.toString
-        )
+        .appendQueryParameter("private", "1")
+        .appendQueryParameter("remoteid", remoteInfo.nodeSpecificPubKey.toString)
     }
-    .foreach(Tools.none, Tools.none)
+
+  override def cancel: Unit =
+    LNUrl
+      .level2DataResponse {
+        callbackUri.buildUpon
+          .appendQueryParameter("k1", k1)
+          .appendQueryParameter("cancel", "1")
+          .appendQueryParameter(
+            "remoteid",
+            remoteInfo.nodeSpecificPubKey.toString
+          )
+      }
+      .foreach(Tools.none, Tools.none)
 
   val InputParser.nodeLink(nodeKey, hostAddress, portNumber) = uri
 
@@ -148,9 +152,7 @@ case class NormalChannelRequest(uri: String, callback: String, k1: String)
   val remoteInfo: RemoteNodeInfo = RemoteNodeInfo(pubKey, address, hostAddress)
 }
 
-case class HostedChannelRequest(uri: String, alias: Option[String], k1: String)
-    extends LNUrlData
-    with HasRemoteInfo {
+case class HostedChannelRequest(uri: String, alias: Option[String], k1: String) extends LNUrlData with HasRemoteInfo {
 
   val secret: ByteVector32 = ByteVector32.fromValidHex(k1)
 
@@ -218,14 +220,15 @@ object PayRequest {
 }
 
 case class ExpectedAuth(k1: ByteVector32, isMandatory: Boolean) {
-  def getRecord(host: String): List[String] = LNUrlAuthSpec(host, k1) match {
-    case spec =>
-      List(
-        "application/lnurl-auth",
-        spec.linkingPubKey.toString,
-        spec.derSignatureHex
-      )
-  }
+  def getRecord(host: String): List[String] =
+    LNUrlAuthSpec(host, k1) match {
+      case spec =>
+        List(
+          "application/lnurl-auth",
+          spec.linkingPubKey.toString,
+          spec.derSignatureHex
+        )
+    }
 }
 
 case class ExpectedIds(wantsAuth: Option[ExpectedAuth], wantsRandomKey: Boolean)
@@ -282,9 +285,7 @@ case class PayRequest(
 
   private[this] val identifiers = meta.emails ++ meta.identities
   require(
-    identifiers.forall(id =>
-      InputParser.identifier.findFirstMatchIn(id).isDefined
-    ),
+    identifiers.forall(id => InputParser.identifier.findFirstMatchIn(id).isDefined),
     "text/email or text/identity format is wrong"
   )
   require(

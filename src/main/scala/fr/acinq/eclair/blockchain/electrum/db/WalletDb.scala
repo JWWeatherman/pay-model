@@ -22,8 +22,9 @@ sealed trait ChainWalletInfo {
   val walletType: String
 }
 
-case class SigningWallet(walletType: String, isRemovable: Boolean)
-    extends ChainWalletInfo { val masterFingerprint: Option[Long] = None }
+case class SigningWallet(walletType: String, isRemovable: Boolean) extends ChainWalletInfo {
+  val masterFingerprint: Option[Long] = None
+}
 
 case class WatchingWallet(
     walletType: String,

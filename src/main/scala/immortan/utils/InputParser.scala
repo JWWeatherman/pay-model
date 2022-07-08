@@ -22,10 +22,11 @@ object InputParser {
   case object DoNotEraseRecordedValue
   type Checker = PartialFunction[Any, Any]
 
-  def checkAndMaybeErase(fun: Checker): Unit = fun(value) match {
-    case DoNotEraseRecordedValue => // Do nothing, value is retained
-    case _                       => value = null // Erase recorded value
-  }
+  def checkAndMaybeErase(fun: Checker): Unit =
+    fun(value) match {
+      case DoNotEraseRecordedValue => // Do nothing, value is retained
+      case _ => value = null // Erase recorded value
+    }
 
   private[this] val prefixes = Bolt11Invoice.prefixes.values mkString "|"
 
@@ -49,44 +50,46 @@ object InputParser {
 
   def recordValue(raw: String): Unit = value = parse(raw)
 
-  def parse(rawInput: String): Any = rawInput take 2880 match {
-    case lnUrl(prefix, data) => LNUrl.fromBech32(s"$prefix$data")
-    case nodeLink(key, host, port) =>
-      RemoteNodeInfo(
-        PublicKey.fromBin(ByteVector fromValidHex key),
-        NodeAddress.fromParts(host, port.toInt),
-        host
-      )
-    case shortNodeLink(key, host) =>
-      RemoteNodeInfo(
-        PublicKey.fromBin(ByteVector fromValidHex key),
-        NodeAddress.fromParts(host, port = 9735),
-        host
-      )
+  def parse(rawInput: String): Any =
+    rawInput take 2880 match {
+      case lnUrl(prefix, data) => LNUrl.fromBech32(s"$prefix$data")
+      case nodeLink(key, host, port) =>
+        RemoteNodeInfo(
+          PublicKey.fromBin(ByteVector fromValidHex key),
+          NodeAddress.fromParts(host, port.toInt),
+          host
+        )
+      case shortNodeLink(key, host) =>
+        RemoteNodeInfo(
+          PublicKey.fromBin(ByteVector fromValidHex key),
+          NodeAddress.fromParts(host, port = 9735),
+          host
+        )
 
-    case _ =>
-      val withoutSlashes = PaymentRequestExt.removePrefix(rawInput).trim
-      val isLightningInvoice = lnPayReq.findFirstMatchIn(rawInput).isDefined
-      val isIdentifier = identifier.findFirstMatchIn(withoutSlashes).isDefined
-      val addressToAmount =
-        MultiAddressParser.parseAll(MultiAddressParser.parse, rawInput)
+      case _ =>
+        val withoutSlashes = PaymentRequestExt.removePrefix(rawInput).trim
+        val isLightningInvoice = lnPayReq.findFirstMatchIn(rawInput).isDefined
+        val isIdentifier = identifier.findFirstMatchIn(withoutSlashes).isDefined
+        val addressToAmount =
+          MultiAddressParser.parseAll(MultiAddressParser.parse, rawInput)
 
-      if (isIdentifier) LNUrl.fromIdentifier(withoutSlashes)
-      else if (isLightningInvoice)
-        PaymentRequestExt.fromUri(withoutSlashes.toLowerCase)
-      else
-        addressToAmount getOrElse BitcoinUri.fromRaw(s"$bitcoin$withoutSlashes")
-  }
+        if (isIdentifier) LNUrl.fromIdentifier(withoutSlashes)
+        else if (isLightningInvoice)
+          PaymentRequestExt.fromUri(withoutSlashes.toLowerCase)
+        else
+          addressToAmount getOrElse BitcoinUri.fromRaw(s"$bitcoin$withoutSlashes")
+    }
 }
 
 object PaymentRequestExt {
-  def removePrefix(raw: String): String = raw.split(':').toList match {
-    case prefix :: content if lightning.startsWith(prefix.toLowerCase) =>
-      content.mkString.replace("//", "")
-    case prefix :: content if bitcoin.startsWith(prefix.toLowerCase) =>
-      content.mkString.replace("//", "")
-    case _ => raw
-  }
+  def removePrefix(raw: String): String =
+    raw.split(':').toList match {
+      case prefix :: content if lightning.startsWith(prefix.toLowerCase) =>
+        content.mkString.replace("//", "")
+      case prefix :: content if bitcoin.startsWith(prefix.toLowerCase) =>
+        content.mkString.replace("//", "")
+      case _ => raw
+    }
 
   def withoutSlashes(prefix: String, uri: Uri): String =
     prefix + removePrefix(uri.toString)
@@ -123,8 +126,8 @@ case class PaymentRequestExt(uri: Try[Uri], pr: Bolt11Invoice, raw: String) {
     )
     .getOrElse(Nil)
   val hasSplitIssue: Boolean = pr.amountOpt.exists(
-    splits.sum + LNParams.minPayment > _
-  ) || (pr.amountOpt.isEmpty && splits.nonEmpty)
+      splits.sum + LNParams.minPayment > _
+    ) || (pr.amountOpt.isEmpty && splits.nonEmpty)
   val splitLeftover: MilliSatoshi =
     pr.amountOpt.map(_ - splits.sum).getOrElse(0L.msat)
 
@@ -172,13 +175,11 @@ object MultiAddressParser extends RegexParsers {
 
   private[this] val longSat = "[0-9,]+".r ^^ (_.replace(",", "").toLong.sat)
 
-  private[this] val decimalSat = "[0-9]*\\.[0-9]+".r ^^ (raw =>
-    (BigDecimal(raw) * BtcAmount.Coin).toLong.sat
-  )
+  private[this] val decimalSat = "[0-9]*\\.[0-9]+".r ^^ (raw => (BigDecimal(raw) * BtcAmount.Coin).toLong.sat)
 
   private[this] val item = "\\w+".r ~ (decimalSat | longSat) ^^ {
-    case address ~ sat => address -> sat
-  }
+      case address ~ sat => address -> sat
+    }
 
   private[this] val separator = opt(";")
 

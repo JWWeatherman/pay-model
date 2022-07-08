@@ -8,7 +8,7 @@ import fr.acinq.bitcoin.Crypto.{PrivateKey, PublicKey}
 import fr.acinq.eclair._
 import fr.acinq.eclair.blockchain.TxConfirmedAt
 import fr.acinq.eclair.channel._
-import fr.acinq.eclair.payment.{IncomingPaymentPacket, Bolt11Invoice}
+import fr.acinq.eclair.payment.{Bolt11Invoice, IncomingPaymentPacket}
 import fr.acinq.eclair.transactions.{LocalFulfill, RemoteFulfill, RemoteReject}
 import fr.acinq.eclair.wire._
 import immortan.Channel._
@@ -109,33 +109,34 @@ class ChannelMaster(
       override def gotFirstPreimage(
           data: OutgoingPaymentSenderData,
           fulfill: RemoteFulfill
-      ): Unit = chanBag.db txWrap {
-        // Note that this method MAY get called multiple times for multipart payments if fulfills happen between restarts
-        payBag
-          .getPaymentInfo(fulfill.ourAdd.paymentHash)
-          .filter(_.status != PaymentStatus.SUCCEEDED)
-          .foreach { paymentInfo =>
-            // Persist payment metadata if this is ACTUALLY the first preimage (otherwise payment would be marked as successful)
-            payBag.addSearchablePayment(
-              paymentInfo.description.queryText,
-              fulfill.ourAdd.paymentHash
-            )
-            payBag.updOkOutgoing(fulfill, data.usedFee)
-
-            if (data.inFlightParts.nonEmpty) {
-              // Sender FSM won't have in-flight parts after restart
-              dataBag.putReport(
-                fulfill.ourAdd.paymentHash,
-                data.usedRoutesAsString
+      ): Unit =
+        chanBag.db txWrap {
+          // Note that this method MAY get called multiple times for multipart payments if fulfills happen between restarts
+          payBag
+            .getPaymentInfo(fulfill.ourAdd.paymentHash)
+            .filter(_.status != PaymentStatus.SUCCEEDED)
+            .foreach { paymentInfo =>
+              // Persist payment metadata if this is ACTUALLY the first preimage (otherwise payment would be marked as successful)
+              payBag.addSearchablePayment(
+                paymentInfo.description.queryText,
+                fulfill.ourAdd.paymentHash
               )
-              // We only increment scores for normal channels, never for HCs
-              data.successfulUpdates.foreach(pf.normalBag.incrementScore)
-            }
-          }
+              payBag.updOkOutgoing(fulfill, data.usedFee)
 
-        payBag.setPreimage(fulfill.ourAdd.paymentHash, fulfill.theirPreimage)
-        getPreimageMemo.invalidate(fulfill.ourAdd.paymentHash)
-      }
+              if (data.inFlightParts.nonEmpty) {
+                // Sender FSM won't have in-flight parts after restart
+                dataBag.putReport(
+                  fulfill.ourAdd.paymentHash,
+                  data.usedRoutesAsString
+                )
+                // We only increment scores for normal channels, never for HCs
+                data.successfulUpdates.foreach(pf.normalBag.incrementScore)
+              }
+            }
+
+          payBag.setPreimage(fulfill.ourAdd.paymentHash, fulfill.theirPreimage)
+          getPreimageMemo.invalidate(fulfill.ourAdd.paymentHash)
+        }
     }
 
     // Mutable set so can be extended
@@ -146,47 +147,45 @@ class ChannelMaster(
 
   var inProcessors = Map.empty[FullPaymentTag, IncomingPaymentProcessor]
 
-  var sendTo: (Any, ByteVector32) => Unit = (change, channelId) =>
-    all.get(channelId).foreach(_ process change)
+  var sendTo: (Any, ByteVector32) => Unit = (change, channelId) => all.get(channelId).foreach(_ process change)
 
   private def defineResolution(
       secret: PrivateKey,
       pkt: IncomingPaymentPacket
-  ): IncomingResolution = pkt match {
-    case packet: IncomingPaymentPacket.FinalPacket
-        if packet.payload.paymentSecret != NO_SECRET =>
-      ReasonableLocal(packet, secret)
-    case packet: IncomingPaymentPacket.NodeRelayPacket
-        if packet.outerPayload.paymentSecret != NO_SECRET =>
-      ReasonableTrampoline(packet, secret)
-    case packet: IncomingPaymentPacket.ChannelRelayPacket =>
-      CMD_FAIL_HTLC(
-        IncorrectOrUnknownPaymentDetails(
-          packet.add.amountMsat,
-          LNParams.blockCount.get
-        ).asRight,
-        secret,
-        packet.add
-      )
-    case packet: IncomingPaymentPacket.NodeRelayPacket =>
-      CMD_FAIL_HTLC(
-        IncorrectOrUnknownPaymentDetails(
-          packet.add.amountMsat,
-          LNParams.blockCount.get
-        ).asRight,
-        secret,
-        packet.add
-      )
-    case packet: IncomingPaymentPacket.FinalPacket =>
-      CMD_FAIL_HTLC(
-        IncorrectOrUnknownPaymentDetails(
-          packet.add.amountMsat,
-          LNParams.blockCount.get
-        ).asRight,
-        secret,
-        packet.add
-      )
-  }
+  ): IncomingResolution =
+    pkt match {
+      case packet: IncomingPaymentPacket.FinalPacket if packet.payload.paymentSecret != NO_SECRET =>
+        ReasonableLocal(packet, secret)
+      case packet: IncomingPaymentPacket.NodeRelayPacket if packet.outerPayload.paymentSecret != NO_SECRET =>
+        ReasonableTrampoline(packet, secret)
+      case packet: IncomingPaymentPacket.ChannelRelayPacket =>
+        CMD_FAIL_HTLC(
+          IncorrectOrUnknownPaymentDetails(
+            packet.add.amountMsat,
+            LNParams.blockCount.get
+          ).asRight,
+          secret,
+          packet.add
+        )
+      case packet: IncomingPaymentPacket.NodeRelayPacket =>
+        CMD_FAIL_HTLC(
+          IncorrectOrUnknownPaymentDetails(
+            packet.add.amountMsat,
+            LNParams.blockCount.get
+          ).asRight,
+          secret,
+          packet.add
+        )
+      case packet: IncomingPaymentPacket.FinalPacket =>
+        CMD_FAIL_HTLC(
+          IncorrectOrUnknownPaymentDetails(
+            packet.add.amountMsat,
+            LNParams.blockCount.get
+          ).asRight,
+          secret,
+          packet.add
+        )
+    }
 
   def initResolve(ext: UpdateAddHtlcExt): IncomingResolution =
     IncomingPaymentPacket.decrypt(
@@ -204,9 +203,9 @@ class ChannelMaster(
           for (ephemeralKey <- ephemeralKeys)
             yield IncomingPaymentPacket.decrypt(ext.theirAdd, ephemeralKey)
         val goodResultFirst = decryptionResults.zip(ephemeralKeys) sortBy {
-          case (res, _) if res.isRight => 0
-          case _                       => 1
-        }
+            case (res, _) if res.isRight => 0
+            case _ => 1
+          }
 
         goodResultFirst.headOption.map {
           case (Right(packet), secret) => defineResolution(secret, packet)
@@ -246,21 +245,23 @@ class ChannelMaster(
   override def onMessage(
       worker: CommsTower.Worker,
       message: LightningMessage
-  ): Unit = message match {
-    case msg: ChannelUpdate =>
-      allFromNode(worker.info.nodeId).foreach(_.chan process msg)
-    case msg: HasChannelId => sendTo(msg, msg.channelId)
-    case _                 => // Do nothing
-  }
+  ): Unit =
+    message match {
+      case msg: ChannelUpdate =>
+        allFromNode(worker.info.nodeId).foreach(_.chan process msg)
+      case msg: HasChannelId => sendTo(msg, msg.channelId)
+      case _ => // Do nothing
+    }
 
   override def onHostedMessage(
       worker: CommsTower.Worker,
       message: HostedChannelMessage
-  ): Unit = message match {
-    case msg: HostedChannelBranding =>
-      dataBag.putBranding(worker.info.nodeId, msg)
-    case _ => hostedFromNode(worker.info.nodeId).foreach(_ process message)
-  }
+  ): Unit =
+    message match {
+      case msg: HostedChannelBranding =>
+        dataBag.putBranding(worker.info.nodeId, msg)
+      case _ => hostedFromNode(worker.info.nodeId).foreach(_ process message)
+    }
 
   override def onDisconnect(worker: CommsTower.Worker): Unit = {
     allFromNode(worker.info.nodeId).foreach(_.chan process CMD_SOCKET_OFFLINE)
@@ -288,47 +289,50 @@ class ChannelMaster(
   def markAsFailed(
       paymentInfos: Iterable[PaymentInfo],
       inFlightOutgoing: Map[FullPaymentTag, OutgoingAdds] = Map.empty
-  ): Unit = paymentInfos
-    .collect {
-      case outgoingPayInfo
-          if !outgoingPayInfo.isIncoming && outgoingPayInfo.status == PaymentStatus.PENDING =>
-        outgoingPayInfo.fullTag
-    }
-    .collect {
-      case fullTag
-          if fullTag.tag == PaymentTagTlv.LOCALLY_SENT && !inFlightOutgoing
-            .contains(fullTag) =>
-        fullTag.paymentHash
-    }
-    .foreach(payBag.updAbortedOutgoing)
+  ): Unit =
+    paymentInfos
+      .collect {
+        case outgoingPayInfo if !outgoingPayInfo.isIncoming && outgoingPayInfo.status == PaymentStatus.PENDING =>
+          outgoingPayInfo.fullTag
+      }
+      .collect {
+        case fullTag
+            if fullTag.tag == PaymentTagTlv.LOCALLY_SENT && !inFlightOutgoing
+              .contains(fullTag) =>
+          fullTag.paymentHash
+      }
+      .foreach(payBag.updAbortedOutgoing)
 
-  def allInChannelOutgoing: Map[FullPaymentTag, OutgoingAdds] = all.values
-    .flatMap(Channel.chanAndCommitsOpt)
-    .flatMap(_.commits.allOutgoing)
-    .groupBy(_.fullTag)
+  def allInChannelOutgoing: Map[FullPaymentTag, OutgoingAdds] =
+    all.values
+      .flatMap(Channel.chanAndCommitsOpt)
+      .flatMap(_.commits.allOutgoing)
+      .groupBy(_.fullTag)
 
   def allHostedCommits: Iterable[HostedCommits] =
     all.values.flatMap(Channel.chanAndCommitsOpt).collect {
       case ChanAndCommits(_, commits: HostedCommits) => commits
     }
 
-  def allFromNode(nodeId: PublicKey): Iterable[ChanAndCommits] = all.values
-    .flatMap(Channel.chanAndCommitsOpt)
-    .filter(_.commits.remoteInfo.nodeId == nodeId)
+  def allFromNode(nodeId: PublicKey): Iterable[ChanAndCommits] =
+    all.values
+      .flatMap(Channel.chanAndCommitsOpt)
+      .filter(_.commits.remoteInfo.nodeId == nodeId)
 
   def hostedFromNode(nodeId: PublicKey): Option[ChannelHosted] =
     allFromNode(nodeId).collectFirst {
       case ChanAndCommits(chan: ChannelHosted, _) => chan
     }
 
-  def allNormal: Iterable[ChannelNormal] = all.values.collect {
-    case chan: ChannelNormal => chan
-  }
+  def allNormal: Iterable[ChannelNormal] =
+    all.values.collect {
+      case chan: ChannelNormal => chan
+    }
 
   def delayedRefunds: DelayedRefunds = {
     val commitsPublished = all.values.map(_.data).flatMap {
       case close: DATA_CLOSING => close.forceCloseCommitPublished
-      case _                   => None
+      case _ => None
     }
     val spentParents = commitsPublished
       .flatMap(_.irrevocablySpent.values)
@@ -355,9 +359,10 @@ class ChannelMaster(
       .flatMap(Channel.chanAndCommitsOpt)
       .toList
 
-  def channelsContainHtlc: Boolean = operationalCncs(all.values).exists(cnc =>
-    cnc.commits.allOutgoing.nonEmpty || cnc.commits.crossSignedIncoming.nonEmpty
-  )
+  def channelsContainHtlc: Boolean =
+    operationalCncs(all.values).exists(cnc =>
+      cnc.commits.allOutgoing.nonEmpty || cnc.commits.crossSignedIncoming.nonEmpty
+    )
 
   def sortedReceivable(chans: Iterable[Channel] = Nil): Seq[ChanAndCommits] =
     operationalCncs(chans)
@@ -509,13 +514,11 @@ class ChannelMaster(
       next(stateUpdateStream)
     case (_, _, _, prev, CLOSING) if prev != CLOSING => next(stateUpdateStream)
 
-    case (_, prevHc: HostedCommits, nextHc: HostedCommits, _, _)
-        if prevHc.error.isEmpty && nextHc.error.nonEmpty =>
+    case (_, prevHc: HostedCommits, nextHc: HostedCommits, _, _) if prevHc.error.isEmpty && nextHc.error.nonEmpty =>
       // Previously operational HC got suspended
       next(stateUpdateStream)
 
-    case (_, prevHc: HostedCommits, nextHc: HostedCommits, _, _)
-        if prevHc.error.nonEmpty && nextHc.error.isEmpty =>
+    case (_, prevHc: HostedCommits, nextHc: HostedCommits, _, _) if prevHc.error.nonEmpty && nextHc.error.isEmpty =>
       // Previously suspended HC got operational
       opm process CMDChanGotOnline
       next(stateUpdateStream)

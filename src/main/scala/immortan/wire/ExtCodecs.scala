@@ -22,19 +22,19 @@ object ExtCodecs {
 
   val hostedStateCodec = {
     (publicKey withContext "nodeId1") ::
-      (publicKey withContext "nodeId2") ::
-      (lastCrossSignedStateCodec withContext "lastCrossSignedState")
+    (publicKey withContext "nodeId2") ::
+    (lastCrossSignedStateCodec withContext "lastCrossSignedState")
   }.as[HostedState]
 
   val lightningNodeKeysCodec = {
     (extendedPrivateKeyCodec withContext "master") ::
-      (extendedPrivateKeyCodec withContext "extendedNodeKey") ::
-      (privateKey withContext "hashingKey")
+    (extendedPrivateKeyCodec withContext "extendedNodeKey") ::
+    (privateKey withContext "hashingKey")
   }.as[LightningNodeKeys]
 
   val walletSecretCodec = {
     (lightningNodeKeysCodec withContext "keys") ::
-      (listOfN(uint8, text) withContext "mnemonic") ::
-      (varsizebinarydata withContext "seed")
+    (listOfN(uint8, text) withContext "mnemonic") ::
+    (varsizebinarydata withContext "seed")
   }.as[WalletSecret]
 }

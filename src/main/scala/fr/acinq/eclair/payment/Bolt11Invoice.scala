@@ -36,7 +36,8 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success, Try}
 
-/** Lightning Bolt 11 invoice see
+/**
+ * Lightning Bolt 11 invoice see
  * https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md
  *
  * @param prefix
@@ -81,21 +82,24 @@ case class Bolt11Invoice(
       "there must be exactly one payment secret tag when feature bit is set"
     )
 
-  /** @return
+  /**
+   * @return
    *   the payment hash
    */
   lazy val paymentHash = tags.collectFirst {
     case p: Bolt11Invoice.PaymentHash => p.hash
   }.get
 
-  /** @return
+  /**
+   * @return
    *   the payment secret
    */
   lazy val paymentSecret = tags.collectFirst {
     case p: Bolt11Invoice.PaymentSecret => p.secret
   }
 
-  /** @return
+  /**
+   * @return
    *   the description of the payment, or its hash
    */
   lazy val description: Either[String, ByteVector32] = tags.collectFirst {
@@ -103,21 +107,24 @@ case class Bolt11Invoice(
     case Bolt11Invoice.DescriptionHash(h) => Right(h)
   }.get
 
-  /** @return
+  /**
+   * @return
    *   metadata about the payment (see option_payment_metadata).
    */
   lazy val paymentMetadata: Option[ByteVector] = tags.collectFirst {
     case m: Bolt11Invoice.PaymentMetadata => m.data
   }
 
-  /** @return
+  /**
+   * @return
    *   the fallback address if any. It could be a script address, pubkey
    *   address, ..
    */
-  def fallbackAddress(): Option[String] = tags.collectFirst {
-    case f: Bolt11Invoice.FallbackAddress =>
-      Bolt11Invoice.FallbackAddress.toAddress(f, prefix)
-  }
+  def fallbackAddress(): Option[String] =
+    tags.collectFirst {
+      case f: Bolt11Invoice.FallbackAddress =>
+        Bolt11Invoice.FallbackAddress.toAddress(f, prefix)
+    }
 
   lazy val routingInfo: List[ExtraHops] = tags.collect {
     case t: RoutingInfo =>
@@ -143,7 +150,8 @@ case class Bolt11Invoice(
     .collectFirst { case f: InvoiceFeatures => f.features.invoiceFeatures() }
     .getOrElse(Features.empty[InvoiceFeature])
 
-  /** @return
+  /**
+   * @return
    *   the hash of this payment invoice
    */
   def hash: ByteVector32 = {
@@ -158,7 +166,8 @@ case class Bolt11Invoice(
     Crypto.sha256(message)
   }
 
-  /** @param priv
+  /**
+   * @param priv
    *   private key
    * @return
    *   a signed payment invoice
@@ -172,7 +181,8 @@ case class Bolt11Invoice(
     this.copy(signature = signature)
   }
 
-  /** @return
+  /**
+   * @return
    *   a bech32-encoded payment invoice
    */
   override def toString: String = {
@@ -194,7 +204,7 @@ object Bolt11Invoice {
     3600 // If provided invoice does not have an expiry then we assume it's this much seconds from timestamp
 
   val OUR_EXPIRY_SECONDS: Int =
-  DEFAULT_EXPIRY_SECONDS * 24 * 7 * 2 // Invoices issued by us ALWAYS expire in two weeks
+    DEFAULT_EXPIRY_SECONDS * 24 * 7 * 2 // Invoices issued by us ALWAYS expire in two weeks
 
   val prefixes: Map[ByteVector32, String] = Map(
     Block.RegtestGenesisBlock.hash -> "lnbcrt",
@@ -287,14 +297,16 @@ object Bolt11Invoice {
   case class UnknownTag31(data: BitVector) extends UnknownTaggedField
   // @formatter:on
 
-  /** Payment Hash
+  /**
+   * Payment Hash
    *
    * @param hash
    *   payment hash
    */
   case class PaymentHash(hash: ByteVector32) extends TaggedField
 
-  /** Payment secret. This is currently random bytes used to protect against
+  /**
+   * Payment secret. This is currently random bytes used to protect against
    * probing from the next-to-last node.
    *
    * @param secret
@@ -302,14 +314,16 @@ object Bolt11Invoice {
    */
   case class PaymentSecret(secret: ByteVector32) extends TaggedField
 
-  /** Description
+  /**
+   * Description
    *
    * @param description
    *   a free-format string that will be included in the invoice
    */
   case class Description(description: String) extends TaggedField
 
-  /** Hash
+  /**
+   * Hash
    *
    * @param hash
    *   hash that will be included in the invoice, and can be checked against
@@ -317,18 +331,21 @@ object Bolt11Invoice {
    */
   case class DescriptionHash(hash: ByteVector32) extends TaggedField
 
-  /** Additional metadata to attach to the payment.
+  /**
+   * Additional metadata to attach to the payment.
    */
   case class PaymentMetadata(data: ByteVector) extends TaggedField
 
-  /** Fallback Payment that specifies a fallback payment address to be used if
+  /**
+   * Fallback Payment that specifies a fallback payment address to be used if
    * LN payment cannot be processed
    */
   case class FallbackAddress(version: Byte, data: ByteVector) extends TaggedField
 
   object FallbackAddress {
 
-    /** @param address
+    /**
+     * @param address
      *   valid base58 or bech32 address
      * @return
      *   a FallbackAddressTag instance
@@ -377,12 +394,14 @@ object Bolt11Invoice {
     }
   }
 
-  /** This returns a bitvector with the minimum size necessary to encode the
+  /**
+   * This returns a bitvector with the minimum size necessary to encode the
    * long, left padded to have a length (in bits) that is a multiple of 5.
    */
   def long2bits(l: Long): BitVector = leftPaddedBits(BitVector.fromLong(l))
 
-  /** This returns a bitvector with the minimum size necessary to encode the
+  /**
+   * This returns a bitvector with the minimum size necessary to encode the
    * features, left padded to have a length (in bits) that is a multiple of 5.
    */
   def features2bits[T <: FeatureScope](features: Features[T]): BitVector =
@@ -400,7 +419,8 @@ object Bolt11Invoice {
     }
   }
 
-  /** Extra hop contained in RoutingInfoTag
+  /**
+   * Extra hop contained in RoutingInfoTag
    *
    * @param nodeId
    *   start of the channel
@@ -421,7 +441,8 @@ object Bolt11Invoice {
       cltvExpiryDelta: CltvExpiryDelta
   )
 
-  /** Routing Info
+  /**
+   * Routing Info
    *
    * @param path
    *   one or more entries containing extra routing information for a private
@@ -429,7 +450,8 @@ object Bolt11Invoice {
    */
   case class RoutingInfo(path: List[ExtraHop]) extends TaggedField
 
-  /** Expiry Date
+  /**
+   * Expiry Date
    */
   case class Expiry(bin: BitVector) extends TaggedField {
     def toLong: Long = bin.toLong(signed = false)
@@ -437,13 +459,15 @@ object Bolt11Invoice {
 
   object Expiry {
 
-    /** @param seconds
+    /**
+     * @param seconds
      *   expiry data for this invoice
      */
     def apply(seconds: Long): Expiry = Expiry(long2bits(seconds))
   }
 
-  /** Min final CLTV expiry
+  /**
+   * Min final CLTV expiry
    */
   case class MinFinalCltvExpiry(bin: BitVector) extends TaggedField {
     def toCltvExpiryDelta = CltvExpiryDelta(bin.toInt(signed = false))
@@ -451,17 +475,20 @@ object Bolt11Invoice {
 
   object MinFinalCltvExpiry {
 
-    /** Min final CLTV expiry
+    /**
+     * Min final CLTV expiry
      *
      * @param blocks
      *   min final cltv expiry, in blocks
      */
-    def apply(blocks: Long): MinFinalCltvExpiry = MinFinalCltvExpiry(
-      long2bits(blocks)
-    )
+    def apply(blocks: Long): MinFinalCltvExpiry =
+      MinFinalCltvExpiry(
+        long2bits(blocks)
+      )
   }
 
-  /** Features supported or required for receiving this payment.
+  /**
+   * Features supported or required for receiving this payment.
    */
   case class InvoiceFeatures(features: Features[FeatureScope]) extends TaggedField
 
@@ -485,17 +512,18 @@ object Bolt11Invoice {
       (wire: BitVector) =>
         Attempt.successful(
           DecodeResult(wire.size.toInt / 408, wire)
-      ) // we infer the number of items by the size of the data
+        ) // we infer the number of items by the size of the data
     )
 
-    def alignedBytesCodec[A](valueCodec: Codec[A]): Codec[A] = Codec[A](
-      (value: A) => valueCodec.encode(value),
-      (wire: BitVector) =>
-        (limitedSizeBits(wire.size - wire.size % 8, valueCodec) ~ constant(
-          BitVector.fill(wire.size % 8)(high = false)
-        )).map(_._1)
-          .decode(wire) // the 'constant' codec ensures that padding is zero
-    )
+    def alignedBytesCodec[A](valueCodec: Codec[A]): Codec[A] =
+      Codec[A](
+        (value: A) => valueCodec.encode(value),
+        (wire: BitVector) =>
+          (limitedSizeBits(wire.size - wire.size % 8, valueCodec) ~ constant(
+            BitVector.fill(wire.size % 8)(high = false)
+          )).map(_._1)
+            .decode(wire) // the 'constant' codec ensures that padding is zero
+      )
 
     val dataLengthCodec: Codec[Long] =
       uint(10).xmap(_ * 5, s => (s / 5 + (if (s % 5 == 0) 0 else 1)).toInt)
@@ -503,16 +531,17 @@ object Bolt11Invoice {
     def dataCodec[A](
         valueCodec: Codec[A],
         expectedLength: Option[Long] = None
-    ): Codec[A] = paddedVarAlignedBits(
-      dataLengthCodec.narrow(
-        l =>
-          if (expectedLength.getOrElse(l) == l) Attempt.successful(l)
-          else Attempt.failure(Err(s"invalid length $l")),
-        l => l
-      ),
-      valueCodec,
-      multipleForPadding = 5
-    )
+    ): Codec[A] =
+      paddedVarAlignedBits(
+        dataLengthCodec.narrow(
+          l =>
+            if (expectedLength.getOrElse(l) == l) Attempt.successful(l)
+            else Attempt.failure(Err(s"invalid length $l")),
+          l => l
+        ),
+        valueCodec,
+        multipleForPadding = 5
+      )
 
     val taggedFieldCodec: Codec[TaggedField] = discriminated[TaggedField]
       .by(ubyte(5))
@@ -611,7 +640,8 @@ object Bolt11Invoice {
 
   object Amount {
 
-    /** @return
+    /**
+     * @return
      *   the unit allowing for the shortest representation possible
      */
     def unit(amount: MilliSatoshi): Char =
@@ -671,7 +701,8 @@ object Bolt11Invoice {
 
   val eight2fiveCodec: Codec[List[Byte]] = list(ubyte(5))
 
-  /** @param input
+  /**
+   * @param input
    *   bech32-encoded invoice
    * @return
    *   a Bolt11 invoice
@@ -691,8 +722,8 @@ object Bolt11Invoice {
     val bolt11Data = Codecs.bolt11DataCodec.decode(data).require.value
     val signature = ByteVector64(bolt11Data.signature.take(64))
     val message: ByteVector = ByteVector.view(hrp.getBytes) ++ data
-      .dropRight(520)
-      .toByteVector // we drop the sig bytes
+        .dropRight(520)
+        .toByteVector // we drop the sig bytes
     val recid = bolt11Data.signature.last
     val pub = Crypto.recoverPublicKey(signature, Crypto.sha256(message), recid)
     // README: since we use pubkey recovery to compute the node id from the message and signature, we don't check the signature.

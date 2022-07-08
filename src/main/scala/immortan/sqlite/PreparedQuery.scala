@@ -15,8 +15,7 @@ trait PreparedQuery {
   def close: Unit
 }
 
-case class PreparedQuerySQLiteGeneral(stmt: PreparedStatement)
-    extends PreparedQuery { me =>
+case class PreparedQuerySQLiteGeneral(stmt: PreparedStatement) extends PreparedQuery { me =>
 
   def bound(params: Object*): PreparedQuery = {
     // Mutable, but local and saves one iteration
@@ -33,7 +32,7 @@ case class PreparedQuerySQLiteGeneral(stmt: PreparedStatement)
         case queryParameter: JLong =>
           stmt.setLong(positionIndex, queryParameter)
         case queryParameter: JInt => stmt.setInt(positionIndex, queryParameter)
-        case _                    => throw new RuntimeException
+        case _ => throw new RuntimeException
       }
 
       positionIndex += 1

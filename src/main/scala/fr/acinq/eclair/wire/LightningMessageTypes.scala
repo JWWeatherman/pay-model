@@ -42,13 +42,11 @@ object Fail {
   }
 }
 
-case class Fail(channelId: ByteVector32, data: ByteVector)
-    extends HasChannelId {
+case class Fail(channelId: ByteVector32, data: ByteVector) extends HasChannelId {
   def toAscii: String = new String(data.toArray, StandardCharsets.US_ASCII)
 }
 
-case class Warning(channelId: ByteVector32, data: ByteVector)
-    extends HasChannelId {
+case class Warning(channelId: ByteVector32, data: ByteVector) extends HasChannelId {
   def toAscii: String = new String(data.toArray, StandardCharsets.US_ASCII)
 }
 
@@ -111,16 +109,14 @@ case class FundingCreated(
     signature: ByteVector64
 ) extends HasTemporaryChannelId
 
-case class FundingSigned(channelId: ByteVector32, signature: ByteVector64)
-    extends HasChannelId
+case class FundingSigned(channelId: ByteVector32, signature: ByteVector64) extends HasChannelId
 
 case class FundingLocked(
     channelId: ByteVector32,
     nextPerCommitmentPoint: PublicKey
 ) extends HasChannelId
 
-case class Shutdown(channelId: ByteVector32, scriptPubKey: ByteVector)
-    extends HasChannelId
+case class Shutdown(channelId: ByteVector32, scriptPubKey: ByteVector) extends HasChannelId
 
 case class ClosingSigned(
     channelId: ByteVector32,
@@ -143,20 +139,22 @@ case class UpdateAddHtlc(
   // Important: LNParams.secret must be defined
   private[this] lazy val fullTagOpt: Option[FullPaymentTag] = for {
     EncryptedPaymentSecret(cipherBytes) <- tlvStream.get[EncryptedPaymentSecret]
-    plainBytes <- Tools
-      .chaChaDecrypt(LNParams.secret.keys.ourNodePrivateKey.value, cipherBytes)
-      .toOption
-    DecodeResult(shortTag, _) <- PaymentTagTlv.shortPaymentTagCodec
-      .decode(plainBytes.toBitVector)
-      .toOption
+    plainBytes <-
+      Tools
+        .chaChaDecrypt(LNParams.secret.keys.ourNodePrivateKey.value, cipherBytes)
+        .toOption
+    DecodeResult(shortTag, _) <-
+      PaymentTagTlv.shortPaymentTagCodec
+        .decode(plainBytes.toBitVector)
+        .toOption
   } yield FullPaymentTag(paymentHash, shortTag.paymentSecret, shortTag.tag)
 
   // This is relevant for outgoing payments, NO_SECRET means this is NOT an outgoing local or trampoline-routed payment
   lazy val fullTag: FullPaymentTag = fullTagOpt getOrElse FullPaymentTag(
-    paymentHash,
-    ChannelMaster.NO_SECRET,
-    PaymentTagTlv.LOCALLY_SENT
-  )
+      paymentHash,
+      ChannelMaster.NO_SECRET,
+      PaymentTagTlv.LOCALLY_SENT
+    )
 
   // This is relevant for outgoing payments (with these we can ensure onion key uniqueness)
   final lazy val partId: ByteVector = onionRoutingPacket.publicKey
@@ -200,9 +198,7 @@ case class RevokeAndAck(
 ) extends HtlcMessage
     with HasChannelId
 
-case class UpdateFee(channelId: ByteVector32, feeratePerKw: FeeratePerKw)
-    extends HasChannelId
-    with UpdateMessage
+case class UpdateFee(channelId: ByteVector32, feeratePerKw: FeeratePerKw) extends HasChannelId with UpdateMessage
 
 case class AnnouncementSignatures(
     channelId: ByteVector32,
@@ -265,9 +261,8 @@ object NodeAddress {
   ): NodeAddress =
     if (host.endsWith(onionSuffix) && host.length == V2Len + onionSuffix.length)
       Tor2(host.dropRight(onionSuffix.length), port)
-    else if (
-      host.endsWith(onionSuffix) && host.length == V3Len + onionSuffix.length
-    ) Tor3(host.dropRight(onionSuffix.length), port)
+    else if (host.endsWith(onionSuffix) && host.length == V3Len + onionSuffix.length)
+      Tor3(host.dropRight(onionSuffix.length), port)
     else orElse(host, port)
 
   def resolveIp(host: String, port: Int): NodeAddress =
@@ -324,15 +319,16 @@ case class NodeAnnouncement(
     unknownFields: ByteVector = ByteVector.empty
 ) extends LightningMessage {
 
-  def toRemoteInfo: RemoteNodeInfo = RemoteNodeInfo(
-    nodeId,
-    addresses.minBy {
-      case _: IPv4 => 1
-      case _: IPv6 => 2
-      case _       => 3
-    },
-    alias
-  )
+  def toRemoteInfo: RemoteNodeInfo =
+    RemoteNodeInfo(
+      nodeId,
+      addresses.minBy {
+        case _: IPv4 => 1
+        case _: IPv6 => 2
+        case _ => 3
+      },
+      alias
+    )
 }
 
 object ChannelUpdate {
@@ -381,20 +377,22 @@ case class ChannelUpdate(
     htlcMaximumMsat
   )
 
-  def extraHop(nodeId: PublicKey): ExtraHop = ExtraHop(
-    nodeId,
-    shortChannelId,
-    feeBaseMsat,
-    feeProportionalMillionths,
-    cltvExpiryDelta
-  )
+  def extraHop(nodeId: PublicKey): ExtraHop =
+    ExtraHop(
+      nodeId,
+      shortChannelId,
+      feeBaseMsat,
+      feeProportionalMillionths,
+      cltvExpiryDelta
+    )
 
   // Point useless fields to same object, db-restored should be same, make sure it does not erase channelUpdateChecksumCodec fields
-  def lite: ChannelUpdate = copy(
-    signature = ByteVector64.Zeroes,
-    LNParams.chainHash,
-    unknownFields = ByteVector.empty
-  )
+  def lite: ChannelUpdate =
+    copy(
+      signature = ByteVector64.Zeroes,
+      LNParams.chainHash,
+      unknownFields = ByteVector.empty
+    )
 }
 
 sealed trait EncodingType
@@ -415,8 +413,7 @@ case class QueryShortChannelIds(
     tlvStream: TlvStream[QueryShortChannelIdsTlv] = TlvStream.empty
 ) extends LightningMessage
 
-case class ReplyShortChannelIdsEnd(chainHash: ByteVector32, complete: Byte)
-    extends LightningMessage
+case class ReplyShortChannelIdsEnd(chainHash: ByteVector32, complete: Byte) extends LightningMessage
 
 case class QueryChannelRange(
     chainHash: ByteVector32,
@@ -502,38 +499,38 @@ case class LastCrossSignedState(
     )
 
   lazy val hostedSigHash: ByteVector32 = {
-    val inPayments = incomingHtlcs.map(add =>
-      LightningMessageCodecs.updateAddHtlcCodec.encode(add).require.toByteVector
-    )
-    val outPayments = outgoingHtlcs.map(add =>
-      LightningMessageCodecs.updateAddHtlcCodec.encode(add).require.toByteVector
-    )
+    val inPayments =
+      incomingHtlcs.map(add => LightningMessageCodecs.updateAddHtlcCodec.encode(add).require.toByteVector)
+    val outPayments =
+      outgoingHtlcs.map(add => LightningMessageCodecs.updateAddHtlcCodec.encode(add).require.toByteVector)
     val hostFlag = if (isHost) 1 else 0
 
     Crypto.sha256(
       refundScriptPubKey ++
-        Protocol.writeUInt64(
-          initHostedChannel.channelCapacityMsat.toLong,
-          ByteOrder.LITTLE_ENDIAN
-        ) ++
-        Protocol.writeUInt64(
-          initHostedChannel.initialClientBalanceMsat.toLong,
-          ByteOrder.LITTLE_ENDIAN
-        ) ++
-        Protocol.writeUInt32(blockDay, ByteOrder.LITTLE_ENDIAN) ++
-        Protocol
-          .writeUInt64(localBalanceMsat.toLong, ByteOrder.LITTLE_ENDIAN) ++
-        Protocol
-          .writeUInt64(remoteBalanceMsat.toLong, ByteOrder.LITTLE_ENDIAN) ++
-        Protocol.writeUInt32(localUpdates, ByteOrder.LITTLE_ENDIAN) ++
-        Protocol.writeUInt32(remoteUpdates, ByteOrder.LITTLE_ENDIAN) ++
-        inPayments.foldLeft(ByteVector.empty) { case (acc, htlc) =>
+      Protocol.writeUInt64(
+        initHostedChannel.channelCapacityMsat.toLong,
+        ByteOrder.LITTLE_ENDIAN
+      ) ++
+      Protocol.writeUInt64(
+        initHostedChannel.initialClientBalanceMsat.toLong,
+        ByteOrder.LITTLE_ENDIAN
+      ) ++
+      Protocol.writeUInt32(blockDay, ByteOrder.LITTLE_ENDIAN) ++
+      Protocol
+        .writeUInt64(localBalanceMsat.toLong, ByteOrder.LITTLE_ENDIAN) ++
+      Protocol
+        .writeUInt64(remoteBalanceMsat.toLong, ByteOrder.LITTLE_ENDIAN) ++
+      Protocol.writeUInt32(localUpdates, ByteOrder.LITTLE_ENDIAN) ++
+      Protocol.writeUInt32(remoteUpdates, ByteOrder.LITTLE_ENDIAN) ++
+      inPayments.foldLeft(ByteVector.empty) {
+        case (acc, htlc) =>
           acc ++ htlc
-        } ++
-        outPayments.foldLeft(ByteVector.empty) { case (acc, htlc) =>
+      } ++
+      outPayments.foldLeft(ByteVector.empty) {
+        case (acc, htlc) =>
           acc ++ htlc
-        } :+
-        hostFlag.toByte
+      } :+
+      hostFlag.toByte
     )
   }
 
@@ -575,10 +572,11 @@ case class ResizeChannel(
 ) extends HostedChannelMessage {
   def isRemoteResized(remote: LastCrossSignedState): Boolean =
     newCapacity.toMilliSatoshi == remote.initHostedChannel.channelCapacityMsat
-  def sign(priv: PrivateKey): ResizeChannel = ResizeChannel(
-    clientSig = Crypto.sign(Crypto.sha256(sigMaterial), priv),
-    newCapacity = newCapacity
-  )
+  def sign(priv: PrivateKey): ResizeChannel =
+    ResizeChannel(
+      clientSig = Crypto.sign(Crypto.sha256(sigMaterial), priv),
+      newCapacity = newCapacity
+    )
   def verifyClientSig(pubKey: PublicKey): Boolean =
     Crypto.verifySignature(Crypto.sha256(sigMaterial), clientSig, pubKey)
   lazy val sigMaterial: ByteVector =
@@ -592,19 +590,15 @@ case class AskBrandingInfo(chainHash: ByteVector32) extends HostedChannelMessage
 
 // PHC
 
-case class QueryPublicHostedChannels(chainHash: ByteVector32)
-    extends HostedChannelMessage
+case class QueryPublicHostedChannels(chainHash: ByteVector32) extends HostedChannelMessage
 
-case class ReplyPublicHostedChannelsEnd(chainHash: ByteVector32)
-    extends HostedChannelMessage
+case class ReplyPublicHostedChannelsEnd(chainHash: ByteVector32) extends HostedChannelMessage
 
 // Preimage queries
 
-case class QueryPreimages(hashes: List[ByteVector32] = Nil)
-    extends HostedChannelMessage
+case class QueryPreimages(hashes: List[ByteVector32] = Nil) extends HostedChannelMessage
 
-case class ReplyPreimages(preimages: List[ByteVector32] = Nil)
-    extends HostedChannelMessage
+case class ReplyPreimages(preimages: List[ByteVector32] = Nil) extends HostedChannelMessage
 
 // Swap In/Out
 
@@ -612,9 +606,7 @@ sealed trait ChainSwapMessage extends LightningMessage
 
 sealed trait SwapIn // Chain -> LN
 
-case object SwapInRequest
-    extends SwapIn
-    with ChainSwapMessage // (1) User notifies provider it wants to start swap-in
+case object SwapInRequest extends SwapIn with ChainSwapMessage // (1) User notifies provider it wants to start swap-in
 
 case class SwapInResponse(btcAddress: String, minChainDeposit: Satoshi)
     extends SwapIn
@@ -631,9 +623,7 @@ object SwapInPaymentDenied {
   final val INVALID_INVOICE = 4L
 }
 
-case class SwapInPaymentDenied(id: Long, reason: Long)
-    extends SwapIn
-    with ChainSwapMessage
+case class SwapInPaymentDenied(id: Long, reason: Long) extends SwapIn with ChainSwapMessage
 
 case class ChainDeposit(
     id: Long,
@@ -695,9 +685,7 @@ object SwapOutTransactionDenied {
   final val AMOUNT_TOO_SMALL = 4L
 }
 
-case class SwapOutTransactionDenied(btcAddress: String, reason: Long)
-    extends SwapOut
-    with ChainSwapMessage
+case class SwapOutTransactionDenied(btcAddress: String, reason: Long) extends SwapOut with ChainSwapMessage
 
 // Trampoline
 
@@ -714,11 +702,12 @@ case class TrampolineOn(
     logExponent: Double,
     cltvExpiryDelta: CltvExpiryDelta
 ) extends HasRelayFee {
-  def relayFee(amount: MilliSatoshi): MilliSatoshi = trampolineFee(
-    proportionalFee(amount, feeProportionalMillionths).toLong,
-    exponent,
-    logExponent
-  )
+  def relayFee(amount: MilliSatoshi): MilliSatoshi =
+    trampolineFee(
+      proportionalFee(amount, feeProportionalMillionths).toLong,
+      exponent,
+      logExponent
+    )
 }
 
 case class AvgHopParams(

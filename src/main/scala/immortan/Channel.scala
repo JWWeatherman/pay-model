@@ -32,34 +32,37 @@ object Channel {
   def load(
       listeners: Set[ChannelListener],
       bag: ChannelBag
-  ): Map[ByteVector32, Channel] = bag.all.map {
-    case data: HasNormalCommitments =>
-      data.channelId -> ChannelNormal.make(listeners, data, bag)
-    case data: HostedCommits =>
-      data.channelId -> ChannelHosted.make(listeners, data, bag)
-    case _ => throw new RuntimeException
-  }.toMap
+  ): Map[ByteVector32, Channel] =
+    bag.all.map {
+      case data: HasNormalCommitments =>
+        data.channelId -> ChannelNormal.make(listeners, data, bag)
+      case data: HostedCommits =>
+        data.channelId -> ChannelHosted.make(listeners, data, bag)
+      case _ => throw new RuntimeException
+    }.toMap
 
   def chanAndCommitsOpt(chan: Channel): Option[ChanAndCommits] =
     chan.data match {
       case data: HasNormalCommitments =>
         ChanAndCommits(chan, data.commitments).asSome
       case data: HostedCommits => ChanAndCommits(chan, data).asSome
-      case _                   => None
+      case _ => None
     }
 
-  def isOperational(chan: Channel): Boolean = chan.data match {
-    case data: DATA_NORMAL =>
-      data.localShutdown.isEmpty && data.remoteShutdown.isEmpty
-    case hostedCommits: HostedCommits => hostedCommits.error.isEmpty
-    case _                            => false
-  }
+  def isOperational(chan: Channel): Boolean =
+    chan.data match {
+      case data: DATA_NORMAL =>
+        data.localShutdown.isEmpty && data.remoteShutdown.isEmpty
+      case hostedCommits: HostedCommits => hostedCommits.error.isEmpty
+      case _ => false
+    }
 
-  def isWaiting(chan: Channel): Boolean = chan.data match {
-    case _: DATA_WAIT_FOR_FUNDING_CONFIRMED => true
-    case _: DATA_WAIT_FOR_FUNDING_LOCKED    => true
-    case _                                  => false
-  }
+  def isWaiting(chan: Channel): Boolean =
+    chan.data match {
+      case _: DATA_WAIT_FOR_FUNDING_CONFIRMED => true
+      case _: DATA_WAIT_FOR_FUNDING_LOCKED => true
+      case _ => false
+    }
 
   def isOperationalOrWaiting(chan: Channel): Boolean =
     isOperational(chan) || isWaiting(chan)
@@ -78,7 +81,7 @@ trait Channel extends StateMachine[ChannelData] with CanBeRepliedTo { me =>
   def process(changeMsg: Any): Unit =
     Future(me doProcess changeMsg).onComplete {
       case Failure(reason) => events onException Tuple3(reason, me, data)
-      case _               => // Do nothing
+      case _ => // Do nothing
     }
 
   def SEND(msg: LightningMessage*): Unit
@@ -107,30 +110,24 @@ trait Channel extends StateMachine[ChannelData] with CanBeRepliedTo { me =>
   var listeners = Set.empty[ChannelListener]
 
   val events: ChannelListener = new ChannelListener {
-    override def onException
-        : PartialFunction[ChannelListener.Malfunction, Unit] = { case tuple =>
-      for (lst <- listeners if lst.onException isDefinedAt tuple)
-        lst onException tuple
+    override def onException: PartialFunction[ChannelListener.Malfunction, Unit] = {
+      case tuple =>
+        for (lst <- listeners if lst.onException isDefinedAt tuple)
+          lst onException tuple
     }
     override def onBecome: PartialFunction[ChannelListener.Transition, Unit] = {
       case tuple =>
         for (lst <- listeners if lst.onBecome isDefinedAt tuple)
           lst onBecome tuple
     }
-    override def addRejectedRemotely(reason: RemoteReject): Unit = for (
-      lst <- listeners
-    ) lst.addRejectedRemotely(reason)
-    override def addRejectedLocally(reason: LocalReject): Unit = for (
-      lst <- listeners
-    ) lst.addRejectedLocally(reason)
-    override def fulfillReceived(fulfill: RemoteFulfill): Unit = for (
-      lst <- listeners
-    ) lst.fulfillReceived(fulfill)
-    override def addReceived(add: UpdateAddHtlcExt): Unit = for (
-      lst <- listeners
-    ) lst.addReceived(add)
-    override def notifyResolvers: Unit = for (lst <- listeners)
-      lst.notifyResolvers
+    override def addRejectedRemotely(reason: RemoteReject): Unit =
+      for (lst <- listeners) lst.addRejectedRemotely(reason)
+    override def addRejectedLocally(reason: LocalReject): Unit = for (lst <- listeners) lst.addRejectedLocally(reason)
+    override def fulfillReceived(fulfill: RemoteFulfill): Unit = for (lst <- listeners) lst.fulfillReceived(fulfill)
+    override def addReceived(add: UpdateAddHtlcExt): Unit = for (lst <- listeners) lst.addReceived(add)
+    override def notifyResolvers: Unit =
+      for (lst <- listeners)
+        lst.notifyResolvers
   }
 
   val receiver: ActorRef =
@@ -147,15 +144,13 @@ trait Channel extends StateMachine[ChannelData] with CanBeRepliedTo { me =>
         lastSeenBlockCount: Option[CurrentBlockCount],
         useDelay: Boolean
     ): Receive = {
-      case currentBlockCount: CurrentBlockCount
-          if lastSeenBlockCount.isEmpty && useDelay =>
+      case currentBlockCount: CurrentBlockCount if lastSeenBlockCount.isEmpty && useDelay =>
         context.system.scheduler.scheduleOnce(10.seconds)(self ! "propagate")(
           LNParams.ec
         )
         context become main(currentBlockCount.asSome, useDelay = true)
 
-      case currentBlockCount: CurrentBlockCount
-          if lastSeenBlockCount.isDefined && useDelay =>
+      case currentBlockCount: CurrentBlockCount if lastSeenBlockCount.isDefined && useDelay =>
         // We may get another chain tip while delaying a current one: store a new one then
         context become main(currentBlockCount.asSome, useDelay = true)
 

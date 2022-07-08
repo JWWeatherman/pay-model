@@ -1,12 +1,13 @@
 package fr.acinq.eclair
 
 object ShortChannelId {
-  def produce(sid: String): Long = sid.split("x").toList match {
-    case blockHeight :: txIndex :: outputIndex :: Nil =>
-      toShortId(blockHeight.toInt, txIndex.toInt, outputIndex.toInt)
-    case _ =>
-      throw new IllegalArgumentException(s"Invalid short channel id: $sid")
-  }
+  def produce(sid: String): Long =
+    sid.split("x").toList match {
+      case blockHeight :: txIndex :: outputIndex :: Nil =>
+        toShortId(blockHeight.toInt, txIndex.toInt, outputIndex.toInt)
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid short channel id: $sid")
+    }
 
   def asString(sid: Long): String = {
     val list = blockHeight(sid) :: txIndex(sid) :: outputIndex(sid) :: Nil

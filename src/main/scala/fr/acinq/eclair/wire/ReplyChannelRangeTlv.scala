@@ -9,11 +9,12 @@ sealed trait ReplyChannelRangeTlv extends Tlv
 
 object ReplyChannelRangeTlv {
 
-  /** @param timestamp1
-    *   timestamp for node 1, or 0
-    * @param timestamp2
-    *   timestamp for node 2, or 0
-    */
+  /**
+   * @param timestamp1
+   *   timestamp for node 1, or 0
+   * @param timestamp2
+   *   timestamp for node 2, or 0
+   */
   case class Timestamps(timestamp1: Long, timestamp2: Long)
 
   case class EncodedTimestamps(
@@ -21,19 +22,19 @@ object ReplyChannelRangeTlv {
       timestamps: List[Timestamps]
   ) extends ReplyChannelRangeTlv
 
-  /** @param checksum1
-    *   checksum for node 1, or 0
-    * @param checksum2
-    *   checksum for node 2, or 0
-    */
+  /**
+   * @param checksum1
+   *   checksum for node 1, or 0
+   * @param checksum2
+   *   checksum for node 2, or 0
+   */
   case class Checksums(checksum1: Long, checksum2: Long)
 
-  case class EncodedChecksums(checksums: List[Checksums])
-      extends ReplyChannelRangeTlv
+  case class EncodedChecksums(checksums: List[Checksums]) extends ReplyChannelRangeTlv
 
   val timestampsCodec: Codec[Timestamps] = (
     ("timestamp1" | uint32) ::
-      ("timestamp2" | uint32)
+    ("timestamp2" | uint32)
   ).as[Timestamps]
 
   val encodedTimestampsCodec: Codec[EncodedTimestamps] = variableSizeBytesLong(
@@ -45,8 +46,9 @@ object ReplyChannelRangeTlv {
           timestampsCodec
         )).as[EncodedTimestamps]
       )
-      .\(1) { case a @ EncodedTimestamps(EncodingType.COMPRESSED_ZLIB, _) =>
-        a
+      .\(1) {
+        case a @ EncodedTimestamps(EncodingType.COMPRESSED_ZLIB, _) =>
+          a
       }(
         (provide[EncodingType](EncodingType.COMPRESSED_ZLIB) :: zlib(
           list(timestampsCodec)
@@ -56,7 +58,7 @@ object ReplyChannelRangeTlv {
 
   val checksumsCodec: Codec[Checksums] = (
     ("checksum1" | uint32) ::
-      ("checksum2" | uint32)
+    ("checksum2" | uint32)
   ).as[Checksums]
 
   val encodedChecksumsCodec: Codec[EncodedChecksums] =

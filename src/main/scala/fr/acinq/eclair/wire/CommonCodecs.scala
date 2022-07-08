@@ -18,18 +18,19 @@ object CommonCodecs {
   def discriminatorWithDefault[A](
       discriminator: Codec[A],
       fallback: Codec[A]
-  ): Codec[A] = new Codec[A] {
-    def sizeBound: SizeBound = discriminator.sizeBound | fallback.sizeBound
+  ): Codec[A] =
+    new Codec[A] {
+      def sizeBound: SizeBound = discriminator.sizeBound | fallback.sizeBound
 
-    def encode(e: A): Attempt[BitVector] =
-      discriminator.encode(e).recoverWith { case _ => fallback.encode(e) }
+      def encode(e: A): Attempt[BitVector] =
+        discriminator.encode(e).recoverWith { case _ => fallback.encode(e) }
 
-    def decode(b: BitVector): Attempt[DecodeResult[A]] =
-      discriminator.decode(b).recoverWith {
-        case _: KnownDiscriminatorType[_]#UnknownDiscriminator =>
-          fallback.decode(b)
-      }
-  }
+      def decode(b: BitVector): Attempt[DecodeResult[A]] =
+        discriminator.decode(b).recoverWith {
+          case _: KnownDiscriminatorType[_]#UnknownDiscriminator =>
+            fallback.decode(b)
+        }
+    }
 
   // this codec can be safely used for values < 2^63 and will fail otherwise
   // (for something smarter see https://github.com/yzernik/bitcoin-scodec/blob/master/src/main/scala/io/github/yzernik/bitcoinscodec/structures/UInt64.scala)
@@ -61,16 +62,17 @@ object CommonCodecs {
   val text: Codec[String] = variableSizeBytes(uint16, utf8)
   val optionalText: Codec[Option[String]] = optional(bool, text)
 
-  /** We impose a minimal encoding on some values (such as varint and truncated
-    * int) to ensure that signed hashes can be re-computed correctly. If a value
-    * could be encoded with less bytes, it's considered invalid and results in a
-    * failed decoding attempt.
-    *
-    * @param codec
-    *   the value codec (depends on the value).
-    * @param min
-    *   the minimal value that should be encoded.
-    */
+  /**
+   * We impose a minimal encoding on some values (such as varint and truncated
+   * int) to ensure that signed hashes can be re-computed correctly. If a value
+   * could be encoded with less bytes, it's considered invalid and results in a
+   * failed decoding attempt.
+   *
+   * @param codec
+   *   the value codec (depends on the value).
+   * @param min
+   *   the minimal value that should be encoded.
+   */
   def minimalvalue[A: Ordering](codec: Codec[A], min: A): Codec[A] =
     codec.exmap(
       {
@@ -142,10 +144,11 @@ object CommonCodecs {
     a => Attempt.fromTry(Try(ByteVector(a.getAddress)))
   )
 
-  def base32(size: Int): Codec[String] = bytes(size).xmap(
-    b => new Base32().encodeAsString(b.toArray).toLowerCase,
-    a => ByteVector(new Base32().decode(a.toUpperCase()))
-  )
+  def base32(size: Int): Codec[String] =
+    bytes(size).xmap(
+      b => new Base32().encodeAsString(b.toArray).toLowerCase,
+      a => ByteVector(new Base32().decode(a.toUpperCase()))
+    )
 
   val nodeaddress: Codec[NodeAddress] =
     discriminated[NodeAddress]
@@ -180,20 +183,20 @@ object CommonCodecs {
   def zeropaddedstring(size: Int): Codec[String] =
     fixedSizeBytes(size, utf8).xmap(s => s.takeWhile(_ != '\u0000'), s => s)
 
-  /** When encoding, prepend a valid mac to the output of the given codec. When
-    * decoding, verify that a valid mac is prepended.
-    */
-  def prependmac[A](codec: Codec[A], mac: Mac32): Codec[A] = Codec[A](
-    (a: A) =>
-      codec.encode(a).map(bits => mac.mac(bits.toByteVector).bits ++ bits),
-    (bits: BitVector) =>
-      ("mac" | bytes32).decode(bits) match {
-        case Attempt.Successful(DecodeResult(msgMac, remainder))
-            if mac.verify(msgMac, remainder.toByteVector) =>
-          codec.decode(remainder)
-        case Attempt.Successful(_) => Attempt.Failure(scodec.Err("invalid mac"))
-        case Attempt.Failure(err)  => Attempt.Failure(err)
-      }
-  )
+  /**
+   * When encoding, prepend a valid mac to the output of the given codec. When
+   * decoding, verify that a valid mac is prepended.
+   */
+  def prependmac[A](codec: Codec[A], mac: Mac32): Codec[A] =
+    Codec[A](
+      (a: A) => codec.encode(a).map(bits => mac.mac(bits.toByteVector).bits ++ bits),
+      (bits: BitVector) =>
+        ("mac" | bytes32).decode(bits) match {
+          case Attempt.Successful(DecodeResult(msgMac, remainder)) if mac.verify(msgMac, remainder.toByteVector) =>
+            codec.decode(remainder)
+          case Attempt.Successful(_) => Attempt.Failure(scodec.Err("invalid mac"))
+          case Attempt.Failure(err) => Attempt.Failure(err)
+        }
+    )
 
 }

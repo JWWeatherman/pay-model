@@ -2,17 +2,7 @@ package fr.acinq.eclair.blockchain.electrum
 
 import akka.actor.ActorRef
 import akka.pattern.ask
-import fr.acinq.bitcoin.{
-  ByteVector32,
-  OP_PUSHDATA,
-  OP_RETURN,
-  OutPoint,
-  Satoshi,
-  Script,
-  Transaction,
-  TxIn,
-  TxOut
-}
+import fr.acinq.bitcoin.{ByteVector32, OP_PUSHDATA, OP_RETURN, OutPoint, Satoshi, Script, Transaction, TxIn, TxOut}
 import fr.acinq.eclair.blockchain.EclairWallet
 import fr.acinq.eclair.blockchain.EclairWallet._
 import fr.acinq.eclair.blockchain.electrum.ElectrumClient.BroadcastTransaction
@@ -75,11 +65,9 @@ case class ElectrumEclairWallet(
   override def broadcast(tx: Transaction): Future[Boolean] = {
     walletRef ? BroadcastTransaction(tx) flatMap {
       case ElectrumClient.BroadcastTransactionResponse(_, None) => Future(true)
-      case res: ElectrumClient.BroadcastTransactionResponse
-          if res.error.exists(isInChain) =>
+      case res: ElectrumClient.BroadcastTransactionResponse if res.error.exists(isInChain) =>
         Future(true)
-      case res: ElectrumClient.BroadcastTransactionResponse
-          if res.error.isDefined =>
+      case res: ElectrumClient.BroadcastTransactionResponse if res.error.isDefined =>
         Future(false)
       case ElectrumClient.ServerError(
             _: ElectrumClient.BroadcastTransaction,

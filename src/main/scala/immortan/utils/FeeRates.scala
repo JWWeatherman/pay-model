@@ -48,15 +48,16 @@ object FeeRates {
 class FeeRates(bag: DataBag) extends CanBeShutDown {
   override def becomeShutDown: Unit = listeners = Set.empty
 
-  def reloadData: FeeratesPerKB = fr.acinq.eclair.secureRandom nextInt 3 match {
-    case 0 =>
-      new EsploraFeeProvider(
-        "https://blockstream.info/api/fee-estimates"
-      ).provide
-    case 1 =>
-      new EsploraFeeProvider("https://mempool.space/api/fee-estimates").provide
-    case _ => BitgoFeeProvider.provide
-  }
+  def reloadData: FeeratesPerKB =
+    fr.acinq.eclair.secureRandom nextInt 3 match {
+      case 0 =>
+        new EsploraFeeProvider(
+          "https://blockstream.info/api/fee-estimates"
+        ).provide
+      case 1 =>
+        new EsploraFeeProvider("https://mempool.space/api/fee-estimates").provide
+      case _ => BitgoFeeProvider.provide
+    }
 
   def updateInfo(newPerKB: FeeratesPerKB): Unit = {
     val history1 =

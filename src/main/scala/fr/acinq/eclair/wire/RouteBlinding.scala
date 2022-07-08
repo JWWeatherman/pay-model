@@ -11,31 +11,30 @@ sealed trait RouteBlindingEncryptedDataTlv extends Tlv
 
 object RouteBlindingEncryptedDataTlv {
 
-  /** Some padding can be added to ensure all payloads are the same size to
-    * improve privacy.
-    */
+  /**
+   * Some padding can be added to ensure all payloads are the same size to
+   * improve privacy.
+   */
   case class Padding(dummy: ByteVector) extends RouteBlindingEncryptedDataTlv
 
   /** Id of the outgoing channel, used to identify the next node. */
-  case class OutgoingChannelId(shortChannelId: Long)
-      extends RouteBlindingEncryptedDataTlv
+  case class OutgoingChannelId(shortChannelId: Long) extends RouteBlindingEncryptedDataTlv
 
   /** Id of the next node. */
-  case class OutgoingNodeId(nodeId: PublicKey)
-      extends RouteBlindingEncryptedDataTlv
+  case class OutgoingNodeId(nodeId: PublicKey) extends RouteBlindingEncryptedDataTlv
 
-  /** The final recipient may store some data in the encrypted payload for
-    * itself to avoid storing it locally. It can for example put a payment_hash
-    * to verify that the route is used for the correct invoice. It should use
-    * that field to detect when blinded routes are used outside of their
-    * intended use (malicious probing) and react accordingly (ignore the message
-    * or send an error depending on the use-case).
-    */
+  /**
+   * The final recipient may store some data in the encrypted payload for
+   * itself to avoid storing it locally. It can for example put a payment_hash
+   * to verify that the route is used for the correct invoice. It should use
+   * that field to detect when blinded routes are used outside of their
+   * intended use (malicious probing) and react accordingly (ignore the message
+   * or send an error depending on the use-case).
+   */
   case class PathId(data: ByteVector) extends RouteBlindingEncryptedDataTlv
 
   /** Blinding override for the rest of the route. */
-  case class NextBlinding(blinding: PublicKey)
-      extends RouteBlindingEncryptedDataTlv
+  case class NextBlinding(blinding: PublicKey) extends RouteBlindingEncryptedDataTlv
 
 }
 
@@ -75,19 +74,20 @@ object RouteBlindingEncryptedDataCodecs {
       .tlvStream[RouteBlindingEncryptedDataTlv](encryptedDataTlvCodec)
       .complete
 
-  /** Decrypt and decode the contents of an encrypted_recipient_data TLV field.
-    *
-    * @param nodePrivKey
-    *   this node's private key.
-    * @param blindingKey
-    *   blinding point (usually provided in the lightning message).
-    * @param encryptedData
-    *   encrypted route blinding data (usually provided inside an onion).
-    * @return
-    *   decrypted contents of the encrypted recipient data, which usually
-    *   contain information about the next node, and the blinding point that
-    *   should be sent to the next node.
-    */
+  /**
+   * Decrypt and decode the contents of an encrypted_recipient_data TLV field.
+   *
+   * @param nodePrivKey
+   *   this node's private key.
+   * @param blindingKey
+   *   blinding point (usually provided in the lightning message).
+   * @param encryptedData
+   *   encrypted route blinding data (usually provided inside an onion).
+   * @return
+   *   decrypted contents of the encrypted recipient data, which usually
+   *   contain information about the next node, and the blinding point that
+   *   should be sent to the next node.
+   */
   def decode(
       nodePrivKey: PrivateKey,
       blindingKey: PublicKey,
@@ -95,11 +95,12 @@ object RouteBlindingEncryptedDataCodecs {
   ): Try[(TlvStream[RouteBlindingEncryptedDataTlv], PublicKey)] = {
     Sphinx.RouteBlinding
       .decryptPayload(nodePrivKey, blindingKey, encryptedData)
-      .flatMap { case (payload, nextBlindingKey) =>
-        encryptedDataCodec
-          .decode(payload.bits)
-          .map(r => (r.value, nextBlindingKey))
-          .toTry
+      .flatMap {
+        case (payload, nextBlindingKey) =>
+          encryptedDataCodec
+            .decode(payload.bits)
+            .map(r => (r.value, nextBlindingKey))
+            .toTry
       }
   }
 }

@@ -8,8 +8,9 @@ import scodec.bits.ByteVector
 import scala.annotation.tailrec
 import scala.io.Source
 
-/** see https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
-  */
+/**
+ * see https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
+ */
 object MnemonicCode {
   lazy val englishWordlist = {
     val stream =
@@ -30,34 +31,37 @@ object MnemonicCode {
   private def toBinary(x: ByteVector): List[Boolean] =
     x.toSeq.flatMap(toBinary).toList
 
-  private def fromBinary(bin: Seq[Boolean]): Int = bin.foldLeft(0) {
-    case (acc, flag) => if (flag) 2 * acc + 1 else 2 * acc
-  }
+  private def fromBinary(bin: Seq[Boolean]): Int =
+    bin.foldLeft(0) {
+      case (acc, flag) => if (flag) 2 * acc + 1 else 2 * acc
+    }
 
-  /** BIP39 entropy encoding
-    *
-    * @param entropy
-    *   input entropy
-    * @param wordlist
-    *   word list (must be 2048 words long)
-    * @return
-    *   a list of mnemonic words that encodes the input entropy
-    */
+  /**
+   * BIP39 entropy encoding
+   *
+   * @param entropy
+   *   input entropy
+   * @param wordlist
+   *   word list (must be 2048 words long)
+   * @return
+   *   a list of mnemonic words that encodes the input entropy
+   */
   def toMnemonics(
       entropy: ByteVector,
       wordlist: Seq[String] = englishWordlist
   ): List[String] = {
     require(wordlist.length == 2048, "invalid word list (size should be 2048)")
     val digits = toBinary(entropy) ++ toBinary(Crypto.sha256(entropy))
-      .take(entropy.length.toInt / 4)
+        .take(entropy.length.toInt / 4)
     digits.grouped(11).map(fromBinary).map(index => wordlist(index)).toList
   }
 
-  /** validate that a mnemonic seed is valid
-    *
-    * @param mnemonics
-    *   list of mnemomic words
-    */
+  /**
+   * validate that a mnemonic seed is valid
+   *
+   * @param mnemonics
+   *   list of mnemomic words
+   */
   def validate(
       mnemonics: Seq[String],
       wordlist: Seq[String] = englishWordlist
@@ -69,9 +73,7 @@ object MnemonicCode {
       s"invalid mnemonic word count ${mnemonics.length}, it must be a multiple of 3"
     )
     val wordMap = wordlist.zipWithIndex.toMap
-    mnemonics.foreach(word =>
-      require(wordMap.contains(word), s"invalid mnemonic word $word")
-    )
+    mnemonics.foreach(word => require(wordMap.contains(word), s"invalid mnemonic word $word"))
     val indexes = mnemonics.map(word => wordMap(word))
 
     @tailrec
@@ -91,15 +93,16 @@ object MnemonicCode {
 
   def validate(mnemonics: String): Unit = validate(mnemonics.split(" ").toSeq)
 
-  /** BIP39 seed derivation
-    *
-    * @param mnemonics
-    *   mnemonic words
-    * @param passphrase
-    *   passphrase
-    * @return
-    *   a seed derived from the mnemonic words and passphrase
-    */
+  /**
+   * BIP39 seed derivation
+   *
+   * @param mnemonics
+   *   mnemonic words
+   * @param passphrase
+   *   passphrase
+   * @return
+   *   a seed derived from the mnemonic words and passphrase
+   */
   def toSeed(mnemonics: Seq[String], passphrase: String): ByteVector = {
     val gen = new PKCS5S2ParametersGenerator(new SHA512Digest())
     gen.init(

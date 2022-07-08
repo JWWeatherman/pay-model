@@ -37,18 +37,19 @@ object WatchConfirmed {
       event
     )
 
-  def extractPublicKeyScript(witness: ScriptWitness): ByteVector = Try(
-    PublicKey fromBin witness.stack.last
-  ) match {
-    case Success(pubKey) =>
-      Script.write(
-        Script pay2wpkh pubKey
-      ) // if last element of the witness is a public key, then this is a p2wpkh
-    case _ =>
-      Script.write(
-        Script pay2wsh witness.stack.last
-      ) // otherwise this is a p2wsh
-  }
+  def extractPublicKeyScript(witness: ScriptWitness): ByteVector =
+    Try(
+      PublicKey fromBin witness.stack.last
+    ) match {
+      case Success(pubKey) =>
+        Script.write(
+          Script pay2wpkh pubKey
+        ) // if last element of the witness is a public key, then this is a p2wpkh
+      case _ =>
+        Script.write(
+          Script pay2wsh witness.stack.last
+        ) // otherwise this is a p2wsh
+    }
 }
 
 final case class WatchSpent(
@@ -89,8 +90,7 @@ final case class WatchEventConfirmed(
     txIndex: Int
 ) extends WatchEvent
 
-final case class WatchEventSpent(event: BitcoinEvent, tx: Transaction)
-    extends WatchEvent
+final case class WatchEventSpent(event: BitcoinEvent, tx: Transaction) extends WatchEvent
 
 final case class PublishAsap(tx: Transaction)
 

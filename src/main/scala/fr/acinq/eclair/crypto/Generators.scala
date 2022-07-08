@@ -24,9 +24,10 @@ object Generators {
   def fixSize(data: ByteVector): ByteVector32 =
     if (data.length < 32) ByteVector32(data padLeft 32) else ByteVector32(data)
 
-  def perCommitSecret(seed: ByteVector32, index: Long): PrivateKey = PrivateKey(
-    ShaChain.shaChainFromSeed(seed, 0xffffffffffffL - index)
-  )
+  def perCommitSecret(seed: ByteVector32, index: Long): PrivateKey =
+    PrivateKey(
+      ShaChain.shaChainFromSeed(seed, 0xffffffffffffL - index)
+    )
 
   def perCommitPoint(seed: ByteVector32, index: Long): PublicKey =
     perCommitSecret(seed, index).publicKey

@@ -27,8 +27,8 @@ object OnionRoutingCodecs {
 
   def onionRoutingPacketCodec(payloadLength: Int): Codec[OnionRoutingPacket] =
     (("version" | uint8) ::
-      ("publicKey" | bytes(33)) ::
-      ("onionPayload" | bytes(payloadLength)) ::
-      ("hmac" | bytes32)).as[OnionRoutingPacket]
+    ("publicKey" | bytes(33)) ::
+    ("onionPayload" | bytes(payloadLength)) ::
+    ("hmac" | bytes32)).as[OnionRoutingPacket]
 
 }

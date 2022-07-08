@@ -19,24 +19,21 @@ package fr.acinq.eclair.crypto
 import java.nio.ByteOrder
 
 import fr.acinq.bitcoin.{ByteVector32, Protocol}
-import fr.acinq.eclair.crypto.ChaCha20Poly1305.{
-  DecryptionError,
-  EncryptionError,
-  InvalidCounter
-}
+import fr.acinq.eclair.crypto.ChaCha20Poly1305.{DecryptionError, EncryptionError, InvalidCounter}
 import org.bouncycastle.crypto.engines.ChaCha7539Engine
 import org.bouncycastle.crypto.params.{KeyParameter, ParametersWithIV}
 import scodec.bits.ByteVector
 
 object Poly1305 {
 
-  /** @param key
-    *   input key
-    * @param datas
-    *   input data
-    * @return
-    *   a 16 byte authentication tag
-    */
+  /**
+   * @param key
+   *   input key
+   * @param datas
+   *   input data
+   * @return
+   *   a 16 byte authentication tag
+   */
   def mac(key: ByteVector, datas: ByteVector*): ByteVector = {
     val out = new Array[Byte](16)
     val poly = new org.bouncycastle.crypto.macs.Poly1305()
@@ -47,8 +44,9 @@ object Poly1305 {
   }
 }
 
-/** ChaCha20 block cipher see https://tools.ietf.org/html/rfc7539#section-2.5
-  */
+/**
+ * ChaCha20 block cipher see https://tools.ietf.org/html/rfc7539#section-2.5
+ */
 object ChaCha20 {
   // Whenever key rotation happens, we start with a nonce value of 0 and increment it for each message.
   val ZeroNonce = ByteVector.fill(12)(0.byteValue)
@@ -116,32 +114,32 @@ object ChaCha20 {
   }
 }
 
-/** ChaCha20Poly1305 AEAD (Authenticated Encryption with Additional Data)
-  * algorithm see https://tools.ietf.org/html/rfc7539#section-2.5
-  *
-  * This what we should be using (see BOLT #8)
-  */
+/**
+ * ChaCha20Poly1305 AEAD (Authenticated Encryption with Additional Data)
+ * algorithm see https://tools.ietf.org/html/rfc7539#section-2.5
+ *
+ * This what we should be using (see BOLT #8)
+ */
 object ChaCha20Poly1305 {
 
-  abstract class ChaCha20Poly1305Error(msg: String)
-      extends RuntimeException(msg)
+  abstract class ChaCha20Poly1305Error(msg: String) extends RuntimeException(msg)
   case class InvalidMac() extends ChaCha20Poly1305Error("invalid mac")
   case class DecryptionError() extends ChaCha20Poly1305Error("decryption error")
   case class EncryptionError() extends ChaCha20Poly1305Error("encryption error")
-  case class InvalidCounter()
-      extends ChaCha20Poly1305Error("chacha20 counter must be 0 or 1")
+  case class InvalidCounter() extends ChaCha20Poly1305Error("chacha20 counter must be 0 or 1")
 
-  /** @param key
-    *   32 bytes encryption key
-    * @param nonce
-    *   12 bytes nonce
-    * @param plaintext
-    *   plain text
-    * @param aad
-    *   additional authentication data. can be empty
-    * @return
-    *   a (ciphertext, mac) tuple
-    */
+  /**
+   * @param key
+   *   32 bytes encryption key
+   * @param nonce
+   *   12 bytes nonce
+   * @param plaintext
+   *   plain text
+   * @param aad
+   *   additional authentication data. can be empty
+   * @return
+   *   a (ciphertext, mac) tuple
+   */
   def encrypt(
       key: ByteVector,
       nonce: ByteVector,
@@ -162,19 +160,20 @@ object ChaCha20Poly1305 {
     (ciphertext, tag)
   }
 
-  /** @param key
-    *   32 bytes decryption key
-    * @param nonce
-    *   12 bytes nonce
-    * @param ciphertext
-    *   ciphertext
-    * @param aad
-    *   additional authentication data. can be empty
-    * @param mac
-    *   authentication mac
-    * @return
-    *   the decrypted plaintext if the mac is valid.
-    */
+  /**
+   * @param key
+   *   32 bytes decryption key
+   * @param nonce
+   *   12 bytes nonce
+   * @param ciphertext
+   *   ciphertext
+   * @param aad
+   *   additional authentication data. can be empty
+   * @param mac
+   *   authentication mac
+   * @return
+   *   the decrypted plaintext if the mac is valid.
+   */
   def decrypt(
       key: ByteVector,
       nonce: ByteVector,

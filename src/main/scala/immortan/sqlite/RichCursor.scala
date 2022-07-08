@@ -31,14 +31,17 @@ trait RichCursor extends Iterable[RichCursor] {
 }
 
 case class RichCursorSQLiteGeneral(rs: ResultSet) extends RichCursor { me =>
-  def iterable[T](transform: RichCursor => T): Iterable[T] = try map(transform)
-  finally rs.close
+  def iterable[T](transform: RichCursor => T): Iterable[T] =
+    try map(transform)
+    finally rs.close
 
-  def set[T](transform: RichCursor => T): Set[T] = try map(transform).toSet
-  finally rs.close
+  def set[T](transform: RichCursor => T): Set[T] =
+    try map(transform).toSet
+    finally rs.close
 
-  def headTry[T](fun: RichCursor => T): Try[T] = try Try(fun apply head)
-  finally rs.close
+  def headTry[T](fun: RichCursor => T): Try[T] =
+    try Try(fun apply head)
+    finally rs.close
 
   def bytes(key: String): Bytes = rs.getBytes(key)
 

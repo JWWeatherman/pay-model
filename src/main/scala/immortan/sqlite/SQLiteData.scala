@@ -5,11 +5,7 @@ import java.lang.{Integer => JInt}
 import fr.acinq.bitcoin.Crypto.PublicKey
 import fr.acinq.bitcoin.{BlockHeader, ByteVector32}
 import fr.acinq.eclair.blockchain.electrum.db.HeaderDb
-import fr.acinq.eclair.wire.LightningMessageCodecs.{
-  hostedChannelBrandingCodec,
-  swapInStateCodec,
-  trampolineOnCodec
-}
+import fr.acinq.eclair.wire.LightningMessageCodecs.{hostedChannelBrandingCodec, swapInStateCodec, trampolineOnCodec}
 import fr.acinq.eclair.wire.{HostedChannelBranding, SwapInState, TrampolineOn}
 import immortan.crypto.Tools.Bytes
 import immortan.sqlite.SQLiteData._
@@ -51,9 +47,8 @@ class SQLiteData(val db: DBInterface) extends HeaderDb with DataBag {
   def putSecret(secret: WalletSecret): Unit =
     put(LABEL_FORMAT, walletSecretCodec.encode(secret).require.toByteArray)
 
-  def tryGetSecret: Try[WalletSecret] = tryGet(LABEL_FORMAT).map(raw =>
-    walletSecretCodec.decode(raw.toBitVector).require.value
-  )
+  def tryGetSecret: Try[WalletSecret] =
+    tryGet(LABEL_FORMAT).map(raw => walletSecretCodec.decode(raw.toBitVector).require.value)
 
   // Fiat rates, fee rates
 
@@ -61,16 +56,15 @@ class SQLiteData(val db: DBInterface) extends HeaderDb with DataBag {
     put(LABLEL_TRAMPOLINE_ON, trampolineOnCodec.encode(ton).require.toByteArray)
 
   def tryGetTrampolineOn: Try[TrampolineOn] =
-    tryGet(LABLEL_TRAMPOLINE_ON).map(raw =>
-      trampolineOnCodec.decode(raw.toBitVector).require.value
-    )
+    tryGet(LABLEL_TRAMPOLINE_ON).map(raw => trampolineOnCodec.decode(raw.toBitVector).require.value)
 
   def putFiatRatesInfo(data: FiatRatesInfo): Unit =
     put(LABEL_FIAT_RATES, data.toJson.compactPrint getBytes "UTF-8")
 
-  def tryGetFiatRatesInfo: Try[FiatRatesInfo] = tryGet(LABEL_FIAT_RATES).map(
-    SQLiteData.byteVecToString
-  ) map to[FiatRatesInfo]
+  def tryGetFiatRatesInfo: Try[FiatRatesInfo] =
+    tryGet(LABEL_FIAT_RATES).map(
+      SQLiteData.byteVecToString
+    ) map to[FiatRatesInfo]
 
   def putFeeRatesInfo(data: FeeRatesInfo): Unit =
     put(LABEL_FEE_RATES, data.toJson.compactPrint getBytes "UTF-8")
@@ -80,10 +74,11 @@ class SQLiteData(val db: DBInterface) extends HeaderDb with DataBag {
 
   // Payment reports
 
-  def putReport(paymentHash: ByteVector32, report: String): Unit = put(
-    LABEL_PAYMENT_REPORT_PREFIX + paymentHash.toHex,
-    report getBytes "UTF-8"
-  )
+  def putReport(paymentHash: ByteVector32, report: String): Unit =
+    put(
+      LABEL_PAYMENT_REPORT_PREFIX + paymentHash.toHex,
+      report getBytes "UTF-8"
+    )
 
   def tryGetReport(paymentHash: ByteVector32): Try[String] =
     tryGet(LABEL_PAYMENT_REPORT_PREFIX + paymentHash.toHex).map(byteVecToString)
@@ -97,12 +92,11 @@ class SQLiteData(val db: DBInterface) extends HeaderDb with DataBag {
   }
 
   def tryGetBranding(nodeId: PublicKey): Try[HostedChannelBranding] =
-    tryGet(LABEL_BRANDING_PREFIX + nodeId.toString) map {
-      rawHostedChannelBranding =>
-        hostedChannelBrandingCodec
-          .decode(rawHostedChannelBranding.toBitVector)
-          .require
-          .value
+    tryGet(LABEL_BRANDING_PREFIX + nodeId.toString) map { rawHostedChannelBranding =>
+      hostedChannelBrandingCodec
+        .decode(rawHostedChannelBranding.toBitVector)
+        .require
+        .value
     }
 
   // SwapInState

@@ -4,28 +4,24 @@ import fr.acinq.bitcoin.Crypto.{PrivateKey, PublicKey}
 import fr.acinq.bitcoin.DeterministicWallet.{ExtendedPublicKey, KeyPath}
 import scodec.bits.{ByteVector, HexStringSyntax}
 
-import java.io.{
-  ByteArrayInputStream,
-  ByteArrayOutputStream,
-  InputStream,
-  OutputStream
-}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 import java.nio.ByteOrder
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
-/** A partially signed bitcoin transaction: see
-  * https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki.
-  *
-  * @param global
-  *   global psbt data containing the transaction to be signed.
-  * @param inputs
-  *   signing data for each input of the transaction to be signed (order matches
-  *   the unsigned tx).
-  * @param outputs
-  *   signing data for each output of the transaction to be signed (order
-  *   matches the unsigned tx).
-  */
+/**
+ * A partially signed bitcoin transaction: see
+ * https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki.
+ *
+ * @param global
+ *   global psbt data containing the transaction to be signed.
+ * @param inputs
+ *   signing data for each input of the transaction to be signed (order matches
+ *   the unsigned tx).
+ * @param outputs
+ *   signing data for each output of the transaction to be signed (order
+ *   matches the unsigned tx).
+ */
 case class Psbt(
     global: Psbt.Global,
     inputs: Seq[Psbt.Input],
@@ -43,25 +39,26 @@ case class Psbt(
     "there must be one partially signed output per output of the unsigned tx"
   )
 
-  /** Implements the PSBT updater role; adds information about a given segwit
-    * utxo. When you have access to the complete input transaction, you should
-    * prefer [[updateWitnessInputTx]].
-    *
-    * @param outPoint
-    *   utxo being spent.
-    * @param txOut
-    *   transaction output for the provided outPoint.
-    * @param redeemScript
-    *   redeem script if known and applicable (when using p2sh-embedded segwit).
-    * @param witnessScript
-    *   witness script if known and applicable (when using p2wsh).
-    * @param sighashType
-    *   sighash type if one should be specified.
-    * @param derivationPaths
-    *   derivation paths for keys used by this utxo.
-    * @return
-    *   psbt with the matching input updated.
-    */
+  /**
+   * Implements the PSBT updater role; adds information about a given segwit
+   * utxo. When you have access to the complete input transaction, you should
+   * prefer [[updateWitnessInputTx]].
+   *
+   * @param outPoint
+   *   utxo being spent.
+   * @param txOut
+   *   transaction output for the provided outPoint.
+   * @param redeemScript
+   *   redeem script if known and applicable (when using p2sh-embedded segwit).
+   * @param witnessScript
+   *   witness script if known and applicable (when using p2wsh).
+   * @param sighashType
+   *   sighash type if one should be specified.
+   * @param derivationPaths
+   *   derivation paths for keys used by this utxo.
+   * @return
+   *   psbt with the matching input updated.
+   */
   def updateWitnessInput(
       outPoint: OutPoint,
       txOut: TxOut,
@@ -69,71 +66,73 @@ case class Psbt(
       witnessScript: Option[Seq[ScriptElt]] = None,
       sighashType: Option[Int] = None,
       derivationPaths: Map[PublicKey, KeyPathWithMaster] = Map.empty
-  ): Try[Psbt] = Try {
-    val inputIndex = global.tx.txIn.indexWhere(_.outPoint == outPoint)
-    require(
-      inputIndex >= 0,
-      "psbt transaction does not spend the provided outpoint"
-    )
-    val updatedInput = inputs(inputIndex) match {
-      case input: PartiallySignedInputWithoutUtxo =>
-        PartiallySignedWitnessInput(
-          txOut,
-          None,
-          sighashType.orElse(input.sighashType),
-          Map.empty,
-          derivationPaths ++ input.derivationPaths,
-          redeemScript,
-          witnessScript,
-          input.ripemd160,
-          input.sha256,
-          input.hash160,
-          input.hash256,
-          input.unknown
-        )
-      case input: PartiallySignedWitnessInput =>
-        input.copy(
-          txOut = txOut,
-          redeemScript = redeemScript.orElse(input.redeemScript),
-          witnessScript = witnessScript.orElse(input.witnessScript),
-          sighashType = sighashType.orElse(input.sighashType),
-          derivationPaths = input.derivationPaths ++ derivationPaths
-        )
-      case _: PartiallySignedNonWitnessInput =>
-        return Failure(
-          new IllegalArgumentException(
-            "cannot update segwit input: it has already been updated with non-segwit data"
+  ): Try[Psbt] =
+    Try {
+      val inputIndex = global.tx.txIn.indexWhere(_.outPoint == outPoint)
+      require(
+        inputIndex >= 0,
+        "psbt transaction does not spend the provided outpoint"
+      )
+      val updatedInput = inputs(inputIndex) match {
+        case input: PartiallySignedInputWithoutUtxo =>
+          PartiallySignedWitnessInput(
+            txOut,
+            None,
+            sighashType.orElse(input.sighashType),
+            Map.empty,
+            derivationPaths ++ input.derivationPaths,
+            redeemScript,
+            witnessScript,
+            input.ripemd160,
+            input.sha256,
+            input.hash160,
+            input.hash256,
+            input.unknown
           )
-        )
-      case _: FinalizedInput =>
-        return Failure(
-          new IllegalArgumentException(
-            "cannot update segwit input: it has already been finalized"
+        case input: PartiallySignedWitnessInput =>
+          input.copy(
+            txOut = txOut,
+            redeemScript = redeemScript.orElse(input.redeemScript),
+            witnessScript = witnessScript.orElse(input.witnessScript),
+            sighashType = sighashType.orElse(input.sighashType),
+            derivationPaths = input.derivationPaths ++ derivationPaths
           )
-        )
+        case _: PartiallySignedNonWitnessInput =>
+          return Failure(
+            new IllegalArgumentException(
+              "cannot update segwit input: it has already been updated with non-segwit data"
+            )
+          )
+        case _: FinalizedInput =>
+          return Failure(
+            new IllegalArgumentException(
+              "cannot update segwit input: it has already been finalized"
+            )
+          )
+      }
+      this.copy(inputs = inputs.updated(inputIndex, updatedInput))
     }
-    this.copy(inputs = inputs.updated(inputIndex, updatedInput))
-  }
 
-  /** Implements the PSBT updater role; adds information about a given segwit
-    * utxo. Note that we always fill the nonWitnessUtxo (see
-    * https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki#cite_note-7).
-    *
-    * @param inputTx
-    *   transaction containing the utxo.
-    * @param outputIndex
-    *   index of the utxo in the inputTx.
-    * @param redeemScript
-    *   redeem script if known and applicable (when using p2sh-embedded segwit).
-    * @param witnessScript
-    *   witness script if known and applicable (when using p2wsh).
-    * @param sighashType
-    *   sighash type if one should be specified.
-    * @param derivationPaths
-    *   derivation paths for keys used by this utxo.
-    * @return
-    *   psbt with the matching input updated.
-    */
+  /**
+   * Implements the PSBT updater role; adds information about a given segwit
+   * utxo. Note that we always fill the nonWitnessUtxo (see
+   * https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki#cite_note-7).
+   *
+   * @param inputTx
+   *   transaction containing the utxo.
+   * @param outputIndex
+   *   index of the utxo in the inputTx.
+   * @param redeemScript
+   *   redeem script if known and applicable (when using p2sh-embedded segwit).
+   * @param witnessScript
+   *   witness script if known and applicable (when using p2wsh).
+   * @param sighashType
+   *   sighash type if one should be specified.
+   * @param derivationPaths
+   *   derivation paths for keys used by this utxo.
+   * @return
+   *   psbt with the matching input updated.
+   */
   def updateWitnessInputTx(
       inputTx: Transaction,
       outputIndex: Int,
@@ -141,129 +140,132 @@ case class Psbt(
       witnessScript: Option[Seq[ScriptElt]] = None,
       sighashType: Option[Int] = None,
       derivationPaths: Map[PublicKey, KeyPathWithMaster] = Map.empty
-  ): Try[Psbt] = Try {
-    require(
-      outputIndex < inputTx.txOut.size,
-      "output index must exist in the input tx"
-    )
-    val outpoint = OutPoint(inputTx, outputIndex)
-    val inputIndex = global.tx.txIn.indexWhere(_.outPoint == outpoint)
-    require(
-      inputIndex >= 0,
-      "psbt transaction does not spend the provided outpoint"
-    )
-    val updatedInput = inputs(inputIndex) match {
-      case input: PartiallySignedInputWithoutUtxo =>
-        PartiallySignedWitnessInput(
-          inputTx.txOut(outputIndex),
-          Some(inputTx),
-          sighashType.orElse(input.sighashType),
-          Map.empty,
-          derivationPaths ++ input.derivationPaths,
-          redeemScript,
-          witnessScript,
-          input.ripemd160,
-          input.sha256,
-          input.hash160,
-          input.hash256,
-          input.unknown
-        )
-      case input: PartiallySignedWitnessInput =>
-        input.copy(
-          txOut = inputTx.txOut(outputIndex),
-          nonWitnessUtxo = Some(inputTx),
-          redeemScript = redeemScript.orElse(input.redeemScript),
-          witnessScript = witnessScript.orElse(input.witnessScript),
-          sighashType = sighashType.orElse(input.sighashType),
-          derivationPaths = input.derivationPaths ++ derivationPaths
-        )
-      case _: PartiallySignedNonWitnessInput =>
-        return Failure(
-          new IllegalArgumentException(
-            "cannot update segwit input: it has already been updated with non-segwit data"
+  ): Try[Psbt] =
+    Try {
+      require(
+        outputIndex < inputTx.txOut.size,
+        "output index must exist in the input tx"
+      )
+      val outpoint = OutPoint(inputTx, outputIndex)
+      val inputIndex = global.tx.txIn.indexWhere(_.outPoint == outpoint)
+      require(
+        inputIndex >= 0,
+        "psbt transaction does not spend the provided outpoint"
+      )
+      val updatedInput = inputs(inputIndex) match {
+        case input: PartiallySignedInputWithoutUtxo =>
+          PartiallySignedWitnessInput(
+            inputTx.txOut(outputIndex),
+            Some(inputTx),
+            sighashType.orElse(input.sighashType),
+            Map.empty,
+            derivationPaths ++ input.derivationPaths,
+            redeemScript,
+            witnessScript,
+            input.ripemd160,
+            input.sha256,
+            input.hash160,
+            input.hash256,
+            input.unknown
           )
-        )
-      case _: FinalizedInput =>
-        return Failure(
-          new IllegalArgumentException(
-            "cannot update segwit input: it has already been finalized"
+        case input: PartiallySignedWitnessInput =>
+          input.copy(
+            txOut = inputTx.txOut(outputIndex),
+            nonWitnessUtxo = Some(inputTx),
+            redeemScript = redeemScript.orElse(input.redeemScript),
+            witnessScript = witnessScript.orElse(input.witnessScript),
+            sighashType = sighashType.orElse(input.sighashType),
+            derivationPaths = input.derivationPaths ++ derivationPaths
           )
-        )
+        case _: PartiallySignedNonWitnessInput =>
+          return Failure(
+            new IllegalArgumentException(
+              "cannot update segwit input: it has already been updated with non-segwit data"
+            )
+          )
+        case _: FinalizedInput =>
+          return Failure(
+            new IllegalArgumentException(
+              "cannot update segwit input: it has already been finalized"
+            )
+          )
+      }
+      this.copy(inputs = inputs.updated(inputIndex, updatedInput))
     }
-    this.copy(inputs = inputs.updated(inputIndex, updatedInput))
-  }
 
-  /** Implements the PSBT updater role; adds information about a given
-    * non-segwit utxo.
-    *
-    * @param inputTx
-    *   transaction containing the utxo.
-    * @param outputIndex
-    *   index of the utxo in the inputTx.
-    * @param redeemScript
-    *   redeem script if known and applicable (when using p2sh).
-    * @param sighashType
-    *   sighash type if one should be specified.
-    * @param derivationPaths
-    *   derivation paths for keys used by this utxo.
-    * @return
-    *   psbt with the matching input updated.
-    */
+  /**
+   * Implements the PSBT updater role; adds information about a given
+   * non-segwit utxo.
+   *
+   * @param inputTx
+   *   transaction containing the utxo.
+   * @param outputIndex
+   *   index of the utxo in the inputTx.
+   * @param redeemScript
+   *   redeem script if known and applicable (when using p2sh).
+   * @param sighashType
+   *   sighash type if one should be specified.
+   * @param derivationPaths
+   *   derivation paths for keys used by this utxo.
+   * @return
+   *   psbt with the matching input updated.
+   */
   def updateNonWitnessInput(
       inputTx: Transaction,
       outputIndex: Int,
       redeemScript: Option[Seq[ScriptElt]] = None,
       sighashType: Option[Int] = None,
       derivationPaths: Map[PublicKey, KeyPathWithMaster] = Map.empty
-  ): Try[Psbt] = Try {
-    require(
-      outputIndex < inputTx.txOut.size,
-      "output index must exist in the input tx"
-    )
-    val outpoint = OutPoint(inputTx, outputIndex)
-    val inputIndex = global.tx.txIn.indexWhere(_.outPoint == outpoint)
-    require(
-      inputIndex >= 0,
-      "psbt transaction does not spend the provided outpoint"
-    )
-    val updatedInput = inputs(inputIndex) match {
-      case input: PartiallySignedInputWithoutUtxo =>
-        PartiallySignedNonWitnessInput(
-          inputTx,
-          outputIndex,
-          sighashType.orElse(input.sighashType),
-          Map.empty,
-          derivationPaths ++ input.derivationPaths,
-          redeemScript,
-          input.ripemd160,
-          input.sha256,
-          input.hash160,
-          input.hash256,
-          input.unknown
-        )
-      case input: PartiallySignedNonWitnessInput =>
-        input.copy(
-          inputTx = inputTx,
-          outputIndex = outputIndex,
-          redeemScript = redeemScript.orElse(input.redeemScript),
-          sighashType = sighashType.orElse(input.sighashType),
-          derivationPaths = input.derivationPaths ++ derivationPaths
-        )
-      case _: PartiallySignedWitnessInput =>
-        return Failure(
-          new IllegalArgumentException(
-            "cannot update non-segwit input: it has already been updated with segwit data"
+  ): Try[Psbt] =
+    Try {
+      require(
+        outputIndex < inputTx.txOut.size,
+        "output index must exist in the input tx"
+      )
+      val outpoint = OutPoint(inputTx, outputIndex)
+      val inputIndex = global.tx.txIn.indexWhere(_.outPoint == outpoint)
+      require(
+        inputIndex >= 0,
+        "psbt transaction does not spend the provided outpoint"
+      )
+      val updatedInput = inputs(inputIndex) match {
+        case input: PartiallySignedInputWithoutUtxo =>
+          PartiallySignedNonWitnessInput(
+            inputTx,
+            outputIndex,
+            sighashType.orElse(input.sighashType),
+            Map.empty,
+            derivationPaths ++ input.derivationPaths,
+            redeemScript,
+            input.ripemd160,
+            input.sha256,
+            input.hash160,
+            input.hash256,
+            input.unknown
           )
-        )
-      case _: FinalizedInput =>
-        return Failure(
-          new IllegalArgumentException(
-            "cannot update non-segwit input: it has already been finalized"
+        case input: PartiallySignedNonWitnessInput =>
+          input.copy(
+            inputTx = inputTx,
+            outputIndex = outputIndex,
+            redeemScript = redeemScript.orElse(input.redeemScript),
+            sighashType = sighashType.orElse(input.sighashType),
+            derivationPaths = input.derivationPaths ++ derivationPaths
           )
-        )
+        case _: PartiallySignedWitnessInput =>
+          return Failure(
+            new IllegalArgumentException(
+              "cannot update non-segwit input: it has already been updated with segwit data"
+            )
+          )
+        case _: FinalizedInput =>
+          return Failure(
+            new IllegalArgumentException(
+              "cannot update non-segwit input: it has already been finalized"
+            )
+          )
+      }
+      this.copy(inputs = inputs.updated(inputIndex, updatedInput))
     }
-    this.copy(inputs = inputs.updated(inputIndex, updatedInput))
-  }
 
   def updatePreimageChallenges(
       outPoint: OutPoint,
@@ -286,156 +288,162 @@ case class Psbt(
       sha256: Set[ByteVector],
       hash160: Set[ByteVector],
       hash256: Set[ByteVector]
-  ): Try[Psbt] = Try {
-    require(inputIndex < inputs.length, "input must exist in the global tx")
-    val updatedInput = inputs(inputIndex) match {
-      case input: PartiallySignedInputWithoutUtxo =>
-        input.copy(
-          ripemd160 = ripemd160 ++ input.ripemd160,
-          sha256 = sha256 ++ input.sha256,
-          hash160 = hash160 ++ input.hash160,
-          hash256 = hash256 ++ input.hash256
-        )
-      case input: PartiallySignedWitnessInput =>
-        input.copy(
-          ripemd160 = ripemd160 ++ input.ripemd160,
-          sha256 = sha256 ++ input.sha256,
-          hash160 = hash160 ++ input.hash160,
-          hash256 = hash256 ++ input.hash256
-        )
-      case input: PartiallySignedNonWitnessInput =>
-        input.copy(
-          ripemd160 = ripemd160 ++ input.ripemd160,
-          sha256 = sha256 ++ input.sha256,
-          hash160 = hash160 ++ input.hash160,
-          hash256 = hash256 ++ input.hash256
-        )
-      case input: FinalizedWitnessInput =>
-        input.copy(
-          ripemd160 = ripemd160 ++ input.ripemd160,
-          sha256 = sha256 ++ input.sha256,
-          hash160 = hash160 ++ input.hash160,
-          hash256 = hash256 ++ input.hash256
-        )
-      case input: FinalizedNonWitnessInput =>
-        input.copy(
-          ripemd160 = ripemd160 ++ input.ripemd160,
-          sha256 = sha256 ++ input.sha256,
-          hash160 = hash160 ++ input.hash160,
-          hash256 = hash256 ++ input.hash256
-        )
-      case input: FinalizedInputWithoutUtxo =>
-        input.copy(
-          ripemd160 = ripemd160 ++ input.ripemd160,
-          sha256 = sha256 ++ input.sha256,
-          hash160 = hash160 ++ input.hash160,
-          hash256 = hash256 ++ input.hash256
-        )
+  ): Try[Psbt] =
+    Try {
+      require(inputIndex < inputs.length, "input must exist in the global tx")
+      val updatedInput = inputs(inputIndex) match {
+        case input: PartiallySignedInputWithoutUtxo =>
+          input.copy(
+            ripemd160 = ripemd160 ++ input.ripemd160,
+            sha256 = sha256 ++ input.sha256,
+            hash160 = hash160 ++ input.hash160,
+            hash256 = hash256 ++ input.hash256
+          )
+        case input: PartiallySignedWitnessInput =>
+          input.copy(
+            ripemd160 = ripemd160 ++ input.ripemd160,
+            sha256 = sha256 ++ input.sha256,
+            hash160 = hash160 ++ input.hash160,
+            hash256 = hash256 ++ input.hash256
+          )
+        case input: PartiallySignedNonWitnessInput =>
+          input.copy(
+            ripemd160 = ripemd160 ++ input.ripemd160,
+            sha256 = sha256 ++ input.sha256,
+            hash160 = hash160 ++ input.hash160,
+            hash256 = hash256 ++ input.hash256
+          )
+        case input: FinalizedWitnessInput =>
+          input.copy(
+            ripemd160 = ripemd160 ++ input.ripemd160,
+            sha256 = sha256 ++ input.sha256,
+            hash160 = hash160 ++ input.hash160,
+            hash256 = hash256 ++ input.hash256
+          )
+        case input: FinalizedNonWitnessInput =>
+          input.copy(
+            ripemd160 = ripemd160 ++ input.ripemd160,
+            sha256 = sha256 ++ input.sha256,
+            hash160 = hash160 ++ input.hash160,
+            hash256 = hash256 ++ input.hash256
+          )
+        case input: FinalizedInputWithoutUtxo =>
+          input.copy(
+            ripemd160 = ripemd160 ++ input.ripemd160,
+            sha256 = sha256 ++ input.sha256,
+            hash160 = hash160 ++ input.hash160,
+            hash256 = hash256 ++ input.hash256
+          )
+      }
+      this.copy(inputs = inputs.updated(inputIndex, updatedInput))
     }
-    this.copy(inputs = inputs.updated(inputIndex, updatedInput))
-  }
 
-  /** Add details for a segwit output.
-    *
-    * @param outputIndex
-    *   index of the output in the psbt.
-    * @param witnessScript
-    *   witness script if known and applicable (when using p2wsh).
-    * @param redeemScript
-    *   redeem script if known and applicable (when using p2sh-embedded segwit).
-    * @param derivationPaths
-    *   derivation paths for keys used by this output.
-    * @return
-    *   psbt with the matching output updated.
-    */
+  /**
+   * Add details for a segwit output.
+   *
+   * @param outputIndex
+   *   index of the output in the psbt.
+   * @param witnessScript
+   *   witness script if known and applicable (when using p2wsh).
+   * @param redeemScript
+   *   redeem script if known and applicable (when using p2sh-embedded segwit).
+   * @param derivationPaths
+   *   derivation paths for keys used by this output.
+   * @return
+   *   psbt with the matching output updated.
+   */
   def updateWitnessOutput(
       outputIndex: Int,
       witnessScript: Option[Seq[ScriptElt]] = None,
       redeemScript: Option[Seq[ScriptElt]] = None,
       derivationPaths: Map[PublicKey, KeyPathWithMaster] = Map.empty
-  ): Try[Psbt] = Try {
-    require(
-      outputIndex < global.tx.txOut.size,
-      "output index must exist in the global tx"
-    )
-    val updatedOutput = outputs(outputIndex) match {
-      case _: NonWitnessOutput =>
-        return Failure(
-          new IllegalArgumentException(
-            "cannot update segwit output: it has already been updated with non-segwit data"
+  ): Try[Psbt] =
+    Try {
+      require(
+        outputIndex < global.tx.txOut.size,
+        "output index must exist in the global tx"
+      )
+      val updatedOutput = outputs(outputIndex) match {
+        case _: NonWitnessOutput =>
+          return Failure(
+            new IllegalArgumentException(
+              "cannot update segwit output: it has already been updated with non-segwit data"
+            )
           )
-        )
-      case output: WitnessOutput =>
-        output.copy(
-          witnessScript = witnessScript.orElse(output.witnessScript),
-          redeemScript = redeemScript.orElse(output.redeemScript),
-          derivationPaths = derivationPaths ++ output.derivationPaths
-        )
-      case output: UnspecifiedOutput =>
-        WitnessOutput(
-          witnessScript,
-          redeemScript,
-          derivationPaths ++ output.derivationPaths,
-          output.unknown
-        )
+        case output: WitnessOutput =>
+          output.copy(
+            witnessScript = witnessScript.orElse(output.witnessScript),
+            redeemScript = redeemScript.orElse(output.redeemScript),
+            derivationPaths = derivationPaths ++ output.derivationPaths
+          )
+        case output: UnspecifiedOutput =>
+          WitnessOutput(
+            witnessScript,
+            redeemScript,
+            derivationPaths ++ output.derivationPaths,
+            output.unknown
+          )
+      }
+      this.copy(outputs = outputs.updated(outputIndex, updatedOutput))
     }
-    this.copy(outputs = outputs.updated(outputIndex, updatedOutput))
-  }
 
-  /** Add details for a non-segwit output.
-    *
-    * @param outputIndex
-    *   index of the output in the psbt.
-    * @param redeemScript
-    *   redeem script if known and applicable (when using p2sh).
-    * @param derivationPaths
-    *   derivation paths for keys used by this output.
-    * @return
-    *   psbt with the matching output updated.
-    */
+  /**
+   * Add details for a non-segwit output.
+   *
+   * @param outputIndex
+   *   index of the output in the psbt.
+   * @param redeemScript
+   *   redeem script if known and applicable (when using p2sh).
+   * @param derivationPaths
+   *   derivation paths for keys used by this output.
+   * @return
+   *   psbt with the matching output updated.
+   */
   def updateNonWitnessOutput(
       outputIndex: Int,
       redeemScript: Option[Seq[ScriptElt]] = None,
       derivationPaths: Map[PublicKey, KeyPathWithMaster] = Map.empty
-  ): Try[Psbt] = Try {
-    require(
-      outputIndex < global.tx.txOut.size,
-      "output index must exist in the global tx"
-    )
-    val updatedOutput = outputs(outputIndex) match {
-      case output: NonWitnessOutput =>
-        output.copy(
-          redeemScript = redeemScript.orElse(output.redeemScript),
-          derivationPaths = derivationPaths ++ output.derivationPaths
-        )
-      case _: WitnessOutput =>
-        return Failure(
-          new IllegalArgumentException(
-            "cannot update non-segwit output: it has already been updated with segwit data"
+  ): Try[Psbt] =
+    Try {
+      require(
+        outputIndex < global.tx.txOut.size,
+        "output index must exist in the global tx"
+      )
+      val updatedOutput = outputs(outputIndex) match {
+        case output: NonWitnessOutput =>
+          output.copy(
+            redeemScript = redeemScript.orElse(output.redeemScript),
+            derivationPaths = derivationPaths ++ output.derivationPaths
           )
-        )
-      case output: UnspecifiedOutput =>
-        NonWitnessOutput(
-          redeemScript,
-          derivationPaths ++ output.derivationPaths,
-          output.unknown
-        )
+        case _: WitnessOutput =>
+          return Failure(
+            new IllegalArgumentException(
+              "cannot update non-segwit output: it has already been updated with segwit data"
+            )
+          )
+        case output: UnspecifiedOutput =>
+          NonWitnessOutput(
+            redeemScript,
+            derivationPaths ++ output.derivationPaths,
+            output.unknown
+          )
+      }
+      this.copy(outputs = outputs.updated(outputIndex, updatedOutput))
     }
-    this.copy(outputs = outputs.updated(outputIndex, updatedOutput))
-  }
 
-  /** Implements the PSBT signer role: sign a given input. The caller needs to
-    * carefully verify that it wants to spend that input, and that the unsigned
-    * transaction matches what it expects.
-    *
-    * @param priv
-    *   private key used to sign the input.
-    * @param outPoint
-    *   input that should be signed.
-    * @return
-    *   the psbt with a partial signature added (other inputs will not be
-    *   modified).
-    */
+  /**
+   * Implements the PSBT signer role: sign a given input. The caller needs to
+   * carefully verify that it wants to spend that input, and that the unsigned
+   * transaction matches what it expects.
+   *
+   * @param priv
+   *   private key used to sign the input.
+   * @param outPoint
+   *   input that should be signed.
+   * @return
+   *   the psbt with a partial signature added (other inputs will not be
+   *   modified).
+   */
   def sign(priv: PrivateKey, outPoint: OutPoint): Try[SignPsbtResult] = {
     val inputIndex = global.tx.txIn.indexWhere(_.outPoint == outPoint)
     require(
@@ -445,45 +453,48 @@ case class Psbt(
     sign(priv, inputIndex)
   }
 
-  /** Implements the PSBT signer role: sign a given input. The caller needs to
-    * carefully verify that it wants to spend that input, and that the unsigned
-    * transaction matches what it expects.
-    *
-    * @param priv
-    *   private key used to sign the input.
-    * @param inputIndex
-    *   index of the input that should be signed.
-    * @return
-    *   the psbt with a partial signature added (other inputs will not be
-    *   modified).
-    */
-  def sign(priv: PrivateKey, inputIndex: Int): Try[SignPsbtResult] = Try {
-    require(
-      inputIndex < inputs.length,
-      "input index must exist in the input tx"
-    )
-    val input = inputs(inputIndex)
-    Psbt.sign(priv, inputIndex, input, global) match {
-      case Success((signedInput, sig)) =>
-        SignPsbtResult(
-          this.copy(inputs = inputs.updated(inputIndex, signedInput)),
-          sig
-        )
-      case Failure(ex) => return Failure(ex)
+  /**
+   * Implements the PSBT signer role: sign a given input. The caller needs to
+   * carefully verify that it wants to spend that input, and that the unsigned
+   * transaction matches what it expects.
+   *
+   * @param priv
+   *   private key used to sign the input.
+   * @param inputIndex
+   *   index of the input that should be signed.
+   * @return
+   *   the psbt with a partial signature added (other inputs will not be
+   *   modified).
+   */
+  def sign(priv: PrivateKey, inputIndex: Int): Try[SignPsbtResult] =
+    Try {
+      require(
+        inputIndex < inputs.length,
+        "input index must exist in the input tx"
+      )
+      val input = inputs(inputIndex)
+      Psbt.sign(priv, inputIndex, input, global) match {
+        case Success((signedInput, sig)) =>
+          SignPsbtResult(
+            this.copy(inputs = inputs.updated(inputIndex, signedInput)),
+            sig
+          )
+        case Failure(ex) => return Failure(ex)
+      }
     }
-  }
 
-  /** Implements the PSBT finalizer role: finalizes a given segwit input. This
-    * will clear all fields from the input except the utxo, scriptSig,
-    * scriptWitness and unknown entries.
-    *
-    * @param outPoint
-    *   input that should be finalized.
-    * @param scriptWitness
-    *   witness script.
-    * @return
-    *   a psbt with the given input finalized.
-    */
+  /**
+   * Implements the PSBT finalizer role: finalizes a given segwit input. This
+   * will clear all fields from the input except the utxo, scriptSig,
+   * scriptWitness and unknown entries.
+   *
+   * @param outPoint
+   *   input that should be finalized.
+   * @param scriptWitness
+   *   witness script.
+   * @return
+   *   a psbt with the given input finalized.
+   */
   def finalizeWitnessInput(
       outPoint: OutPoint,
       scriptWitness: ScriptWitness
@@ -496,17 +507,18 @@ case class Psbt(
     finalizeWitnessInput(inputIndex, scriptWitness)
   }
 
-  /** Implements the PSBT finalizer role: finalizes a given segwit input. This
-    * will clear all fields from the input except the utxo, scriptSig,
-    * scriptWitness and unknown entries.
-    *
-    * @param inputIndex
-    *   index of the input that should be finalized.
-    * @param scriptWitness
-    *   witness script.
-    * @return
-    *   a psbt with the given input finalized.
-    */
+  /**
+   * Implements the PSBT finalizer role: finalizes a given segwit input. This
+   * will clear all fields from the input except the utxo, scriptSig,
+   * scriptWitness and unknown entries.
+   *
+   * @param inputIndex
+   *   index of the input that should be finalized.
+   * @param scriptWitness
+   *   witness script.
+   * @return
+   *   a psbt with the given input finalized.
+   */
   def finalizeWitnessInput(
       inputIndex: Int,
       scriptWitness: ScriptWitness
@@ -530,9 +542,8 @@ case class Psbt(
             )
           )
         case input: PartiallySignedWitnessInput =>
-          val scriptSig = input.redeemScript.map(script =>
-            OP_PUSHDATA(Script.write(script)) :: Nil
-          ) // p2sh-embedded segwit
+          val scriptSig =
+            input.redeemScript.map(script => OP_PUSHDATA(Script.write(script)) :: Nil) // p2sh-embedded segwit
           val finalizedInput = FinalizedWitnessInput(
             input.txOut,
             input.nonWitnessUtxo,
@@ -557,17 +568,18 @@ case class Psbt(
     }
   }
 
-  /** Implements the PSBT finalizer role: finalizes a given non-segwit input.
-    * This will clear all fields from the input except the utxo, scriptSig and
-    * unknown entries.
-    *
-    * @param outPoint
-    *   input that should be finalized.
-    * @param scriptSig
-    *   signature script.
-    * @return
-    *   a psbt with the given input finalized.
-    */
+  /**
+   * Implements the PSBT finalizer role: finalizes a given non-segwit input.
+   * This will clear all fields from the input except the utxo, scriptSig and
+   * unknown entries.
+   *
+   * @param outPoint
+   *   input that should be finalized.
+   * @param scriptSig
+   *   signature script.
+   * @return
+   *   a psbt with the given input finalized.
+   */
   def finalizeNonWitnessInput(
       outPoint: OutPoint,
       scriptSig: Seq[ScriptElt]
@@ -580,17 +592,18 @@ case class Psbt(
     finalizeNonWitnessInput(inputIndex, scriptSig)
   }
 
-  /** Implements the PSBT finalizer role: finalizes a given non-segwit input.
-    * This will clear all fields from the input except the utxo, scriptSig and
-    * unknown entries.
-    *
-    * @param inputIndex
-    *   index of the input that should be finalized.
-    * @param scriptSig
-    *   signature script.
-    * @return
-    *   a psbt with the given input finalized.
-    */
+  /**
+   * Implements the PSBT finalizer role: finalizes a given non-segwit input.
+   * This will clear all fields from the input except the utxo, scriptSig and
+   * unknown entries.
+   *
+   * @param inputIndex
+   *   index of the input that should be finalized.
+   * @param scriptSig
+   *   signature script.
+   * @return
+   *   a psbt with the given input finalized.
+   */
   def finalizeNonWitnessInput(
       inputIndex: Int,
       scriptSig: Seq[ScriptElt]
@@ -637,47 +650,46 @@ case class Psbt(
     }
   }
 
-  /** Implements the PSBT extractor role: extracts a valid transaction from the
-    * psbt data.
-    *
-    * @return
-    *   a fully signed, ready-to-broadcast transaction.
-    */
+  /**
+   * Implements the PSBT extractor role: extracts a valid transaction from the
+   * psbt data.
+   *
+   * @return
+   *   a fully signed, ready-to-broadcast transaction.
+   */
   def extract(): Try[Transaction] = {
     val (finalTxsIn, utxos) = global.tx.txIn
       .zip(inputs)
-      .map { case (txIn, input) =>
-        val finalTxIn = txIn.copy(
-          witness = input.scriptWitness.getOrElse(ScriptWitness.empty),
-          signatureScript =
-            input.scriptSig.map(Script.write).getOrElse(ByteVector.empty)
-        )
-        val utxo = input match {
-          case input: FinalizedNonWitnessInput
-              if input.inputTx.txid != txIn.outPoint.txid =>
-            return Failure(
-              new IllegalArgumentException(
-                "cannot extract transaction: non-witness utxo does not match unsigned tx input"
+      .map {
+        case (txIn, input) =>
+          val finalTxIn = txIn.copy(
+            witness = input.scriptWitness.getOrElse(ScriptWitness.empty),
+            signatureScript = input.scriptSig.map(Script.write).getOrElse(ByteVector.empty)
+          )
+          val utxo = input match {
+            case input: FinalizedNonWitnessInput if input.inputTx.txid != txIn.outPoint.txid =>
+              return Failure(
+                new IllegalArgumentException(
+                  "cannot extract transaction: non-witness utxo does not match unsigned tx input"
+                )
               )
-            )
-          case input: FinalizedNonWitnessInput
-              if input.inputTx.txOut.length <= txIn.outPoint.index =>
-            return Failure(
-              new IllegalArgumentException(
-                "cannot extract transaction: non-witness utxo index out of bounds"
+            case input: FinalizedNonWitnessInput if input.inputTx.txOut.length <= txIn.outPoint.index =>
+              return Failure(
+                new IllegalArgumentException(
+                  "cannot extract transaction: non-witness utxo index out of bounds"
+                )
               )
-            )
-          case input: FinalizedNonWitnessInput =>
-            input.inputTx.txOut(txIn.outPoint.index.toInt)
-          case input: FinalizedWitnessInput => input.txOut
-          case _ =>
-            return Failure(
-              new IllegalArgumentException(
-                "cannot extract transaction: some inputs are not finalized or are missing utxo data"
+            case input: FinalizedNonWitnessInput =>
+              input.inputTx.txOut(txIn.outPoint.index.toInt)
+            case input: FinalizedWitnessInput => input.txOut
+            case _ =>
+              return Failure(
+                new IllegalArgumentException(
+                  "cannot extract transaction: some inputs are not finalized or are missing utxo data"
+                )
               )
-            )
-        }
-        (finalTxIn, txIn.outPoint -> utxo)
+          }
+          (finalTxIn, txIn.outPoint -> utxo)
       }
       .unzip
     val finalTx = global.tx.copy(txIn = finalTxsIn)
@@ -690,12 +702,13 @@ case class Psbt(
     }.map(_ => finalTx)
   }
 
-  /** Compute the fees paid by the PSBT. Note that if some inputs have not been
-    * updated yet, the fee cannot be computed.
-    */
+  /**
+   * Compute the fees paid by the PSBT. Note that if some inputs have not been
+   * updated yet, the fee cannot be computed.
+   */
   def computeFees(): Try[Satoshi] = {
     val amountOut = global.tx.txOut match {
-      case Nil   => 0 sat
+      case Nil => 0 sat
       case txOut => txOut.map(_.amount).sum
     }
     val amountIn = inputs.foldLeft(Success(0 sat): Try[Satoshi]) {
@@ -726,32 +739,35 @@ case class Psbt(
 
 }
 
-/** Partially signed bitcoin transactions: see
-  * https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
-  */
+/**
+ * Partially signed bitcoin transactions: see
+ * https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
+ */
 object Psbt {
 
   /** Only version 0 is supported for now. */
   val Version: Long = 0
 
-  /** @param prefix
-    *   extended public key version bytes.
-    * @param masterKeyFingerprint
-    *   fingerprint of the master key.
-    * @param extendedPublicKey
-    *   BIP32 extended public key.
-    */
+  /**
+   * @param prefix
+   *   extended public key version bytes.
+   * @param masterKeyFingerprint
+   *   fingerprint of the master key.
+   * @param extendedPublicKey
+   *   BIP32 extended public key.
+   */
   case class ExtendedPublicKeyWithMaster(
       prefix: Long,
       masterKeyFingerprint: Long,
       extendedPublicKey: ExtendedPublicKey
   )
 
-  /** @param masterKeyFingerprint
-    *   fingerprint of the master key.
-    * @param keyPath
-    *   bip 32 derivation path.
-    */
+  /**
+   * @param masterKeyFingerprint
+   *   fingerprint of the master key.
+   * @param keyPath
+   *   bip 32 derivation path.
+   */
   case class KeyPathWithMaster(masterKeyFingerprint: Long, keyPath: KeyPath)
 
   case class SignPsbtResult(psbt: Psbt, sig: ByteVector)
@@ -765,18 +781,19 @@ object Psbt {
     def unknown: Seq[DataEntry]
   }
 
-  /** Global data for the PSBT.
-    *
-    * @param version
-    *   psbt version.
-    * @param tx
-    *   partially signed transaction.
-    * @param extendedPublicKeys
-    *   (optional) extended public keys used when signing inputs and producing
-    *   outputs.
-    * @param unknown
-    *   (optional) unknown global entries.
-    */
+  /**
+   * Global data for the PSBT.
+   *
+   * @param version
+   *   psbt version.
+   * @param tx
+   *   partially signed transaction.
+   * @param extendedPublicKeys
+   *   (optional) extended public keys used when signing inputs and producing
+   *   outputs.
+   * @param unknown
+   *   (optional) unknown global entries.
+   */
   case class Global(
       version: Long,
       tx: Transaction,
@@ -784,9 +801,10 @@ object Psbt {
       unknown: Seq[DataEntry]
   ) extends DataMap
 
-  /** A PSBT input. A valid PSBT must contain one such input per input of the
-    * [[Global.tx]].
-    */
+  /**
+   * A PSBT input. A valid PSBT must contain one such input per input of the
+   * [[Global.tx]].
+   */
   sealed trait Input extends DataMap {
     // @formatter:off
     /** Non-witness utxo, used when spending non-segwit outputs (may also be included when spending segwit outputs). */
@@ -842,9 +860,10 @@ object Psbt {
     // @formatter:on
   }
 
-  /** A partially signed input. More signatures may need to be added before it
-    * can be finalized.
-    */
+  /**
+   * A partially signed input. More signatures may need to be added before it
+   * can be finalized.
+   */
   sealed trait PartiallySignedInput extends Input {
     override val scriptSig: Option[Seq[ScriptElt]] = None
     override val scriptWitness: Option[ScriptWitness] = None
@@ -936,10 +955,11 @@ object Psbt {
     override val scriptWitness: Option[ScriptWitness] = None
   }
 
-  /** Input finalizers should keep the utxo to allow transaction extractors to
-    * verify the final network serialized transaction, but it's not mandatory so
-    * we may not have it available when parsing psbt inputs.
-    */
+  /**
+   * Input finalizers should keep the utxo to allow transaction extractors to
+   * verify the final network serialized transaction, but it's not mandatory so
+   * we may not have it available when parsing psbt inputs.
+   */
   case class FinalizedInputWithoutUtxo(
       scriptWitness: Option[ScriptWitness],
       scriptSig: Option[Seq[ScriptElt]],
@@ -953,9 +973,10 @@ object Psbt {
     override val witnessUtxo: Option[TxOut] = None
   }
 
-  /** A PSBT output. A valid PSBT must contain one such output per output of the
-    * [[Global.tx]].
-    */
+  /**
+   * A PSBT output. A valid PSBT must contain one such output per output of the
+   * [[Global.tx]].
+   */
   sealed trait Output extends DataMap {
     // @formatter:off
     /** Redeem script for this output (when using p2sh). */
@@ -995,41 +1016,43 @@ object Psbt {
     override val witnessScript: Option[Seq[ScriptElt]] = None
   }
 
-  /** Implements the PSBT creator role; initializes a PSBT for the given
-    * unsigned transaction.
-    *
-    * @param tx
-    *   unsigned transaction skeleton.
-    * @return
-    *   the psbt with empty inputs and outputs.
-    */
-  def apply(tx: Transaction): Psbt = Psbt(
-    Global(
-      Version,
-      tx.copy(txIn =
-        tx.txIn.map(
-          _.copy(
-            signatureScript = ByteVector.empty,
-            witness = ScriptWitness.empty
+  /**
+   * Implements the PSBT creator role; initializes a PSBT for the given
+   * unsigned transaction.
+   *
+   * @param tx
+   *   unsigned transaction skeleton.
+   * @return
+   *   the psbt with empty inputs and outputs.
+   */
+  def apply(tx: Transaction): Psbt =
+    Psbt(
+      Global(
+        Version,
+        tx.copy(txIn =
+          tx.txIn.map(
+            _.copy(
+              signatureScript = ByteVector.empty,
+              witness = ScriptWitness.empty
+            )
           )
+        ),
+        Nil,
+        Nil
+      ),
+      tx.txIn.map(_ =>
+        PartiallySignedInputWithoutUtxo(
+          None,
+          Map.empty,
+          Set.empty,
+          Set.empty,
+          Set.empty,
+          Set.empty,
+          Seq.empty
         )
       ),
-      Nil,
-      Nil
-    ),
-    tx.txIn.map(_ =>
-      PartiallySignedInputWithoutUtxo(
-        None,
-        Map.empty,
-        Set.empty,
-        Set.empty,
-        Set.empty,
-        Set.empty,
-        Seq.empty
-      )
-    ),
-    tx.txOut.map(_ => UnspecifiedOutput(Map.empty, Seq.empty))
-  )
+      tx.txOut.map(_ => UnspecifiedOutput(Map.empty, Seq.empty))
+    )
 
   private def sign(
       priv: PrivateKey,
@@ -1090,9 +1113,7 @@ object Psbt {
       case Some(script) =>
         // If a redeem script is provided in the partially signed input, the utxo must be a p2sh for that script.
         val p2sh = Script.write(Script.pay2sh(script))
-        if (
-          input.inputTx.txOut(txIn.outPoint.index.toInt).publicKeyScript != p2sh
-        ) {
+        if (input.inputTx.txOut(txIn.outPoint.index.toInt).publicKeyScript != p2sh) {
           Failure(
             new IllegalArgumentException(
               "redeem script does not match non-witness utxo scriptPubKey"
@@ -1195,14 +1216,15 @@ object Psbt {
     )
   }
 
-  /** Implements the PSBT combiner role: combines multiple psbts for the same
-    * unsigned transaction.
-    *
-    * @param psbts
-    *   partially signed bitcoin transactions to combine.
-    * @return
-    *   a psbt that contains data from all the input psbts.
-    */
+  /**
+   * Implements the PSBT combiner role: combines multiple psbts for the same
+   * unsigned transaction.
+   *
+   * @param psbts
+   *   partially signed bitcoin transactions to combine.
+   * @return
+   *   a psbt that contains data from all the input psbts.
+   */
   def combine(psbts: Psbt*): Try[Psbt] = {
     if (psbts.map(_.global.tx.txid).toSet.size != 1) {
       Failure(
@@ -1213,12 +1235,9 @@ object Psbt {
     } else {
       val global = psbts.head.global.copy(
         unknown = combineUnknown(psbts.map(_.global.unknown)),
-        extendedPublicKeys =
-          combineExtendedPublicKeys(psbts.map(_.global.extendedPublicKeys))
+        extendedPublicKeys = combineExtendedPublicKeys(psbts.map(_.global.extendedPublicKeys))
       )
-      val inputs = global.tx.txIn.indices.map(i =>
-        combineInput(global.tx.txIn(i), psbts.map(_.inputs(i)))
-      )
+      val inputs = global.tx.txIn.indices.map(i => combineInput(global.tx.txIn(i), psbts.map(_.inputs(i))))
       val outputs =
         global.tx.txOut.indices.map(i => combineOutput(psbts.map(_.outputs(i))))
       Success(Psbt(global, inputs, outputs))
@@ -1252,22 +1271,24 @@ object Psbt {
       combineUnknown(inputs.map(_.unknown))
     )
 
-  private def combineOutput(outputs: Seq[Output]): Output = Codecs.createOutput(
-    outputs.flatMap(_.redeemScript).headOption,
-    outputs.flatMap(_.witnessScript).headOption,
-    outputs.flatMap(_.derivationPaths).toMap,
-    combineUnknown(outputs.map(_.unknown))
-  )
+  private def combineOutput(outputs: Seq[Output]): Output =
+    Codecs.createOutput(
+      outputs.flatMap(_.redeemScript).headOption,
+      outputs.flatMap(_.witnessScript).headOption,
+      outputs.flatMap(_.derivationPaths).toMap,
+      combineUnknown(outputs.map(_.unknown))
+    )
 
-  /** Joins multiple distinct PSBTs with different inputs and outputs into one
-    * PSBT with inputs and outputs from all of the PSBTs. No input in any of the
-    * PSBTs can be in more than one of the PSBTs.
-    *
-    * @param psbts
-    *   partially signed bitcoin transactions to join.
-    * @return
-    *   a psbt that contains data from all the input psbts.
-    */
+  /**
+   * Joins multiple distinct PSBTs with different inputs and outputs into one
+   * PSBT with inputs and outputs from all of the PSBTs. No input in any of the
+   * PSBTs can be in more than one of the PSBTs.
+   *
+   * @param psbts
+   *   partially signed bitcoin transactions to join.
+   * @return
+   *   a psbt that contains data from all the input psbts.
+   */
   def join(psbts: Psbt*): Try[Psbt] = {
     if (psbts.isEmpty) {
       Failure(
@@ -1307,8 +1328,7 @@ object Psbt {
           txIn = psbts.flatMap(_.global.tx.txIn),
           txOut = psbts.flatMap(_.global.tx.txOut)
         ),
-        extendedPublicKeys =
-          psbts.flatMap(_.global.extendedPublicKeys).distinct,
+        extendedPublicKeys = psbts.flatMap(_.global.extendedPublicKeys).distinct,
         unknown = psbts.flatMap(_.global.unknown).distinct
       )
       val inputs = psbts.flatMap(_.inputs)
@@ -1336,13 +1356,14 @@ object Psbt {
 
   object Codecs {
 
-    def read(input: InputStream): Try[Psbt] = for {
-      _ <- readMagicBytes(input)
-      _ <- readSeparator(input)
-      global <- readGlobal(input)
-      inputs <- readInputs(input, global.tx.txIn)
-      outputs <- readOutputs(input, global.tx.txOut.length)
-    } yield Psbt(global, inputs, outputs)
+    def read(input: InputStream): Try[Psbt] =
+      for {
+        _ <- readMagicBytes(input)
+        _ <- readSeparator(input)
+        global <- readGlobal(input)
+        inputs <- readInputs(input, global.tx.txIn)
+        outputs <- readOutputs(input, global.tx.txOut.length)
+      } yield Psbt(global, inputs, outputs)
 
     def readNBytes(input: InputStream, n: Int): Array[Byte] = {
       val target = new Array[Byte](n)
@@ -1350,36 +1371,36 @@ object Psbt {
       target
     }
 
-    private def readMagicBytes(input: InputStream): Try[Boolean] = Try {
-      readNBytes(input, 4).toList
-    } match {
-      case Success(0x70 :: 0x73 :: 0x62 :: 0x74 :: Nil) => Success(true)
-      case _ =>
-        Failure(
-          new IllegalArgumentException(
-            "invalid magic bytes: psbt must start with 0x70736274"
+    private def readMagicBytes(input: InputStream): Try[Boolean] =
+      Try {
+        readNBytes(input, 4).toList
+      } match {
+        case Success(0x70 :: 0x73 :: 0x62 :: 0x74 :: Nil) => Success(true)
+        case _ =>
+          Failure(
+            new IllegalArgumentException(
+              "invalid magic bytes: psbt must start with 0x70736274"
+            )
           )
-        )
-    }
+      }
 
-    private def readSeparator(input: InputStream): Try[Boolean] = Try {
-      input.read()
-    } match {
-      case Success(0xff) => Success(true)
-      case _ =>
-        Failure(
-          new IllegalArgumentException(
-            "magic bytes must be followed by the 0xff separator"
+    private def readSeparator(input: InputStream): Try[Boolean] =
+      Try {
+        input.read()
+      } match {
+        case Success(0xff) => Success(true)
+        case _ =>
+          Failure(
+            new IllegalArgumentException(
+              "magic bytes must be followed by the 0xff separator"
+            )
           )
-        )
-    }
+      }
 
     private def readGlobal(input: InputStream): Try[Global] =
       readDataMap(input).flatMap(entries => {
         val keyTypes = Set(0x00, 0x01, 0xfb).map(_.toByte)
-        val (known, unknown) = entries.partition(entry =>
-          entry.key.headOption.exists(keyTypes.contains)
-        )
+        val (known, unknown) = entries.partition(entry => entry.key.headOption.exists(keyTypes.contains))
         val version_opt: Try[Long] = known
           .find(_.key.head == 0xfb)
           .map {
@@ -1421,11 +1442,7 @@ object Psbt {
                 value.toArray,
                 Protocol.PROTOCOL_VERSION | Transaction.SERIALIZE_TRANSACTION_NO_WITNESS
               )
-              if (
-                tx.txIn.exists(input =>
-                  input.hasWitness || input.signatureScript.nonEmpty
-                )
-              ) {
+              if (tx.txIn.exists(input => input.hasWitness || input.signatureScript.nonEmpty)) {
                 Failure(
                   new IllegalArgumentException(
                     "psbt tx inputs must have empty scriptSigs and witness"
@@ -1506,17 +1523,15 @@ object Psbt {
     private def readInputs(
         input: InputStream,
         txsIn: Seq[TxIn]
-    ): Try[Seq[Psbt.Input]] = trySequence(
-      txsIn.map(txIn => readInput(input, txIn))
-    )
+    ): Try[Seq[Psbt.Input]] =
+      trySequence(
+        txsIn.map(txIn => readInput(input, txIn))
+      )
 
     private def readInput(input: InputStream, txIn: TxIn): Try[Psbt.Input] =
       readDataMap(input).flatMap(entries => {
-        val keyTypes = Set(0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-          0x0a, 0x0b, 0x0c, 0x0d).map(_.toByte)
-        val (known, unknown) = entries.partition(entry =>
-          entry.key.headOption.exists(keyTypes.contains)
-        )
+        val keyTypes = Set(0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x0a, 0x0b, 0x0c, 0x0d).map(_.toByte)
+        val (known, unknown) = entries.partition(entry => entry.key.headOption.exists(keyTypes.contains))
         val nonWitnessUtxo_opt: Try[Option[Transaction]] = known
           .find(_.key.head == 0x00)
           .map {
@@ -1528,9 +1543,7 @@ object Psbt {
               )
             case DataEntry(_, value) =>
               val inputTx = Transaction.read(value.toArray)
-              if (
-                inputTx.txid == txIn.outPoint.txid && txIn.outPoint.index < inputTx.txOut.length
-              ) {
+              if (inputTx.txid == txIn.outPoint.txid && txIn.outPoint.index < inputTx.txOut.length) {
                 Success(Some(inputTx)): Try[Option[Transaction]]
               } else {
                 Failure(
@@ -1554,8 +1567,9 @@ object Psbt {
           }
           .getOrElse(Success(None))
         val partialSigs_opt: Try[Map[PublicKey, ByteVector]] = trySequence(
-          known.filter(_.key.head == 0x02).map { case DataEntry(key, value) =>
-            Success(PublicKey(key.tail, checkValid = true), value)
+          known.filter(_.key.head == 0x02).map {
+            case DataEntry(key, value) =>
+              Success(PublicKey(key.tail, checkValid = true), value)
           }
         ).map(_.toMap)
         val sighashType_opt: Try[Option[Int]] = known
@@ -1605,8 +1619,7 @@ object Psbt {
           .getOrElse(Success(None))
         val derivationPaths_opt: Try[Map[PublicKey, KeyPathWithMaster]] =
           trySequence(known.filter(_.key.head == 0x06).map {
-            case DataEntry(_, value)
-                if value.length < 4 || value.length % 4 != 0 =>
+            case DataEntry(_, value) if value.length < 4 || value.length % 4 != 0 =>
               Failure(
                 new IllegalArgumentException(
                   "psbt bip32 derivation must contain master key fingerprint and child indexes"
@@ -1676,8 +1689,7 @@ object Psbt {
                 "sha256 hash must contain exactly 32 bytes"
               )
             )
-          case DataEntry(key, value)
-              if key.tail != Crypto.sha256(value).bytes =>
+          case DataEntry(key, value) if key.tail != Crypto.sha256(value).bytes =>
             Failure(new IllegalArgumentException("invalid sha256 preimage"))
           case DataEntry(_, value) => Success(value)
         }).map(_.toSet)
@@ -1701,8 +1713,7 @@ object Psbt {
                   "hash256 hash must contain exactly 32 bytes"
                 )
               )
-            case DataEntry(key, value)
-                if key.tail != Crypto.hash256(value).bytes =>
+            case DataEntry(key, value) if key.tail != Crypto.hash256(value).bytes =>
               Failure(new IllegalArgumentException("invalid hash256 preimage"))
             case DataEntry(_, value) => Success(value)
           }).map(_.toSet)
@@ -1848,79 +1859,78 @@ object Psbt {
     private def readOutputs(
         input: InputStream,
         expectedCount: Int
-    ): Try[Seq[Psbt.Output]] = trySequence(
-      (0 until expectedCount).map(_ => readOutput(input))
-    )
-
-    private def readOutput(input: InputStream): Try[Psbt.Output] = readDataMap(
-      input
-    ).flatMap(entries => {
-      val keyTypes = Set(0x00, 0x01, 0x02).map(_.toByte)
-      val (known, unknown) = entries.partition(entry =>
-        entry.key.headOption.exists(keyTypes.contains)
+    ): Try[Seq[Psbt.Output]] =
+      trySequence(
+        (0 until expectedCount).map(_ => readOutput(input))
       )
-      val redeemScript_opt: Try[Option[Seq[ScriptElt]]] = known
-        .find(_.key.head == 0x00)
-        .map {
-          case DataEntry(key, _) if key.length != 1 =>
-            Failure(
-              new IllegalArgumentException(
-                "psbt redeem script key must contain exactly 1 byte"
-              )
-            )
-          case DataEntry(_, value) => Success(Some(Script.parse(value)))
-        }
-        .getOrElse(Success(None))
-      val witnessScript_opt: Try[Option[Seq[ScriptElt]]] = known
-        .find(_.key.head == 0x01)
-        .map {
-          case DataEntry(key, _) if key.length != 1 =>
-            Failure(
-              new IllegalArgumentException(
-                "psbt witness script key must contain exactly 1 byte"
-              )
-            )
-          case DataEntry(_, value) => Success(Some(Script.parse(value)))
-        }
-        .getOrElse(Success(None))
-      val derivationPaths_opt: Try[Map[PublicKey, KeyPathWithMaster]] =
-        trySequence(known.filter(_.key.head == 0x02).map {
-          case DataEntry(_, value)
-              if value.length < 4 || value.length % 4 != 0 =>
-            Failure(
-              new IllegalArgumentException(
-                "psbt bip32 derivation must contain master key fingerprint and child indexes"
-              )
-            )
-          case DataEntry(key, value) =>
-            val publicKey = PublicKey(key.tail, checkValid = true)
-            val masterKeyFingerprint =
-              Protocol.uint32(value.take(4), ByteOrder.BIG_ENDIAN)
-            val childCount = (value.length.toInt / 4) - 1
-            val derivationPath = KeyPath(
-              (0 until childCount).map(i =>
-                Protocol.uint32(
-                  value.slice(4 * (i + 1), 4 * (i + 2)),
-                  ByteOrder.LITTLE_ENDIAN
+
+    private def readOutput(input: InputStream): Try[Psbt.Output] =
+      readDataMap(
+        input
+      ).flatMap(entries => {
+        val keyTypes = Set(0x00, 0x01, 0x02).map(_.toByte)
+        val (known, unknown) = entries.partition(entry => entry.key.headOption.exists(keyTypes.contains))
+        val redeemScript_opt: Try[Option[Seq[ScriptElt]]] = known
+          .find(_.key.head == 0x00)
+          .map {
+            case DataEntry(key, _) if key.length != 1 =>
+              Failure(
+                new IllegalArgumentException(
+                  "psbt redeem script key must contain exactly 1 byte"
                 )
               )
-            )
-            Success(
-              publicKey,
-              KeyPathWithMaster(masterKeyFingerprint, derivationPath)
-            )
-        }).map(_.toMap)
-      for {
-        redeemScript <- redeemScript_opt
-        witnessScript <- witnessScript_opt
-        derivationPaths <- derivationPaths_opt
-      } yield createOutput(
-        redeemScript,
-        witnessScript,
-        derivationPaths,
-        unknown
-      )
-    })
+            case DataEntry(_, value) => Success(Some(Script.parse(value)))
+          }
+          .getOrElse(Success(None))
+        val witnessScript_opt: Try[Option[Seq[ScriptElt]]] = known
+          .find(_.key.head == 0x01)
+          .map {
+            case DataEntry(key, _) if key.length != 1 =>
+              Failure(
+                new IllegalArgumentException(
+                  "psbt witness script key must contain exactly 1 byte"
+                )
+              )
+            case DataEntry(_, value) => Success(Some(Script.parse(value)))
+          }
+          .getOrElse(Success(None))
+        val derivationPaths_opt: Try[Map[PublicKey, KeyPathWithMaster]] =
+          trySequence(known.filter(_.key.head == 0x02).map {
+            case DataEntry(_, value) if value.length < 4 || value.length % 4 != 0 =>
+              Failure(
+                new IllegalArgumentException(
+                  "psbt bip32 derivation must contain master key fingerprint and child indexes"
+                )
+              )
+            case DataEntry(key, value) =>
+              val publicKey = PublicKey(key.tail, checkValid = true)
+              val masterKeyFingerprint =
+                Protocol.uint32(value.take(4), ByteOrder.BIG_ENDIAN)
+              val childCount = (value.length.toInt / 4) - 1
+              val derivationPath = KeyPath(
+                (0 until childCount).map(i =>
+                  Protocol.uint32(
+                    value.slice(4 * (i + 1), 4 * (i + 2)),
+                    ByteOrder.LITTLE_ENDIAN
+                  )
+                )
+              )
+              Success(
+                publicKey,
+                KeyPathWithMaster(masterKeyFingerprint, derivationPath)
+              )
+          }).map(_.toMap)
+        for {
+          redeemScript <- redeemScript_opt
+          witnessScript <- witnessScript_opt
+          derivationPaths <- derivationPaths_opt
+        } yield createOutput(
+          redeemScript,
+          witnessScript,
+          derivationPaths,
+          unknown
+        )
+      })
 
     def createOutput(
         redeemScript: Option[Seq[ScriptElt]],
@@ -1941,18 +1951,19 @@ object Psbt {
     private def readDataMap(
         input: InputStream,
         entries: Seq[DataEntry] = Nil
-    ): Try[Seq[DataEntry]] = readDataEntry(input) match {
-      case Success(Some(entry)) => readDataMap(input, entry +: entries)
-      case Success(None) =>
-        if (entries.map(_.key).toSet.size != entries.size) {
-          Failure(
-            new IllegalArgumentException("psbt must not contain duplicate keys")
-          )
-        } else {
-          Success(entries)
-        }
-      case Failure(ex) => Failure(ex)
-    }
+    ): Try[Seq[DataEntry]] =
+      readDataEntry(input) match {
+        case Success(Some(entry)) => readDataMap(input, entry +: entries)
+        case Success(None) =>
+          if (entries.map(_.key).toSet.size != entries.size) {
+            Failure(
+              new IllegalArgumentException("psbt must not contain duplicate keys")
+            )
+          } else {
+            Success(entries)
+          }
+        case Failure(ex) => Failure(ex)
+      }
 
     private def readDataEntry(input: InputStream): Try[Option[DataEntry]] =
       Try {
@@ -1969,8 +1980,8 @@ object Psbt {
 
     private def trySequence[T](elems: Seq[Try[T]]): Try[Seq[T]] =
       elems.foldLeft(Success(Seq.empty): Try[Seq[T]]) {
-        case (Failure(ex), _)              => Failure(ex)
-        case (Success(_), Failure(ex))     => Failure(ex)
+        case (Failure(ex), _) => Failure(ex)
+        case (Success(_), Failure(ex)) => Failure(ex)
         case (Success(prev), Success(cur)) => Success(prev :+ cur)
       }
 
@@ -2007,9 +2018,7 @@ object Psbt {
           value,
           ByteOrder.BIG_ENDIAN
         )
-        xpub.extendedPublicKey.path.foreach(child =>
-          Protocol.writeUInt32(child, value, ByteOrder.LITTLE_ENDIAN)
-        )
+        xpub.extendedPublicKey.path.foreach(child => Protocol.writeUInt32(child, value, ByteOrder.LITTLE_ENDIAN))
         writeDataEntry(
           DataEntry(ByteVector(key.toByteArray), ByteVector(value.toByteArray)),
           output
@@ -2031,108 +2040,101 @@ object Psbt {
     private def writeInputs(
         inputs: Seq[Psbt.Input],
         output: OutputStream
-    ): Unit = inputs.foreach(input => {
-      input.nonWitnessUtxo.foreach(tx =>
-        writeDataEntry(DataEntry(hex"00", Transaction.write(tx)), output)
-      )
-      input.witnessUtxo.foreach(txOut =>
-        writeDataEntry(DataEntry(hex"01", TxOut.write(txOut)), output)
-      )
-      sortPublicKeys(input.partialSigs).foreach { case (publicKey, signature) =>
-        writeDataEntry(
-          DataEntry(0x02.toByte +: publicKey.value, signature),
-          output
-        )
-      }
-      input.sighashType.foreach(sighashType =>
-        writeDataEntry(
-          DataEntry(
-            hex"03",
-            Protocol.writeUInt32(sighashType, ByteOrder.LITTLE_ENDIAN)
-          ),
-          output
-        )
-      )
-      input.redeemScript.foreach(redeemScript =>
-        writeDataEntry(DataEntry(hex"04", Script.write(redeemScript)), output)
-      )
-      input.witnessScript.foreach(witnessScript =>
-        writeDataEntry(DataEntry(hex"05", Script.write(witnessScript)), output)
-      )
-      sortPublicKeys(input.derivationPaths).foreach { case (publicKey, path) =>
-        val key = 0x06.toByte +: publicKey.value
-        val value = Protocol.writeUInt32(
-          path.masterKeyFingerprint,
-          ByteOrder.BIG_ENDIAN
-        ) ++ ByteVector.concat(
-          path.keyPath.map(childNumber =>
-            Protocol.writeUInt32(childNumber, ByteOrder.LITTLE_ENDIAN)
+    ): Unit =
+      inputs.foreach(input => {
+        input.nonWitnessUtxo.foreach(tx => writeDataEntry(DataEntry(hex"00", Transaction.write(tx)), output))
+        input.witnessUtxo.foreach(txOut => writeDataEntry(DataEntry(hex"01", TxOut.write(txOut)), output))
+        sortPublicKeys(input.partialSigs).foreach {
+          case (publicKey, signature) =>
+            writeDataEntry(
+              DataEntry(0x02.toByte +: publicKey.value, signature),
+              output
+            )
+        }
+        input.sighashType.foreach(sighashType =>
+          writeDataEntry(
+            DataEntry(
+              hex"03",
+              Protocol.writeUInt32(sighashType, ByteOrder.LITTLE_ENDIAN)
+            ),
+            output
           )
         )
-        writeDataEntry(DataEntry(key, value), output)
-      }
-      input.scriptSig.foreach(scriptSig =>
-        writeDataEntry(DataEntry(hex"07", Script.write(scriptSig)), output)
-      )
-      input.scriptWitness.foreach(scriptWitness =>
-        writeDataEntry(
-          DataEntry(hex"08", ScriptWitness.write(scriptWitness)),
-          output
+        input.redeemScript.foreach(redeemScript =>
+          writeDataEntry(DataEntry(hex"04", Script.write(redeemScript)), output)
         )
-      )
-      input.ripemd160.foreach(preimage =>
-        writeDataEntry(
-          DataEntry(0x0a.toByte +: Crypto.ripemd160(preimage), preimage),
-          output
+        input.witnessScript.foreach(witnessScript =>
+          writeDataEntry(DataEntry(hex"05", Script.write(witnessScript)), output)
         )
-      )
-      input.sha256.foreach(preimage =>
-        writeDataEntry(
-          DataEntry(0x0b.toByte +: Crypto.sha256(preimage), preimage),
-          output
+        sortPublicKeys(input.derivationPaths).foreach {
+          case (publicKey, path) =>
+            val key = 0x06.toByte +: publicKey.value
+            val value = Protocol.writeUInt32(
+                path.masterKeyFingerprint,
+                ByteOrder.BIG_ENDIAN
+              ) ++ ByteVector.concat(
+                path.keyPath.map(childNumber => Protocol.writeUInt32(childNumber, ByteOrder.LITTLE_ENDIAN))
+              )
+            writeDataEntry(DataEntry(key, value), output)
+        }
+        input.scriptSig.foreach(scriptSig => writeDataEntry(DataEntry(hex"07", Script.write(scriptSig)), output))
+        input.scriptWitness.foreach(scriptWitness =>
+          writeDataEntry(
+            DataEntry(hex"08", ScriptWitness.write(scriptWitness)),
+            output
+          )
         )
-      )
-      input.hash160.foreach(preimage =>
-        writeDataEntry(
-          DataEntry(0x0c.toByte +: Crypto.hash160(preimage), preimage),
-          output
+        input.ripemd160.foreach(preimage =>
+          writeDataEntry(
+            DataEntry(0x0a.toByte +: Crypto.ripemd160(preimage), preimage),
+            output
+          )
         )
-      )
-      input.hash256.foreach(preimage =>
-        writeDataEntry(
-          DataEntry(0x0d.toByte +: Crypto.hash256(preimage), preimage),
-          output
+        input.sha256.foreach(preimage =>
+          writeDataEntry(
+            DataEntry(0x0b.toByte +: Crypto.sha256(preimage), preimage),
+            output
+          )
         )
-      )
-      input.unknown.foreach(entry => writeDataEntry(entry, output))
-      Protocol.writeUInt8(0x00, output) // separator
-    })
+        input.hash160.foreach(preimage =>
+          writeDataEntry(
+            DataEntry(0x0c.toByte +: Crypto.hash160(preimage), preimage),
+            output
+          )
+        )
+        input.hash256.foreach(preimage =>
+          writeDataEntry(
+            DataEntry(0x0d.toByte +: Crypto.hash256(preimage), preimage),
+            output
+          )
+        )
+        input.unknown.foreach(entry => writeDataEntry(entry, output))
+        Protocol.writeUInt8(0x00, output) // separator
+      })
 
     private def writeOutputs(
         outputs: Seq[Psbt.Output],
         out: OutputStream
-    ): Unit = outputs.foreach(output => {
-      output.redeemScript.foreach(redeemScript =>
-        writeDataEntry(DataEntry(hex"00", Script.write(redeemScript)), out)
-      )
-      output.witnessScript.foreach(witnessScript =>
-        writeDataEntry(DataEntry(hex"01", Script.write(witnessScript)), out)
-      )
-      sortPublicKeys(output.derivationPaths).foreach { case (publicKey, path) =>
-        val key = 0x02.toByte +: publicKey.value
-        val value = Protocol.writeUInt32(
-          path.masterKeyFingerprint,
-          ByteOrder.BIG_ENDIAN
-        ) ++ ByteVector.concat(
-          path.keyPath.map(childNumber =>
-            Protocol.writeUInt32(childNumber, ByteOrder.LITTLE_ENDIAN)
-          )
+    ): Unit =
+      outputs.foreach(output => {
+        output.redeemScript.foreach(redeemScript => writeDataEntry(DataEntry(hex"00", Script.write(redeemScript)), out))
+        output.witnessScript.foreach(witnessScript =>
+          writeDataEntry(DataEntry(hex"01", Script.write(witnessScript)), out)
         )
-        writeDataEntry(DataEntry(key, value), out)
-      }
-      output.unknown.foreach(entry => writeDataEntry(entry, out))
-      Protocol.writeUInt8(0x00, out) // separator
-    })
+        sortPublicKeys(output.derivationPaths).foreach {
+          case (publicKey, path) =>
+            val key = 0x02.toByte +: publicKey.value
+            val value = Protocol.writeUInt32(
+                path.masterKeyFingerprint,
+                ByteOrder.BIG_ENDIAN
+              ) ++ ByteVector.concat(
+                path.keyPath.map(childNumber => Protocol.writeUInt32(childNumber, ByteOrder.LITTLE_ENDIAN))
+              )
+            writeDataEntry(DataEntry(key, value), out)
+        }
+        output.unknown.foreach(entry => writeDataEntry(entry, out))
+        Protocol.writeUInt8(0x00, out) // separator
+      })
 
     private def writeDataEntry(entry: DataEntry, output: OutputStream): Unit = {
       Protocol.writeVarint(entry.key.length, output)
@@ -2144,10 +2146,11 @@ object Psbt {
     /** We use lexicographic ordering on the public keys. */
     private def sortPublicKeys[T](
         publicKeys: Map[PublicKey, T]
-    ): Seq[(PublicKey, T)] = publicKeys.toSeq.sortWith {
-      case ((pk1, _), (pk2, _)) =>
-        LexicographicalOrdering.isLessThan(pk1.value, pk2.value)
-    }
+    ): Seq[(PublicKey, T)] =
+      publicKeys.toSeq.sortWith {
+        case ((pk1, _), (pk2, _)) =>
+          LexicographicalOrdering.isLessThan(pk1.value, pk2.value)
+      }
 
   }
 

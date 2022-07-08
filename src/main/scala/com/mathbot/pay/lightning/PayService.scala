@@ -53,15 +53,15 @@ object PayService {
     s"$source$SEPARATOR$playerId$SEPARATOR${SecureIdentifier(s)}"
 
   /**
-   *
    * @param label ListInvoice.label
    * @param source application name
    * @return (playerId, secureIdentifier)
    */
-  def parseLabel(label: String, source: String): Option[(String, String)] = label.split(SEPARATOR).toSeq match {
-    case Seq(`source`, playerId, id) => Some(playerId, id)
-    case o => None
-  }
+  def parseLabel(label: String, source: String): Option[(String, String)] =
+    label.split(SEPARATOR).toSeq match {
+      case Seq(`source`, playerId, id) => Some(playerId, id)
+      case o => None
+    }
 
   def invoice(inv: PlayerInvoice__IN): LightningInvoice = {
     import inv._
@@ -216,10 +216,13 @@ object PayService {
   case class FiatRatesInfoUSD(usd: Double)
 }
 
-class PayService(config: PayService.PayInvoiceServiceConfig,
-                 val backend: SttpBackend[Future, AkkaStreams with capabilities.WebSockets])(implicit val
-                                                                                             ec: ExecutionContext)
-    extends RpcLightningService {
+class PayService(
+    config: PayService.PayInvoiceServiceConfig,
+    val backend: SttpBackend[Future, AkkaStreams with capabilities.WebSockets]
+)(implicit
+    val
+    ec: ExecutionContext
+) extends RpcLightningService {
   import PayService._
   import config._
   import sttp.client3._

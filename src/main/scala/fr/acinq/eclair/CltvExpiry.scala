@@ -14,15 +14,18 @@ case class CltvExpiry(underlying: Long) extends AnyVal {
 }
 
 case class CltvExpiryDelta(underlying: Int) extends AnyVal {
-  def toCltvExpiry(blockHeight: Long): CltvExpiry = CltvExpiry(
-    blockHeight + underlying
-  )
-  def +(d: CltvExpiryDelta): CltvExpiryDelta = CltvExpiryDelta(
-    underlying + d.underlying
-  )
-  def -(d: CltvExpiryDelta): CltvExpiryDelta = CltvExpiryDelta(
-    underlying - d.underlying
-  )
+  def toCltvExpiry(blockHeight: Long): CltvExpiry =
+    CltvExpiry(
+      blockHeight + underlying
+    )
+  def +(d: CltvExpiryDelta): CltvExpiryDelta =
+    CltvExpiryDelta(
+      underlying + d.underlying
+    )
+  def -(d: CltvExpiryDelta): CltvExpiryDelta =
+    CltvExpiryDelta(
+      underlying - d.underlying
+    )
   def <=(d: CltvExpiryDelta): Boolean = underlying <= d.underlying
   def >(d: CltvExpiryDelta): Boolean = underlying > d.underlying
 }

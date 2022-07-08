@@ -4,12 +4,7 @@ import akka.actor.{ActorRef, FSM, PoisonPill}
 import fr.acinq.bitcoin.{Block, ByteVector32}
 import fr.acinq.eclair.blockchain.electrum.Blockchain.RETARGETING_PERIOD
 import fr.acinq.eclair.blockchain.electrum.ElectrumClient
-import fr.acinq.eclair.blockchain.electrum.ElectrumWallet.{
-  DISCONNECTED,
-  RUNNING,
-  SYNCING,
-  WAITING_FOR_TIP
-}
+import fr.acinq.eclair.blockchain.electrum.ElectrumWallet.{DISCONNECTED, RUNNING, SYNCING, WAITING_FOR_TIP}
 import fr.acinq.eclair.blockchain.electrum.db.HeaderDb
 
 import scala.util.{Failure, Success, Try}
@@ -25,26 +20,27 @@ class ElectrumChainSync(
     chainHash: ByteVector32
 ) extends FSM[ElectrumWallet.State, Blockchain] {
 
-  def loadChain: Blockchain = if (chainHash != Block.RegtestGenesisBlock.hash) {
-    // In case if anything at all goes wrong we just use an initial blockchain and resync it from checkpoint
-    val blockchain = Blockchain.fromCheckpoints(
-      checkpoints = CheckPoint.load(chainHash, headerDb),
-      chainhash = chainHash
-    )
-    val headers = headerDb.getHeaders(
-      startHeight = blockchain.checkpoints.size * RETARGETING_PERIOD,
-      maxCount = Int.MaxValue
-    )
-    Try apply Blockchain.addHeadersChunk(
-      blockchain,
-      blockchain.checkpoints.size * RETARGETING_PERIOD,
-      headers
-    ) getOrElse blockchain
-  } else
-    Blockchain.fromGenesisBlock(
-      Block.RegtestGenesisBlock.hash,
-      Block.RegtestGenesisBlock.header
-    )
+  def loadChain: Blockchain =
+    if (chainHash != Block.RegtestGenesisBlock.hash) {
+      // In case if anything at all goes wrong we just use an initial blockchain and resync it from checkpoint
+      val blockchain = Blockchain.fromCheckpoints(
+        checkpoints = CheckPoint.load(chainHash, headerDb),
+        chainhash = chainHash
+      )
+      val headers = headerDb.getHeaders(
+        startHeight = blockchain.checkpoints.size * RETARGETING_PERIOD,
+        maxCount = Int.MaxValue
+      )
+      Try apply Blockchain.addHeadersChunk(
+        blockchain,
+        blockchain.checkpoints.size * RETARGETING_PERIOD,
+        headers
+      ) getOrElse blockchain
+    } else
+      Blockchain.fromGenesisBlock(
+        Block.RegtestGenesisBlock.hash,
+        Block.RegtestGenesisBlock.header
+      )
 
   client ! ElectrumClient.AddStatusListener(self)
 
@@ -61,8 +57,7 @@ class ElectrumChainSync(
         if response.height < blockchain.height =>
       goto(DISCONNECTED) replying PoisonPill
 
-    case Event(response: ElectrumClient.HeaderSubscriptionResponse, blockchain)
-        if blockchain.bestchain.isEmpty =>
+    case Event(response: ElectrumClient.HeaderSubscriptionResponse, blockchain) if blockchain.bestchain.isEmpty =>
       context.system.eventStream publish ElectrumChainSync.ChainSyncStarted(
         blockchain.height,
         response.height
@@ -97,8 +92,7 @@ class ElectrumChainSync(
   }
 
   when(SYNCING) {
-    case Event(response: ElectrumClient.GetHeadersResponse, blockchain)
-        if response.headers.isEmpty =>
+    case Event(response: ElectrumClient.GetHeadersResponse, blockchain) if response.headers.isEmpty =>
       context.system.eventStream publish ElectrumChainSync.ChainSyncEnded(
         blockchain.height
       )

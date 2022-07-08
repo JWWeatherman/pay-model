@@ -4,15 +4,7 @@ import java.io.InputStream
 import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicLong
 
-import akka.actor.{
-  Actor,
-  ActorRef,
-  FSM,
-  OneForOneStrategy,
-  Props,
-  SupervisorStrategy,
-  Terminated
-}
+import akka.actor.{Actor, ActorRef, FSM, OneForOneStrategy, Props, SupervisorStrategy, Terminated}
 import fr.acinq.bitcoin.{Block, BlockHeader, ByteVector32}
 import fr.acinq.eclair.blockchain.CurrentBlockCount
 import fr.acinq.eclair.blockchain.electrum.ElectrumClient.SSL
@@ -25,8 +17,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Random
 
-class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(
-    implicit val ec: ExecutionContext
+class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(implicit
+    val ec: ExecutionContext
 ) extends Actor
     with FSM[State, Data] {
   val serverAddresses: Set[ElectrumServerAddress] = loadFromChainHash(chainHash)
@@ -35,15 +27,15 @@ class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(
 
   // Always stop Electrum clients when there's a problem, we will automatically reconnect to another client
   override def supervisorStrategy: SupervisorStrategy =
-    OneForOneStrategy(loggingEnabled = true) { case _ =>
-      SupervisorStrategy.stop
+    OneForOneStrategy(loggingEnabled = true) {
+      case _ =>
+        SupervisorStrategy.stop
     }
 
   startWith(Disconnected, DisconnectedData)
 
   when(Disconnected) {
-    case Event(ElectrumClient.ElectrumReady(height, tip, _), _)
-        if addresses.contains(sender) =>
+    case Event(ElectrumClient.ElectrumReady(height, tip, _), _) if addresses.contains(sender) =>
       sender ! ElectrumClient.HeaderSubscription(self)
       handleHeader(sender, height, tip, None)
 
@@ -58,8 +50,7 @@ class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(
   }
 
   when(Connected) {
-    case Event(ElectrumClient.ElectrumReady(height, tip, _), d: ConnectedData)
-        if addresses.contains(sender) =>
+    case Event(ElectrumClient.ElectrumReady(height, tip, _), d: ConnectedData) if addresses.contains(sender) =>
       sender ! ElectrumClient.HeaderSubscription(self)
       handleHeader(sender, height, tip, Some(d))
 
@@ -73,8 +64,7 @@ class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(
       d.master forward request
       stay
 
-    case Event(ElectrumClient.AddStatusListener(listener), d: ConnectedData)
-        if addresses.contains(d.master) =>
+    case Event(ElectrumClient.AddStatusListener(listener), d: ConnectedData) if addresses.contains(d.master) =>
       statusListeners += listener
       val (height, tip) = d.tips(d.master)
       listener ! ElectrumClient.ElectrumReady(height, tip, addresses(d.master))
@@ -135,9 +125,10 @@ class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(
       stay
   }
 
-  onTransition { case Connected -> Disconnected =>
-    statusListeners.foreach(_ ! ElectrumClient.ElectrumDisconnected)
-    context.system.eventStream.publish(ElectrumClient.ElectrumDisconnected)
+  onTransition {
+    case Connected -> Disconnected =>
+      statusListeners.foreach(_ ! ElectrumClient.ElectrumDisconnected)
+      context.system.eventStream.publish(ElectrumClient.ElectrumDisconnected)
   }
 
   initialize
@@ -248,9 +239,7 @@ object ElectrumClientPool {
     Random
       .shuffle(
         serverAddresses
-          .filterNot(serverAddress =>
-            usedAddresses contains serverAddress.address
-          )
+          .filterNot(serverAddress => usedAddresses contains serverAddress.address)
           .toSeq
       )
       .headOption
@@ -265,8 +254,7 @@ object ElectrumClientPool {
   type TipAndHeader = (Int, BlockHeader)
   type ActorTipAndHeader = Map[ActorRef, TipAndHeader]
 
-  case class ConnectedData(master: ActorRef, tips: ActorTipAndHeader)
-      extends Data {
+  case class ConnectedData(master: ActorRef, tips: ActorTipAndHeader) extends Data {
     def blockHeight: Int = tips.get(master).map(_._1).getOrElse(0)
   }
 

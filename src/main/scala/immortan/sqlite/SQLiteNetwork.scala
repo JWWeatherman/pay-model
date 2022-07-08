@@ -21,27 +21,30 @@ class SQLiteNetwork(
   def addChannelAnnouncement(
       ca: ChannelAnnouncement,
       newSqlPQ: PreparedQuery
-  ): Unit = db.change(
-    newSqlPQ,
-    Array.emptyByteArray,
-    ca.shortChannelId: JLong,
-    ca.nodeId1.value.toArray,
-    ca.nodeId2.value.toArray
-  )
+  ): Unit =
+    db.change(
+      newSqlPQ,
+      Array.emptyByteArray,
+      ca.shortChannelId: JLong,
+      ca.nodeId1.value.toArray,
+      ca.nodeId2.value.toArray
+    )
 
   def addExcludedChannel(
       shortId: Long,
       untilStamp: Long,
       newSqlPQ: PreparedQuery
-  ): Unit = db.change(
-    newSqlPQ,
-    shortId: JLong,
-    System.currentTimeMillis + untilStamp: JLong
-  )
+  ): Unit =
+    db.change(
+      newSqlPQ,
+      shortId: JLong,
+      System.currentTimeMillis + untilStamp: JLong
+    )
 
-  def listExcludedChannels: Set[Long] = db
-    .select(excludedTable.selectSql, System.currentTimeMillis.toString)
-    .set(_ long excludedTable.shortChannelId)
+  def listExcludedChannels: Set[Long] =
+    db
+      .select(excludedTable.selectSql, System.currentTimeMillis.toString)
+      .set(_ long excludedTable.shortChannelId)
 
   def listChannelsWithOneUpdate: ShortChanIdSet =
     db.select(updateTable.selectHavingOneUpdate).set(_ long updateTable.sid)
@@ -164,11 +167,9 @@ class SQLiteNetwork(
 
     val tuples = listChannelAnnouncements.flatMap { ann =>
       shortId2Updates.get(ann.shortChannelId) collectFirst {
-        case List(u1, u2)
-            if ChannelUpdate.POSITION1NODE == u1.update.position =>
+        case List(u1, u2) if ChannelUpdate.POSITION1NODE == u1.update.position =>
           ann.shortChannelId -> PublicChannel(Some(u1), Some(u2), ann)
-        case List(u2, u1)
-            if ChannelUpdate.POSITION2NODE == u2.update.position =>
+        case List(u2, u1) if ChannelUpdate.POSITION2NODE == u2.update.position =>
           ann.shortChannelId -> PublicChannel(Some(u1), Some(u2), ann)
         case List(u1) if ChannelUpdate.POSITION1NODE == u1.update.position =>
           ann.shortChannelId -> PublicChannel(Some(u1), None, ann)
@@ -183,66 +184,68 @@ class SQLiteNetwork(
   def removeGhostChannels(
       ghostIds: ShortChanIdSet,
       oneSideIds: ShortChanIdSet
-  ): Unit = db txWrap {
-    val addExcludedChannelNewSqlPQ = db.makePreparedQuery(excludedTable.newSql)
-    val removeChannelUpdateNewSqlPQ = db.makePreparedQuery(updateTable.killSql)
+  ): Unit =
+    db txWrap {
+      val addExcludedChannelNewSqlPQ = db.makePreparedQuery(excludedTable.newSql)
+      val removeChannelUpdateNewSqlPQ = db.makePreparedQuery(updateTable.killSql)
 
-    for (shortId <- oneSideIds)
-      addExcludedChannel(
-        shortId,
-        1000L * 3600 * 24 * 14,
-        addExcludedChannelNewSqlPQ
-      ) // Exclude for two weeks, maybe second update will show up later
-    for (shortId <- ghostIds ++ oneSideIds)
-      removeChannelUpdate(
-        shortId,
-        removeChannelUpdateNewSqlPQ
-      ) // Make sure we only have known channels with both updates
+      for (shortId <- oneSideIds)
+        addExcludedChannel(
+          shortId,
+          1000L * 3600 * 24 * 14,
+          addExcludedChannelNewSqlPQ
+        ) // Exclude for two weeks, maybe second update will show up later
+      for (shortId <- ghostIds ++ oneSideIds)
+        removeChannelUpdate(
+          shortId,
+          removeChannelUpdateNewSqlPQ
+        ) // Make sure we only have known channels with both updates
 
-    addExcludedChannelNewSqlPQ.close
-    removeChannelUpdateNewSqlPQ.close
+      addExcludedChannelNewSqlPQ.close
+      removeChannelUpdateNewSqlPQ.close
 
-    db.change(
-      excludedTable.killPresentInChans
-    ) // Remove from excluded if present in channels (minority says it's bad, majority says it's good)
-    db.change(
-      announceTable.killNotPresentInChans
-    ) // Remove from announces if not present in channels (announce for excluded channel)
-    db.change(
-      excludedTable.killOldSql,
-      System.currentTimeMillis: JLong
-    ) // Give old excluded channels a second chance
-  }
+      db.change(
+        excludedTable.killPresentInChans
+      ) // Remove from excluded if present in channels (minority says it's bad, majority says it's good)
+      db.change(
+        announceTable.killNotPresentInChans
+      ) // Remove from announces if not present in channels (announce for excluded channel)
+      db.change(
+        excludedTable.killOldSql,
+        System.currentTimeMillis: JLong
+      ) // Give old excluded channels a second chance
+    }
 
-  def processPureData(pure: PureRoutingData): Unit = db txWrap {
-    val addChannelAnnouncementNewSqlPQ =
-      db.makePreparedQuery(announceTable.newSql)
-    val addChannelUpdateByPositionNewSqlPQ =
-      db.makePreparedQuery(updateTable.newSql)
-    val addChannelUpdateByPositionUpdSqlPQ =
-      db.makePreparedQuery(updateTable.updSQL)
-    val addExcludedChannelNewSqlPQ = db.makePreparedQuery(excludedTable.newSql)
+  def processPureData(pure: PureRoutingData): Unit =
+    db txWrap {
+      val addChannelAnnouncementNewSqlPQ =
+        db.makePreparedQuery(announceTable.newSql)
+      val addChannelUpdateByPositionNewSqlPQ =
+        db.makePreparedQuery(updateTable.newSql)
+      val addChannelUpdateByPositionUpdSqlPQ =
+        db.makePreparedQuery(updateTable.updSQL)
+      val addExcludedChannelNewSqlPQ = db.makePreparedQuery(excludedTable.newSql)
 
-    for (announce <- pure.announces)
-      addChannelAnnouncement(announce, addChannelAnnouncementNewSqlPQ)
-    for (update <- pure.updates)
-      addChannelUpdateByPosition(
-        update,
-        addChannelUpdateByPositionNewSqlPQ,
-        addChannelUpdateByPositionUpdSqlPQ
-      )
-    for (core <- pure.excluded)
-      addExcludedChannel(
-        core.shortChannelId,
-        1000L * 3600 * 24 * 3650,
-        addExcludedChannelNewSqlPQ
-      )
+      for (announce <- pure.announces)
+        addChannelAnnouncement(announce, addChannelAnnouncementNewSqlPQ)
+      for (update <- pure.updates)
+        addChannelUpdateByPosition(
+          update,
+          addChannelUpdateByPositionNewSqlPQ,
+          addChannelUpdateByPositionUpdSqlPQ
+        )
+      for (core <- pure.excluded)
+        addExcludedChannel(
+          core.shortChannelId,
+          1000L * 3600 * 24 * 3650,
+          addExcludedChannelNewSqlPQ
+        )
 
-    addChannelAnnouncementNewSqlPQ.close
-    addChannelUpdateByPositionNewSqlPQ.close
-    addChannelUpdateByPositionUpdSqlPQ.close
-    addExcludedChannelNewSqlPQ.close
-  }
+      addChannelAnnouncementNewSqlPQ.close
+      addChannelUpdateByPositionNewSqlPQ.close
+      addChannelUpdateByPositionUpdSqlPQ.close
+      addExcludedChannelNewSqlPQ.close
+    }
 
   def processCompleteHostedData(pure: CompleteHostedRoutingData): Unit =
     db txWrap {

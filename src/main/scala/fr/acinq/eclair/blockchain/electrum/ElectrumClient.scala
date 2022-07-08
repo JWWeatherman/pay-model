@@ -5,11 +5,7 @@ import java.util
 
 import akka.actor.{Actor, ActorRef, Cancellable, Stash, Terminated}
 import fr.acinq.bitcoin._
-import fr.acinq.eclair.blockchain.bitcoind.rpc.{
-  Error,
-  JsonRPCRequest,
-  JsonRPCResponse
-}
+import fr.acinq.eclair.blockchain.bitcoind.rpc.{Error, JsonRPCRequest, JsonRPCResponse}
 import fr.acinq.eclair.blockchain.electrum.ElectrumClient._
 import fr.acinq.eclair.blockchain.fee.FeeratePerKw
 import immortan.LNParams
@@ -20,11 +16,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.string.{LineEncoder, StringDecoder}
-import io.netty.handler.codec.{
-  LineBasedFrameDecoder,
-  MessageToMessageDecoder,
-  MessageToMessageEncoder
-}
+import io.netty.handler.codec.{LineBasedFrameDecoder, MessageToMessageDecoder, MessageToMessageEncoder}
 import io.netty.handler.proxy.Socks5ProxyHandler
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
@@ -35,7 +27,7 @@ import org.json4s.native.JsonMethods
 import org.json4s.{JInt, JLong, JString}
 import scodec.bits.ByteVector
 
-import scala.annotation.{tailrec, nowarn}
+import scala.annotation.{nowarn, tailrec}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
@@ -172,13 +164,13 @@ class ElectrumClient(serverAddress: InetSocketAddress, ssl: SSL)(implicit
 
       val json =
         ("method" -> request.method) ~ ("params" -> request.params.map {
-          case s: String       => new JString(s)
+          case s: String => new JString(s)
           case b: ByteVector32 => new JString(b.toHex)
           case f: FeeratePerKw => new JLong(f.toLong)
-          case b: Boolean      => new JBool(b)
-          case t: Int          => new JInt(t)
-          case t: Long         => new JLong(t)
-          case t: Double       => new JDouble(t)
+          case b: Boolean => new JBool(b)
+          case t: Int => new JInt(t)
+          case t: Long => new JLong(t)
+          case t: Double => new JDouble(t)
         }) ~ ("id" -> request.id) ~ ("jsonrpc" -> request.jsonrpc)
       val serialized = JsonMethods.compact(JsonMethods.render(json))
       out.add(serialized)
@@ -360,10 +352,8 @@ object ElectrumClient {
   sealed trait Request { def contextOpt: Option[Any] = None }
   sealed trait Response { def contextOpt: Option[Any] = None }
 
-  case class ServerVersion(clientName: String, protocolVersion: String)
-      extends Request
-  case class ServerVersionResponse(clientName: String, protocolVersion: String)
-      extends Response
+  case class ServerVersion(clientName: String, protocolVersion: String) extends Request
+  case class ServerVersionResponse(clientName: String, protocolVersion: String) extends Response
 
   case object Ping extends Request
   case object PingResponse extends Response
@@ -429,14 +419,12 @@ object ElectrumClient {
   ) extends Response
 
   case class GetHeader(height: Int) extends Request
-  case class GetHeaderResponse(height: Int, header: BlockHeader)
-      extends Response
+  case class GetHeaderResponse(height: Int, header: BlockHeader) extends Response
   object GetHeaderResponse {
     def apply(t: (Int, BlockHeader)) = new GetHeaderResponse(t._1, t._2)
   }
 
-  case class GetHeaders(startHeight: Int, count: Int, cpHeight: Int = 0)
-      extends Request
+  case class GetHeaders(startHeight: Int, count: Int, cpHeight: Int = 0) extends Request
   case class GetHeadersResponse(
       startHeight: Int,
       headers: Seq[BlockHeader],
@@ -470,21 +458,17 @@ object ElectrumClient {
     }
   }
 
-  case class AddressSubscription(address: String, actor: ActorRef)
-      extends Request
-  case class AddressSubscriptionResponse(address: String, status: String)
-      extends Response
+  case class AddressSubscription(address: String, actor: ActorRef) extends Request
+  case class AddressSubscriptionResponse(address: String, status: String) extends Response
 
-  case class ScriptHashSubscription(scriptHash: ByteVector32, actor: ActorRef)
-      extends Request
+  case class ScriptHashSubscription(scriptHash: ByteVector32, actor: ActorRef) extends Request
   case class ScriptHashSubscriptionResponse(
       scriptHash: ByteVector32,
       status: String
   ) extends Response
 
   case class HeaderSubscription(actor: ActorRef) extends Request
-  case class HeaderSubscriptionResponse(height: Int, header: BlockHeader)
-      extends Response
+  case class HeaderSubscriptionResponse(height: Int, header: BlockHeader) extends Response
   object HeaderSubscriptionResponse {
     def apply(t: (Int, BlockHeader)) =
       new HeaderSubscriptionResponse(t._1, t._2)
@@ -499,29 +483,31 @@ object ElectrumClient {
       bits: Long,
       nonce: Long
   ) {
-    def blockHeader = BlockHeader(
-      version,
-      prev_block_hash.reverse,
-      merkle_root.reverse,
-      timestamp,
-      bits,
-      nonce
-    )
+    def blockHeader =
+      BlockHeader(
+        version,
+        prev_block_hash.reverse,
+        merkle_root.reverse,
+        timestamp,
+        bits,
+        nonce
+      )
 
     lazy val block_hash: ByteVector32 = blockHeader.hash
     lazy val block_id: ByteVector32 = block_hash.reverse
   }
 
   object Header {
-    def makeHeader(height: Long, header: BlockHeader) = ElectrumClient.Header(
-      height,
-      header.version,
-      header.hashPreviousBlock.reverse,
-      header.hashMerkleRoot.reverse,
-      header.time,
-      header.bits,
-      header.nonce
-    )
+    def makeHeader(height: Long, header: BlockHeader) =
+      ElectrumClient.Header(
+        height,
+        header.version,
+        header.hashPreviousBlock.reverse,
+        header.hashMerkleRoot.reverse,
+        header.time,
+        header.bits,
+        header.nonce
+      )
 
     val RegtestGenesisHeader: Header =
       makeHeader(0, Block.RegtestGenesisBlock.header)
@@ -531,8 +517,7 @@ object ElectrumClient {
       makeHeader(0, Block.LivenetGenesisBlock.header)
   }
 
-  case class TransactionHistory(history: Seq[TransactionHistoryItem])
-      extends Response
+  case class TransactionHistory(history: Seq[TransactionHistoryItem]) extends Response
 
   case class AddressStatus(address: String, status: String) extends Response
 
@@ -598,25 +583,25 @@ object ElectrumClient {
   def parseJsonRpcResponse(json: JValue): JsonRPCResponse = {
     val result = json \ "result"
     val error = json \ "error" match {
-      case JNull    => None
+      case JNull => None
       case JNothing => None
       case other =>
         val message = other \ "message" match {
           case JString(value) => value
-          case _              => ""
+          case _ => ""
         }
         val code = other \ " code" match {
-          case JInt(value)  => value.intValue
+          case JInt(value) => value.intValue
           case JLong(value) => value.intValue
-          case _            => 0
+          case _ => 0
         }
         Some(Error(code, message))
     }
     val id = json \ "id" match {
       case JString(value) => value
-      case JInt(value)    => value.toString()
-      case JLong(value)   => value.toString
-      case _              => ""
+      case JInt(value) => value.toString()
+      case JLong(value) => value.toString
+      case _ => ""
     }
     JsonRPCResponse(result, error, id)
   }
@@ -624,13 +609,13 @@ object ElectrumClient {
   def longField(jvalue: JValue, field: String): Long =
     (jvalue \ field: @unchecked) match {
       case JLong(value) => value.longValue
-      case JInt(value)  => value.longValue
+      case JInt(value) => value.longValue
     }
 
   def intField(jvalue: JValue, field: String): Int =
     (jvalue \ field: @unchecked) match {
       case JLong(value) => value.intValue
-      case JInt(value)  => value.intValue
+      case JInt(value) => value.intValue
     }
 
   def parseBlockHeader(json: JValue): (Int, BlockHeader) = {
@@ -805,9 +790,10 @@ object ElectrumClient {
           case GetTransactionIdFromPosition(height, tx_pos, true) =>
             val JString(tx_hash) = json.result \ "tx_hash"
             val JArray(hashes) = json.result \ "merkle"
-            val leaves = hashes collect { case JString(value) =>
-              ByteVector32.fromValidHex(value)
-            }
+            val leaves = hashes collect {
+                case JString(value) =>
+                  ByteVector32.fromValidHex(value)
+              }
             GetTransactionIdFromPositionResponse(
               ByteVector32.fromValidHex(tx_hash),
               height,
@@ -861,9 +847,10 @@ object ElectrumClient {
             GetHeadersResponse(start_height, blockHeaders, max)
           case GetMerkle(txid, _, context_opt) =>
             val JArray(hashes) = json.result \ "merkle"
-            val leaves = hashes collect { case JString(value) =>
-              ByteVector32.fromValidHex(value)
-            }
+            val leaves = hashes collect {
+                case JString(value) =>
+                  ByteVector32.fromValidHex(value)
+              }
             val blockHeight = intField(json.result, "block_height")
             val JInt(pos) = json.result \ "pos"
             GetMerkleResponse(txid, leaves, blockHeight, pos.toInt, context_opt)

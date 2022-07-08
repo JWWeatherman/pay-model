@@ -12,16 +12,18 @@ class SQLiteLog(db: DBInterface) {
   def recent: Iterable[LogRecord] =
     db.select(LogTable.recentSql).iterable(toLog)
 
-  def put(tag: String, content: String): Unit = db.change(
-    LogTable.newSql,
-    System.currentTimeMillis: java.lang.Long,
-    tag,
-    content
-  )
+  def put(tag: String, content: String): Unit =
+    db.change(
+      LogTable.newSql,
+      System.currentTimeMillis: java.lang.Long,
+      tag,
+      content
+    )
 
-  def toLog(rc: RichCursor): LogRecord = LogRecord(
-    stamp = rc long LogTable.stamp,
-    tag = rc string LogTable.tag,
-    content = rc string LogTable.content
-  )
+  def toLog(rc: RichCursor): LogRecord =
+    LogRecord(
+      stamp = rc long LogTable.stamp,
+      tag = rc string LogTable.tag,
+      content = rc string LogTable.content
+    )
 }

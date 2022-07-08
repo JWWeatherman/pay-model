@@ -71,73 +71,72 @@ abstract class SwapOutFeeratesHandler extends StateMachine[FeeratesData] { me =>
   def onNoProviderSwapOutSupport: Unit
   def onTimeoutAndNoResponse: Unit
 
-  def doProcess(change: Any): Unit = (change, state) match {
-    case (
-          NoSwapOutSupport(worker),
-          WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
-        ) =>
-      become(data.copy(results = data.results - worker.info), state)
-      doSearch(force = false)
+  def doProcess(change: Any): Unit =
+    (change, state) match {
+      case (
+            NoSwapOutSupport(worker),
+            WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
+          ) =>
+        become(data.copy(results = data.results - worker.info), state)
+        doSearch(force = false)
 
-    case (
-          YesSwapOutSupport(worker, msg: SwapOutFeerates),
-          WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
+      case (
+            YesSwapOutSupport(worker, msg: SwapOutFeerates),
+            WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
+          )
+          // Provider has sent feerates which are too low, tx won't likely ever confirm
+          if msg.feerates.feerates.forall(params => minChainFee > params.fee) =>
+        become(data.copy(results = data.results - worker.info), state)
+        doSearch(force = false)
+
+      case (
+            YesSwapOutSupport(worker, msg: SwapOutFeerates),
+            WAITING_FIRST_RESPONSE
+          ) =>
+        val results1 = data.results.updated(
+          worker.info,
+          SwapOutResponseExt(msg, worker.info).asSome
         )
-        // Provider has sent feerates which are too low, tx won't likely ever confirm
-        if msg.feerates.feerates.forall(params => minChainFee > params.fee) =>
-      become(data.copy(results = data.results - worker.info), state)
-      doSearch(force = false)
-
-    case (
-          YesSwapOutSupport(worker, msg: SwapOutFeerates),
-          WAITING_FIRST_RESPONSE
-        ) =>
-      val results1 = data.results.updated(
-        worker.info,
-        SwapOutResponseExt(msg, worker.info).asSome
-      )
-      become(
-        data.copy(results = results1),
-        WAITING_REST_OF_RESPONSES
-      ) // Start waiting for the rest of responses
-      Rx.ioQueue
-        .delay(5.seconds)
-        .foreach(_ =>
-          me doSearch true
-        ) // Decrease timeout for the rest of responses
-      doSearch(force = false)
-
-    case (
-          YesSwapOutSupport(worker, msg: SwapOutFeerates),
+        become(
+          data.copy(results = results1),
           WAITING_REST_OF_RESPONSES
-        ) =>
-      val results1 = data.results.updated(
-        worker.info,
-        SwapOutResponseExt(msg, worker.info).asSome
-      )
-      become(data.copy(results = results1), state)
-      doSearch(force = false)
+        ) // Start waiting for the rest of responses
+        Rx.ioQueue
+          .delay(5.seconds)
+          .foreach(_ => me doSearch true) // Decrease timeout for the rest of responses
+        doSearch(force = false)
 
-    case (CMDCancel, WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES) =>
-      // Do not disconnect from remote peer because we have a channel with them, but remove this exact SwapIn listener
-      for (cnc <- data.cmdStart.capableCncs)
-        CommsTower.rmListenerNative(cnc.commits.remoteInfo, swapOutListener)
-      become(data, FINALIZED)
+      case (
+            YesSwapOutSupport(worker, msg: SwapOutFeerates),
+            WAITING_REST_OF_RESPONSES
+          ) =>
+        val results1 = data.results.updated(
+          worker.info,
+          SwapOutResponseExt(msg, worker.info).asSome
+        )
+        become(data.copy(results = results1), state)
+        doSearch(force = false)
 
-    case (cmd: CMDStart, -1) =>
-      become(
-        FeeratesData(
-          results = cmd.capableCncs.map(_.commits.remoteInfo -> None).toMap,
-          cmd
-        ),
-        WAITING_FIRST_RESPONSE
-      )
-      for (cnc <- cmd.capableCncs)
-        CommsTower.listenNative(Set(swapOutListener), cnc.commits.remoteInfo)
-      Rx.ioQueue.delay(30.seconds).foreach(_ => me doSearch true)
+      case (CMDCancel, WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES) =>
+        // Do not disconnect from remote peer because we have a channel with them, but remove this exact SwapIn listener
+        for (cnc <- data.cmdStart.capableCncs)
+          CommsTower.rmListenerNative(cnc.commits.remoteInfo, swapOutListener)
+        become(data, FINALIZED)
 
-    case _ =>
-  }
+      case (cmd: CMDStart, -1) =>
+        become(
+          FeeratesData(
+            results = cmd.capableCncs.map(_.commits.remoteInfo -> None).toMap,
+            cmd
+          ),
+          WAITING_FIRST_RESPONSE
+        )
+        for (cnc <- cmd.capableCncs)
+          CommsTower.listenNative(Set(swapOutListener), cnc.commits.remoteInfo)
+        Rx.ioQueue.delay(30.seconds).foreach(_ => me doSearch true)
+
+      case _ =>
+    }
 
   private def doSearch(force: Boolean): Unit = {
     // Remove yet unknown responses, unsupporting peers have been removed earlier

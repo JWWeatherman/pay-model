@@ -16,7 +16,7 @@
 
 package fr.acinq.eclair.transactions
 
-import fr.acinq.bitcoin.Crypto.{PrivateKey, PublicKey, ripemd160}
+import fr.acinq.bitcoin.Crypto.{ripemd160, PrivateKey, PublicKey}
 import fr.acinq.bitcoin.Script._
 import fr.acinq.bitcoin.SigVersion._
 import fr.acinq.bitcoin._
@@ -30,8 +30,9 @@ import scodec.bits.ByteVector
 import java.nio.ByteOrder
 import scala.util.Try
 
-/** Created by PM on 15/12/2016.
-  */
+/**
+ * Created by PM on 15/12/2016.
+ */
 object Transactions {
 
   sealed trait CommitmentFormat {
@@ -43,9 +44,10 @@ object Transactions {
     // @formatter:on
   }
 
-  /** Commitment format as defined in the v1.0 specification
-    * (https://github.com/lightningnetwork/lightning-rfc/tree/v1.0).
-    */
+  /**
+   * Commitment format as defined in the v1.0 specification
+   * (https://github.com/lightningnetwork/lightning-rfc/tree/v1.0).
+   */
   case object DefaultCommitmentFormat extends CommitmentFormat {
     override val commitWeight = 724
     override val htlcOutputWeight = 172
@@ -53,10 +55,11 @@ object Transactions {
     override val htlcSuccessWeight = 703
   }
 
-  /** Commitment format that adds anchor outputs to the commitment transaction
-    * and uses custom sighash flags for HTLC transactions to allow unilateral
-    * fee bumping (https://github.com/lightningnetwork/lightning-rfc/pull/688).
-    */
+  /**
+   * Commitment format that adds anchor outputs to the commitment transaction
+   * and uses custom sighash flags for HTLC transactions to allow unilateral
+   * fee bumping (https://github.com/lightningnetwork/lightning-rfc/pull/688).
+   */
   case object AnchorOutputsCommitmentFormat extends CommitmentFormat {
     val anchorAmount = Satoshi(330)
     override val commitWeight = 1124
@@ -118,54 +121,56 @@ object Transactions {
   case object AmountBelowDustLimit extends TxGenerationSkipped { override def toString = "amount is below dust limit" }
   // @formatter:on
 
-  /** When *local* *current* [[CommitTx]] is published:
-    *   - [[ClaimLocalDelayedOutputTx]] spends to-local output of [[CommitTx]]
-    *     after a delay
-    *   - When using anchor outputs, [[ClaimAnchorOutputTx]] spends to-local
-    *     anchor of [[CommitTx]]
-    *   - [[HtlcSuccessTx]] spends htlc-received outputs of [[CommitTx]] for
-    *     which we have the preimage
-    *     - [[ClaimLocalDelayedOutputTx]] spends [[HtlcSuccessTx]] after a delay
-    *   - [[HtlcTimeoutTx]] spends htlc-sent outputs of [[CommitTx]] after a
-    *     timeout
-    *     - [[ClaimLocalDelayedOutputTx]] spends [[HtlcTimeoutTx]] after a delay
-    *
-    * When *remote* *current* [[CommitTx]] is published:
-    *   - When using the default commitment format, [[ClaimP2WPKHOutputTx]]
-    *     spends to-local output of [[CommitTx]]
-    *   - When using anchor outputs, [[ClaimRemoteDelayedOutputTx]] spends
-    *     to-local output of [[CommitTx]]
-    *   - When using anchor outputs, [[ClaimAnchorOutputTx]] spends to-local
-    *     anchor of [[CommitTx]]
-    *   - [[ClaimHtlcSuccessTx]] spends htlc-received outputs of [[CommitTx]]
-    *     for which we have the preimage
-    *   - [[ClaimHtlcTimeoutTx]] spends htlc-sent outputs of [[CommitTx]] after
-    *     a timeout
-    *
-    * When *remote* *revoked* [[CommitTx]] is published:
-    *   - When using the default commitment format, [[ClaimP2WPKHOutputTx]]
-    *     spends to-local output of [[CommitTx]]
-    *   - When using anchor outputs, [[ClaimRemoteDelayedOutputTx]] spends
-    *     to-local output of [[CommitTx]]
-    *   - When using anchor outputs, [[ClaimAnchorOutputTx]] spends to-local
-    *     anchor of [[CommitTx]]
-    *   - [[MainPenaltyTx]] spends remote main output using the per-commitment
-    *     secret
-    *   - [[HtlcSuccessTx]] spends htlc-sent outputs of [[CommitTx]] for which
-    *     they have the preimage (published by remote)
-    *     - [[ClaimHtlcDelayedOutputPenaltyTx]] spends [[HtlcSuccessTx]] using
-    *       the revocation secret (published by local)
-    *   - [[HtlcTimeoutTx]] spends htlc-received outputs of [[CommitTx]] after a
-    *     timeout (published by remote)
-    *     - [[ClaimHtlcDelayedOutputPenaltyTx]] spends [[HtlcTimeoutTx]] using
-    *       the revocation secret (published by local)
-    *   - [[HtlcPenaltyTx]] spends competes with [[HtlcSuccessTx]] and
-    *     [[HtlcTimeoutTx]] for the same outputs (published by local)
-    */
+  /**
+   * When *local* *current* [[CommitTx]] is published:
+   *   - [[ClaimLocalDelayedOutputTx]] spends to-local output of [[CommitTx]]
+   *     after a delay
+   *   - When using anchor outputs, [[ClaimAnchorOutputTx]] spends to-local
+   *     anchor of [[CommitTx]]
+   *   - [[HtlcSuccessTx]] spends htlc-received outputs of [[CommitTx]] for
+   *     which we have the preimage
+   *     - [[ClaimLocalDelayedOutputTx]] spends [[HtlcSuccessTx]] after a delay
+   *   - [[HtlcTimeoutTx]] spends htlc-sent outputs of [[CommitTx]] after a
+   *     timeout
+   *     - [[ClaimLocalDelayedOutputTx]] spends [[HtlcTimeoutTx]] after a delay
+   *
+   * When *remote* *current* [[CommitTx]] is published:
+   *   - When using the default commitment format, [[ClaimP2WPKHOutputTx]]
+   *     spends to-local output of [[CommitTx]]
+   *   - When using anchor outputs, [[ClaimRemoteDelayedOutputTx]] spends
+   *     to-local output of [[CommitTx]]
+   *   - When using anchor outputs, [[ClaimAnchorOutputTx]] spends to-local
+   *     anchor of [[CommitTx]]
+   *   - [[ClaimHtlcSuccessTx]] spends htlc-received outputs of [[CommitTx]]
+   *     for which we have the preimage
+   *   - [[ClaimHtlcTimeoutTx]] spends htlc-sent outputs of [[CommitTx]] after
+   *     a timeout
+   *
+   * When *remote* *revoked* [[CommitTx]] is published:
+   *   - When using the default commitment format, [[ClaimP2WPKHOutputTx]]
+   *     spends to-local output of [[CommitTx]]
+   *   - When using anchor outputs, [[ClaimRemoteDelayedOutputTx]] spends
+   *     to-local output of [[CommitTx]]
+   *   - When using anchor outputs, [[ClaimAnchorOutputTx]] spends to-local
+   *     anchor of [[CommitTx]]
+   *   - [[MainPenaltyTx]] spends remote main output using the per-commitment
+   *     secret
+   *   - [[HtlcSuccessTx]] spends htlc-sent outputs of [[CommitTx]] for which
+   *     they have the preimage (published by remote)
+   *     - [[ClaimHtlcDelayedOutputPenaltyTx]] spends [[HtlcSuccessTx]] using
+   *       the revocation secret (published by local)
+   *   - [[HtlcTimeoutTx]] spends htlc-received outputs of [[CommitTx]] after a
+   *     timeout (published by remote)
+   *     - [[ClaimHtlcDelayedOutputPenaltyTx]] spends [[HtlcTimeoutTx]] using
+   *       the revocation secret (published by local)
+   *   - [[HtlcPenaltyTx]] spends competes with [[HtlcSuccessTx]] and
+   *     [[HtlcTimeoutTx]] for the same outputs (published by local)
+   */
 
-  /** these values are specific to us (not defined in the specification) and
-    * used to estimate fees
-    */
+  /**
+   * these values are specific to us (not defined in the specification) and
+   * used to estimate fees
+   */
   val claimP2WPKHOutputWeight = 438
   val claimAnchorOutputWeight = 321
   val claimHtlcDelayedWeight = 483
@@ -181,16 +186,18 @@ object Transactions {
   def weight2fee(feeratePerKw: FeeratePerKw, weight: Int): Satoshi =
     weight2feeMsat(feeratePerKw, weight).truncateToSatoshi
 
-  /** @param fee
-    *   tx fee
-    * @param weight
-    *   tx weight
-    * @return
-    *   the fee rate (in Satoshi/Kw) for this tx
-    */
-  def fee2rate(fee: Satoshi, weight: Int): FeeratePerKw = FeeratePerKw(
-    (fee * 1000L) / weight
-  )
+  /**
+   * @param fee
+   *   tx fee
+   * @param weight
+   *   tx weight
+   * @return
+   *   the fee rate (in Satoshi/Kw) for this tx
+   */
+  def fee2rate(fee: Satoshi, weight: Int): FeeratePerKw =
+    FeeratePerKw(
+      (fee * 1000L) / weight
+    )
 
   /** Offered HTLCs below this amount will be trimmed. */
   def offeredHtlcTrimThreshold(
@@ -243,12 +250,13 @@ object Transactions {
   ): MilliSatoshi =
     weight2feeMsat(feeratePerKw, commitmentFormat.htlcOutputWeight)
 
-  /** While fees are generally computed in Satoshis (since this is the smallest
-    * on-chain unit), it may be useful in some cases to calculate it in
-    * MilliSatoshi to avoid rounding issues. If you are adding multiple fees
-    * together for example, you should always add them in MilliSatoshi and then
-    * round down to Satoshi.
-    */
+  /**
+   * While fees are generally computed in Satoshis (since this is the smallest
+   * on-chain unit), it may be useful in some cases to calculate it in
+   * MilliSatoshi to avoid rounding issues. If you are adding multiple fees
+   * together for example, you should always add them in MilliSatoshi and then
+   * round down to Satoshi.
+   */
   def commitTxFeeMsat(
       dustLimit: Satoshi,
       spec: CommitmentSpec,
@@ -276,17 +284,18 @@ object Transactions {
   ): Satoshi =
     commitTxFeeMsat(dustLimit, spec, commitmentFormat).truncateToSatoshi
 
-  /** @param commitTxNumber
-    *   commit tx number
-    * @param isFunder
-    *   true if local node is funder
-    * @param localPaymentBasePoint
-    *   local payment base point
-    * @param remotePaymentBasePoint
-    *   remote payment base point
-    * @return
-    *   the obscured tx number as defined in BOLT #3 (a 48 bits integer)
-    */
+  /**
+   * @param commitTxNumber
+   *   commit tx number
+   * @param isFunder
+   *   true if local node is funder
+   * @param localPaymentBasePoint
+   *   local payment base point
+   * @param remotePaymentBasePoint
+   *   remote payment base point
+   * @return
+   *   the obscured tx number as defined in BOLT #3 (a 48 bits integer)
+   */
   def obscuredCommitTxNumber(
       commitTxNumber: Long,
       isFunder: Boolean,
@@ -306,18 +315,19 @@ object Transactions {
     commitTxNumber ^ blind
   }
 
-  /** @param commitTx
-    *   commit tx
-    * @param isFunder
-    *   true if local node is funder
-    * @param localPaymentBasePoint
-    *   local payment base point
-    * @param remotePaymentBasePoint
-    *   remote payment base point
-    * @return
-    *   the actual commit tx number that was blinded and stored in locktime and
-    *   sequence fields
-    */
+  /**
+   * @param commitTx
+   *   commit tx
+   * @param isFunder
+   *   true if local node is funder
+   * @param localPaymentBasePoint
+   *   local payment base point
+   * @param remotePaymentBasePoint
+   *   remote payment base point
+   * @return
+   *   the actual commit tx number that was blinded and stored in locktime and
+   *   sequence fields
+   */
   def getCommitTxNumber(
       commitTx: Transaction,
       isFunder: Boolean,
@@ -336,14 +346,15 @@ object Transactions {
     obscured ^ blind
   }
 
-  /** This is a trick to split and encode a 48-bit txnumber into the sequence
-    * and locktime fields of a tx
-    *
-    * @param txnumber
-    *   commitment number
-    * @return
-    *   (sequence, locktime)
-    */
+  /**
+   * This is a trick to split and encode a 48-bit txnumber into the sequence
+   * and locktime fields of a tx
+   *
+   * @param txnumber
+   *   commitment number
+   * @return
+   *   (sequence, locktime)
+   */
   def encodeTxNumber(txnumber: Long): (Long, Long) = {
     require(
       txnumber <= 0xffffffffffffL,
@@ -363,16 +374,17 @@ object Transactions {
         1 // htlc txs have a 1-block delay to allow CPFP carve-out on anchors
     }
 
-  /** Represent a link between a commitment spec item (to-local, to-remote,
-    * anchors, htlc) and the actual output in the commit tx
-    *
-    * @param output
-    *   transaction output
-    * @param redeemScript
-    *   redeem script that matches this output (most of them are p2wsh)
-    * @param commitmentOutput
-    *   commitment spec item this output is built from
-    */
+  /**
+   * Represent a link between a commitment spec item (to-local, to-remote,
+   * anchors, htlc) and the actual output in the commit tx
+   *
+   * @param output
+   *   transaction output
+   * @param redeemScript
+   *   redeem script that matches this output (most of them are p2wsh)
+   * @param commitmentOutput
+   *   commitment spec item this output is built from
+   */
   case class CommitmentOutputLink[T <: CommitmentOutput](
       output: TxOut,
       redeemScript: Seq[ScriptElt],
@@ -384,21 +396,23 @@ object Transactions {
 
   object CommitmentOutputLink {
 
-    /** We sort HTLC outputs according to BIP69 + CLTV as tie-breaker for
-      * offered HTLC, we do this only for the outgoing HTLC because we must
-      * agree with the remote on the order of HTLC-Timeout transactions even for
-      * identical HTLC outputs. See
-      * https://github.com/lightningnetwork/lightning-rfc/issues/448#issuecomment-432074187.
-      */
+    /**
+     * We sort HTLC outputs according to BIP69 + CLTV as tie-breaker for
+     * offered HTLC, we do this only for the outgoing HTLC because we must
+     * agree with the remote on the order of HTLC-Timeout transactions even for
+     * identical HTLC outputs. See
+     * https://github.com/lightningnetwork/lightning-rfc/issues/448#issuecomment-432074187.
+     */
     def sort(
         a: CommitmentOutputLink[CommitmentOutput],
         b: CommitmentOutputLink[CommitmentOutput]
-    ): Boolean = (a.commitmentOutput, b.commitmentOutput) match {
-      case (OutHtlc(OutgoingHtlc(htlcA)), OutHtlc(OutgoingHtlc(htlcB)))
-          if htlcA.paymentHash == htlcB.paymentHash && htlcA.amountMsat.truncateToSatoshi == htlcB.amountMsat.truncateToSatoshi =>
-        htlcA.cltvExpiry <= htlcB.cltvExpiry
-      case _ => LexicographicalOrdering.isLessThan(a.output, b.output)
-    }
+    ): Boolean =
+      (a.commitmentOutput, b.commitmentOutput) match {
+        case (OutHtlc(OutgoingHtlc(htlcA)), OutHtlc(OutgoingHtlc(htlcB)))
+            if htlcA.paymentHash == htlcB.paymentHash && htlcA.amountMsat.truncateToSatoshi == htlcB.amountMsat.truncateToSatoshi =>
+          htlcA.cltvExpiry <= htlcB.cltvExpiry
+        case _ => LexicographicalOrdering.isLessThan(a.output, b.output)
+      }
   }
 
   def makeCommitTxOutputs(
@@ -571,10 +585,10 @@ object Transactions {
     val tx = Transaction(
       version = 2,
       txIn = TxIn(
-        commitTxInput.outPoint,
-        ByteVector.empty,
-        sequence = sequence
-      ) :: Nil,
+          commitTxInput.outPoint,
+          ByteVector.empty,
+          sequence = sequence
+        ) :: Nil,
       txOut = outputs.map(_.output),
       lockTime = locktime
     )
@@ -611,20 +625,20 @@ object Transactions {
           Transaction(
             version = 2,
             txIn = TxIn(
-              input.outPoint,
-              ByteVector.empty,
-              getHtlcTxInputSequence(commitmentFormat)
-            ) :: Nil,
+                input.outPoint,
+                ByteVector.empty,
+                getHtlcTxInputSequence(commitmentFormat)
+              ) :: Nil,
             txOut = TxOut(
-              amount,
-              pay2wsh(
-                toLocalDelayed(
-                  localRevocationPubkey,
-                  toLocalDelay,
-                  localDelayedPaymentPubkey
+                amount,
+                pay2wsh(
+                  toLocalDelayed(
+                    localRevocationPubkey,
+                    toLocalDelay,
+                    localDelayedPaymentPubkey
+                  )
                 )
-              )
-            ) :: Nil,
+              ) :: Nil,
             lockTime = htlc.cltvExpiry.underlying
           )
         )
@@ -661,20 +675,20 @@ object Transactions {
           Transaction(
             version = 2,
             txIn = TxIn(
-              input.outPoint,
-              ByteVector.empty,
-              getHtlcTxInputSequence(commitmentFormat)
-            ) :: Nil,
+                input.outPoint,
+                ByteVector.empty,
+                getHtlcTxInputSequence(commitmentFormat)
+              ) :: Nil,
             txOut = TxOut(
-              amount,
-              pay2wsh(
-                toLocalDelayed(
-                  localRevocationPubkey,
-                  toLocalDelay,
-                  localDelayedPaymentPubkey
+                amount,
+                pay2wsh(
+                  toLocalDelayed(
+                    localRevocationPubkey,
+                    toLocalDelay,
+                    localDelayedPaymentPubkey
+                  )
                 )
-              )
-            ) :: Nil,
+              ) :: Nil,
             lockTime = 0
           ),
           htlc.paymentHash
@@ -694,35 +708,37 @@ object Transactions {
       commitmentFormat: CommitmentFormat
   ): (Seq[HtlcTimeoutTx], Seq[HtlcSuccessTx]) = {
     val htlcTimeoutTxs = outputs.zipWithIndex
-      .collect { case (CommitmentOutputLink(o, s, OutHtlc(ou)), outputIndex) =>
-        val co = CommitmentOutputLink(o, s, OutHtlc(ou))
-        makeHtlcTimeoutTx(
-          commitTx,
-          co,
-          outputIndex,
-          localDustLimit,
-          localRevocationPubkey,
-          toLocalDelay,
-          localDelayedPaymentPubkey,
-          feeratePerKw,
-          commitmentFormat
-        )
+      .collect {
+        case (CommitmentOutputLink(o, s, OutHtlc(ou)), outputIndex) =>
+          val co = CommitmentOutputLink(o, s, OutHtlc(ou))
+          makeHtlcTimeoutTx(
+            commitTx,
+            co,
+            outputIndex,
+            localDustLimit,
+            localRevocationPubkey,
+            toLocalDelay,
+            localDelayedPaymentPubkey,
+            feeratePerKw,
+            commitmentFormat
+          )
       }
       .collect { case Right(htlcTimeoutTx) => htlcTimeoutTx }
     val htlcSuccessTxs = outputs.zipWithIndex
-      .collect { case (CommitmentOutputLink(o, s, InHtlc(in)), outputIndex) =>
-        val co = CommitmentOutputLink(o, s, InHtlc(in))
-        makeHtlcSuccessTx(
-          commitTx,
-          co,
-          outputIndex,
-          localDustLimit,
-          localRevocationPubkey,
-          toLocalDelay,
-          localDelayedPaymentPubkey,
-          feeratePerKw,
-          commitmentFormat
-        )
+      .collect {
+        case (CommitmentOutputLink(o, s, InHtlc(in)), outputIndex) =>
+          val co = CommitmentOutputLink(o, s, InHtlc(in))
+          makeHtlcSuccessTx(
+            commitTx,
+            co,
+            outputIndex,
+            localDustLimit,
+            localRevocationPubkey,
+            toLocalDelay,
+            localDelayedPaymentPubkey,
+            feeratePerKw,
+            commitmentFormat
+          )
       }
       .collect { case Right(htlcSuccessTx) => htlcSuccessTx }
     (htlcTimeoutTxs, htlcSuccessTxs)
@@ -825,10 +841,10 @@ object Transactions {
         val tx = Transaction(
           version = 2,
           txIn = TxIn(
-            input.outPoint,
-            ByteVector.empty,
-            getHtlcTxInputSequence(commitmentFormat)
-          ) :: Nil,
+              input.outPoint,
+              ByteVector.empty,
+              getHtlcTxInputSequence(commitmentFormat)
+            ) :: Nil,
           txOut = TxOut(Satoshi(0), localFinalScriptPubKey) :: Nil,
           lockTime = htlc.cltvExpiry.underlying
         )
@@ -953,10 +969,10 @@ object Transactions {
         val tx = Transaction(
           version = 2,
           txIn = TxIn(
-            input.outPoint,
-            ByteVector.empty,
-            toLocalDelay.underlying
-          ) :: Nil,
+              input.outPoint,
+              ByteVector.empty,
+              toLocalDelay.underlying
+            ) :: Nil,
           txOut = TxOut(Satoshi(0), localFinalScriptPubKey) :: Nil,
           lockTime = 0
         )
@@ -993,8 +1009,7 @@ object Transactions {
         val tx = Transaction(
           version = 2,
           txIn = TxIn(input.outPoint, ByteVector.empty, 0) :: Nil,
-          txOut =
-            Nil, // anchor is only used to bump fees, we let all funds go to miners
+          txOut = Nil, // anchor is only used to bump fees, we let all funds go to miners
           lockTime = 0
         )
         Right(ClaimAnchorOutputTx(input, tx))
@@ -1090,8 +1105,9 @@ object Transactions {
     }
   }
 
-  /** We already have the redeemScript, no need to build it
-    */
+  /**
+   * We already have the redeemScript, no need to build it
+   */
   def makeHtlcPenaltyTx(
       commitTx: Transaction,
       htlcOutputIndex: Int,
@@ -1159,10 +1175,10 @@ object Transactions {
     val tx = Transaction(
       version = 2,
       txIn = TxIn(
-        commitTxInput.outPoint,
-        ByteVector.empty,
-        sequence = 0xffffffffL
-      ) :: Nil,
+          commitTxInput.outPoint,
+          ByteVector.empty,
+          sequence = 0xffffffffL
+        ) :: Nil,
       txOut = toLocalOutput_opt.toSeq ++ toRemoteOutput_opt.toSeq ++ Nil,
       lockTime = 0
     )
@@ -1175,10 +1191,11 @@ object Transactions {
       amount_opt: Option[Satoshi]
   ): Either[TxGenerationSkipped, Int] = {
     val outputIndex = tx.txOut.zipWithIndex
-      .indexWhere { case (txOut, _) =>
-        amount_opt.forall(
-          _ == txOut.amount
-        ) && txOut.publicKeyScript == pubkeyScript
+      .indexWhere {
+        case (txOut, _) =>
+          amount_opt.forall(
+            _ == txOut.amount
+          ) && txOut.publicKeyScript == pubkeyScript
       }
     if (outputIndex >= 0) {
       Right(outputIndex)
@@ -1187,15 +1204,17 @@ object Transactions {
     }
   }
 
-  /** Default public key used for fee estimation
-    */
+  /**
+   * Default public key used for fee estimation
+   */
   val PlaceHolderPubKey = PrivateKey(ByteVector32.One).publicKey
 
-  /** This default sig takes 72B when encoded in DER (incl. 1B for the trailing
-    * sig hash), it is used for fee estimation It is 72 bytes because our
-    * signatures are normalized (low-s) and will take up 72 bytes at most in DER
-    * format
-    */
+  /**
+   * This default sig takes 72B when encoded in DER (incl. 1B for the trailing
+   * sig hash), it is used for fee estimation It is 72 bytes because our
+   * signatures are normalized (low-s) and will take up 72 bytes at most in DER
+   * format
+   */
   val PlaceHolderSig = ByteVector64(ByteVector.fill(64)(0xaa))
   assert(der(PlaceHolderSig).size == 72)
 
@@ -1324,9 +1343,7 @@ object Transactions {
       paymentPreimage,
       claimHtlcSuccessTx.input.redeemScript
     )
-    claimHtlcSuccessTx.copy(tx =
-      claimHtlcSuccessTx.tx.updateWitness(0, witness)
-    )
+    claimHtlcSuccessTx.copy(tx = claimHtlcSuccessTx.tx.updateWitness(0, witness))
   }
 
   def addSigs(
@@ -1337,9 +1354,7 @@ object Transactions {
       localSig,
       claimHtlcTimeoutTx.input.redeemScript
     )
-    claimHtlcTimeoutTx.copy(tx =
-      claimHtlcTimeoutTx.tx.updateWitness(0, witness)
-    )
+    claimHtlcTimeoutTx.copy(tx = claimHtlcTimeoutTx.tx.updateWitness(0, witness))
   }
 
   def addSigs(
@@ -1348,9 +1363,7 @@ object Transactions {
       localSig: ByteVector64
   ): ClaimP2WPKHOutputTx = {
     val witness = ScriptWitness(Seq(der(localSig), localPaymentPubkey.value))
-    claimP2WPKHOutputTx.copy(tx =
-      claimP2WPKHOutputTx.tx.updateWitness(0, witness)
-    )
+    claimP2WPKHOutputTx.copy(tx = claimP2WPKHOutputTx.tx.updateWitness(0, witness))
   }
 
   def addSigs(
@@ -1361,9 +1374,7 @@ object Transactions {
       localSig,
       claimRemoteDelayedOutputTx.input.redeemScript
     )
-    claimRemoteDelayedOutputTx.copy(tx =
-      claimRemoteDelayedOutputTx.tx.updateWitness(0, witness)
-    )
+    claimRemoteDelayedOutputTx.copy(tx = claimRemoteDelayedOutputTx.tx.updateWitness(0, witness))
   }
 
   def addSigs(
@@ -1374,9 +1385,7 @@ object Transactions {
       localSig,
       claimDelayedOutputTx.input.redeemScript
     )
-    claimDelayedOutputTx.copy(tx =
-      claimDelayedOutputTx.tx.updateWitness(0, witness)
-    )
+    claimDelayedOutputTx.copy(tx = claimDelayedOutputTx.tx.updateWitness(0, witness))
   }
 
   def addSigs(
@@ -1385,9 +1394,7 @@ object Transactions {
   ): ClaimAnchorOutputTx = {
     val witness =
       witnessAnchor(localSig, claimAnchorOutputTx.input.redeemScript)
-    claimAnchorOutputTx.copy(tx =
-      claimAnchorOutputTx.tx.updateWitness(0, witness)
-    )
+    claimAnchorOutputTx.copy(tx = claimAnchorOutputTx.tx.updateWitness(0, witness))
   }
 
   def addSigs(
@@ -1398,9 +1405,7 @@ object Transactions {
       revocationSig,
       claimHtlcDelayedPenalty.input.redeemScript
     )
-    claimHtlcDelayedPenalty.copy(tx =
-      claimHtlcDelayedPenalty.tx.updateWitness(0, witness)
-    )
+    claimHtlcDelayedPenalty.copy(tx = claimHtlcDelayedPenalty.tx.updateWitness(0, witness))
   }
 
   def addSigs(

@@ -6,7 +6,7 @@ import fr.acinq.eclair._
 import fr.acinq.eclair.router.Graph.GraphStructure.{DirectedGraph, GraphEdge}
 import fr.acinq.eclair.router.Router._
 
-import scala.collection.mutable.{HashMap, ArrayBuffer, PriorityQueue}
+import scala.collection.mutable.{ArrayBuffer, HashMap, PriorityQueue}
 
 object Graph {
   case class RichWeight(
@@ -66,13 +66,14 @@ object Graph {
     )
 
     if (shortestPath.nonEmpty) {
-      val weight = shortestPath.foldRight(targetWeight) { case (edge, prev) =>
-        RoutingHeuristics.addEdgeWeight(
-          sourceNode,
-          edge,
-          prev,
-          latestBlockExpectedStampMsecs
-        )
+      val weight = shortestPath.foldRight(targetWeight) {
+        case (edge, prev) =>
+          RoutingHeuristics.addEdgeWeight(
+            sourceNode,
+            edge,
+            prev,
+            latestBlockExpectedStampMsecs
+          )
       }
 
       val weightedPath = WeightedPath(shortestPath, weight)
@@ -208,11 +209,10 @@ object Graph {
 
     val SCORE_HIGH = 1000
 
-    def normalize(value: Double, min: Double, max: Double): Double = if (
-      value <= min
-    ) 0d
-    else if (value >= max) 1d
-    else (value - min) / (max - min)
+    def normalize(value: Double, min: Double, max: Double): Double =
+      if (value <= min) 0d
+      else if (value >= max) 1d
+      else (value - min) / (max - min)
 
     def addEdgeWeight(
         sender: PublicKey,
@@ -232,10 +232,10 @@ object Graph {
           latestBlockExpectedStampMsecs
         )
         val capFactor = 1 - normalize(
-          edge.updExt.capacity.toLong,
-          CAPACITY_CHANNEL_LOW.toLong,
-          CAPACITY_CHANNEL_HIGH.toLong
-        )
+            edge.updExt.capacity.toLong,
+            CAPACITY_CHANNEL_LOW.toLong,
+            CAPACITY_CHANNEL_HIGH.toLong
+          )
         val cltvFactor = normalize(
           edge.updExt.update.cltvExpiryDelta.underlying,
           CLTV_LOW,

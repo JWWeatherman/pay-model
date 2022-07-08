@@ -157,8 +157,7 @@ object Noise {
     val hasKey: Boolean
   }
 
-  case class UnitializedCipherState(cipher: CipherFunctions)
-      extends CipherState { me =>
+  case class UnitializedCipherState(cipher: CipherFunctions) extends CipherState { me =>
     def decryptWithAd(
         ad: ByteVector,
         ciphertext: ByteVector

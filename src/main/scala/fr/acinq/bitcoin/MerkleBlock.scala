@@ -8,29 +8,30 @@ import scodec.bits.ByteVector
 
 import scala.annotation.{nowarn, tailrec}
 
-/** @param version
-  *   Block version information, based upon the software version creating this
-  *   block
-  * @param previousBlockHash
-  *   The hash value of the previous block this particular block references
-  * @param merkleRoot
-  *   The reference to a Merkle tree collection which is a hash of all
-  *   transactions related to this block
-  * @param timestamp
-  *   A timestamp recording when this block was created (Limited to 2106!)
-  * @param bits
-  *   The calculated difficulty target being used for this block
-  * @param nonce
-  *   The nonce used to generate this block… to allow variations of the header
-  *   and compute different hashes
-  * @param txCount
-  *   Number of transactions in the block (including unmatched ones)
-  * @param hashes
-  *   hashes in depth-first order (including standard varint size prefix)
-  * @param flags
-  *   flag bits, packed per 8 in a byte, least significant bit first (including
-  *   standard varint size prefix)
-  */
+/**
+ * @param version
+ *   Block version information, based upon the software version creating this
+ *   block
+ * @param previousBlockHash
+ *   The hash value of the previous block this particular block references
+ * @param merkleRoot
+ *   The reference to a Merkle tree collection which is a hash of all
+ *   transactions related to this block
+ * @param timestamp
+ *   A timestamp recording when this block was created (Limited to 2106!)
+ * @param bits
+ *   The calculated difficulty target being used for this block
+ * @param nonce
+ *   The nonce used to generate this block… to allow variations of the header
+ *   and compute different hashes
+ * @param txCount
+ *   Number of transactions in the block (including unmatched ones)
+ * @param hashes
+ *   hashes in depth-first order (including standard varint size prefix)
+ * @param flags
+ *   flag bits, packed per 8 in a byte, least significant bit first (including
+ *   standard varint size prefix)
+ */
 case class MerkleBlock(
     version: Long,
     previousBlockHash: ByteVector,
@@ -52,14 +53,15 @@ case class MerkleBlock(
 
   override def serializer: BtcSerializer[MerkleBlock] = MerkleBlock
 
-  def computeRoot = MerkleBlock.computeRoot(
-    txCount,
-    topHeight(txCount),
-    0,
-    hashes,
-    MerkleBlock.toBits(flags),
-    Nil
-  )
+  def computeRoot =
+    MerkleBlock.computeRoot(
+      txCount,
+      topHeight(txCount),
+      0,
+      hashes,
+      MerkleBlock.toBits(flags),
+      Nil
+    )
 }
 
 object MerkleBlock extends BtcSerializer[MerkleBlock] {
@@ -114,22 +116,24 @@ object MerkleBlock extends BtcSerializer[MerkleBlock] {
   def toBits(flags: ByteVector): List[Boolean] =
     flags.toSeq.flatMap(toBits).toList
 
-  /** @param leafCount
-    *   total number of leaf nodes
-    * @param height
-    *   tree height (0 == bottom == leaf nodes)
-    * @return
-    *   the number of nodes at the given height
-    */
+  /**
+   * @param leafCount
+   *   total number of leaf nodes
+   * @param height
+   *   tree height (0 == bottom == leaf nodes)
+   * @return
+   *   the number of nodes at the given height
+   */
   def calcTreeWidth(leafCount: Int, height: Int) =
     (leafCount + (1 << height) - 1) >> height
 
-  /** @param leafCount
-    *   ttoal number of leaf nodes
-    * @return
-    *   the height of the root node. For example if yo have 5 leaf nodes, the
-    *   height of the root node is 3.
-    */
+  /**
+   * @param leafCount
+   *   ttoal number of leaf nodes
+   * @return
+   *   the height of the root node. For example if yo have 5 leaf nodes, the
+   *   height of the root node is 3.
+   */
   def topHeight(leafCount: Int): Int = {
     @tailrec
     def loop(height: Int): Int =
@@ -138,34 +142,35 @@ object MerkleBlock extends BtcSerializer[MerkleBlock] {
     loop(0)
   }
 
-  /** compute the root hash of a partial merkle tree: Read a bit from the flag
-    * bit list: If it is '0': Read a hash from the hashes list, and return it as
-    * this node's hash. If it is '1' and this is a leaf node: Read a hash from
-    * the hashes list, store it as a matched txid, and return it as this node's
-    * hash. If it is '1' and this is an internal node: Descend into its left
-    * child tree, and store its computed hash as L. If this node has a right
-    * child as well: Descend into its right child, and store its computed hash
-    * as R. If L == R, the partial merkle tree object is invalid. Return Hash(L
-    * \|| R). If this node has no right child, return Hash(L || L).
-    *
-    * @param count
-    *   total number of leaves
-    * @param height
-    *   current height (0 == bottom of the tree == leaf nodes)
-    * @param pos
-    *   current position at this height, 0 = first node from the left
-    * @param hashes
-    *   remaining hashes to read from
-    * @param bits
-    *   remaining flag bits to read from
-    * @return
-    *   a (hash, matched, remaining_hashes, remaining_bits) tuple where:
-    *   - hash is the hash at position (height, pos)
-    *   - matched is a list of matched txids and their position in the original
-    *     block
-    *   - remaining_hashes and remaining_bits are hashes and bits that have not
-    *     been used
-    */
+  /**
+   * compute the root hash of a partial merkle tree: Read a bit from the flag
+   * bit list: If it is '0': Read a hash from the hashes list, and return it as
+   * this node's hash. If it is '1' and this is a leaf node: Read a hash from
+   * the hashes list, store it as a matched txid, and return it as this node's
+   * hash. If it is '1' and this is an internal node: Descend into its left
+   * child tree, and store its computed hash as L. If this node has a right
+   * child as well: Descend into its right child, and store its computed hash
+   * as R. If L == R, the partial merkle tree object is invalid. Return Hash(L
+   * \|| R). If this node has no right child, return Hash(L || L).
+   *
+   * @param count
+   *   total number of leaves
+   * @param height
+   *   current height (0 == bottom of the tree == leaf nodes)
+   * @param pos
+   *   current position at this height, 0 = first node from the left
+   * @param hashes
+   *   remaining hashes to read from
+   * @param bits
+   *   remaining flag bits to read from
+   * @return
+   *   a (hash, matched, remaining_hashes, remaining_bits) tuple where:
+   *   - hash is the hash at position (height, pos)
+   *   - matched is a list of matched txids and their position in the original
+   *     block
+   *   - remaining_hashes and remaining_bits are hashes and bits that have not
+   *     been used
+   */
   @nowarn
   def computeRoot(
       count: Int,

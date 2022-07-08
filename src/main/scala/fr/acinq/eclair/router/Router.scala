@@ -10,12 +10,13 @@ import immortan.utils.Statistics
 import scodec.bits.ByteVector
 
 object ChannelUpdateExt {
-  def fromUpdate(update: ChannelUpdate): ChannelUpdateExt = ChannelUpdateExt(
-    update,
-    Sync.getChecksum(update),
-    score = 1L,
-    useHeuristics = false
-  )
+  def fromUpdate(update: ChannelUpdate): ChannelUpdateExt =
+    ChannelUpdateExt(
+      update,
+      Sync.getChecksum(update),
+      score = 1L,
+      useHeuristics = false
+    )
 }
 
 case class ChannelUpdateExt(
@@ -70,11 +71,12 @@ object Router {
   }
 
   case class ChannelHop(edge: GraphEdge) extends Hop {
-    override def fee(amount: MilliSatoshi): MilliSatoshi = nodeFee(
-      edge.updExt.update.feeBaseMsat,
-      edge.updExt.update.feeProportionalMillionths,
-      amount
-    )
+    override def fee(amount: MilliSatoshi): MilliSatoshi =
+      nodeFee(
+        edge.updExt.update.feeBaseMsat,
+        edge.updExt.update.feeProportionalMillionths,
+        amount
+      )
     override val cltvExpiryDelta: CltvExpiryDelta =
       edge.updExt.update.cltvExpiryDelta
     override val nextNodeId: PublicKey = edge.desc.to
@@ -130,20 +132,20 @@ object Router {
         case chanHop if nodeId == chanHop.nodeId => chanHop.edge
       }
 
-    def asString: String = routedPerHop.secondItems
-      .map(_.toString)
-      .mkString(
-        s"${weight.costs.head}\n->\n",
-        "\n->\n",
-        s"\n->\n${weight.costs.last}\n---\nroute fee: $fee"
-      )
+    def asString: String =
+      routedPerHop.secondItems
+        .map(_.toString)
+        .mkString(
+          s"${weight.costs.head}\n->\n",
+          "\n->\n",
+          s"\n->\n${weight.costs.last}\n---\nroute fee: $fee"
+        )
 
     require(hops.nonEmpty, "Route cannot be empty")
   }
 
   sealed trait RouteResponse { def fullTag: FullPaymentTag }
-  case class NoRouteAvailable(fullTag: FullPaymentTag, partId: ByteVector)
-      extends RouteResponse
+  case class NoRouteAvailable(fullTag: FullPaymentTag, partId: ByteVector) extends RouteResponse
   case class RouteFound(
       route: Route,
       fullTag: FullPaymentTag,

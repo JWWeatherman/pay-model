@@ -4,15 +4,17 @@ import java.math.BigInteger
 import scala.util.Try
 import fr.acinq.bitcoin.Crypto.PublicKey
 
-/** see https://en.bitcoin.it/wiki/Protocol_specification
-  */
+/**
+ * see https://en.bitcoin.it/wiki/Protocol_specification
+ */
 package object bitcoin {
   val MaxScriptElementSize = 520
   val MaxBlockSize = 1000000
   val LockTimeThreshold = 500000000L
 
-  /** signature hash flags
-    */
+  /**
+   * signature hash flags
+   */
   val SIGHASH_ALL = 1
   val SIGHASH_NONE = 2
   val SIGHASH_SINGLE = 3
@@ -59,13 +61,14 @@ package object bitcoin {
   implicit def millibtc2btc(input: MilliBtc): Btc = input.toBtc
   // @formatter:on
 
-  /** @param input
-    *   compact size encoded integer as used to encode proof-of-work difficulty
-    *   target
-    * @return
-    *   a (result, isNegative, overflow) tuple were result is the decoded
-    *   integer
-    */
+  /**
+   * @param input
+   *   compact size encoded integer as used to encode proof-of-work difficulty
+   *   target
+   * @return
+   *   a (result, isNegative, overflow) tuple were result is the decoded
+   *   integer
+   */
   def decodeCompact(input: Long): (BigInteger, Boolean, Boolean) = {
     val nSize = (input >> 24).toInt
     val (nWord, result) = if (nSize <= 3) {
@@ -81,12 +84,13 @@ package object bitcoin {
     (result, isNegative, overflow)
   }
 
-  /** @param value
-    *   input value
-    * @return
-    *   the compact encoding of the input value. this is used to encode
-    *   proof-of-work target into the `bits` block header field
-    */
+  /**
+   * @param value
+   *   input value
+   * @return
+   *   the compact encoding of the input value. this is used to encode
+   *   proof-of-work target into the `bits` block header field
+   */
   def encodeCompact(value: BigInteger): Long = {
     var size = value.toByteArray.length
     var compact =
@@ -127,14 +131,15 @@ package object bitcoin {
   def computeBIP44Address(pub: PublicKey, chainHash: ByteVector32) =
     computeP2PkhAddress(pub, chainHash)
 
-  /** @param pub
-    *   public key
-    * @param chainHash
-    *   chain hash (i.e. hash of the genesic block of the chain we're on)
-    * @return
-    *   the p2swh-of-p2pkh address for this key). It is a Base58 address that is
-    *   compatible with most bitcoin wallets
-    */
+  /**
+   * @param pub
+   *   public key
+   * @param chainHash
+   *   chain hash (i.e. hash of the genesic block of the chain we're on)
+   * @return
+   *   the p2swh-of-p2pkh address for this key). It is a Base58 address that is
+   *   compatible with most bitcoin wallets
+   */
   def computeP2ShOfP2WpkhAddress(
       pub: PublicKey,
       chainHash: ByteVector32
@@ -154,15 +159,16 @@ package object bitcoin {
   def computeBIP49Address(pub: PublicKey, chainHash: ByteVector32) =
     computeP2ShOfP2WpkhAddress(pub, chainHash)
 
-  /** @param pub
-    *   public key
-    * @param chainHash
-    *   chain hash (i.e. hash of the genesic block of the chain we're on)
-    * @return
-    *   the BIP84 address for this key (i.e. the p2wpkh address for this key).
-    *   It is a Bech32 address that will be understood only by native sewgit
-    *   wallets
-    */
+  /**
+   * @param pub
+   *   public key
+   * @param chainHash
+   *   chain hash (i.e. hash of the genesic block of the chain we're on)
+   * @return
+   *   the BIP84 address for this key (i.e. the p2wpkh address for this key).
+   *   It is a Bech32 address that will be understood only by native sewgit
+   *   wallets
+   */
   def computeP2WpkhAddress(pub: PublicKey, chainHash: ByteVector32): String = {
     val hash = pub.hash160
     val hrp = chainHash match {

@@ -67,8 +67,9 @@ class FiatRates(bag: DataBag) extends CanBeShutDown {
       case _ =>
         to[Bitpay](
           LNParams.connectionProvider.get("https://bitpay.com/rates")
-        ).data.map { case BitpayItem(code, rate) =>
-          code.toLowerCase -> rate
+        ).data.map {
+          case BitpayItem(code, rate) =>
+            code.toLowerCase -> rate
         }.toMap
     }
 

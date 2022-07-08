@@ -12,34 +12,32 @@ import scala.util.Try
 
 case class ChannelTxFeesSummary(fees: Satoshi, count: Long)
 
-class SQLiteChannel(val db: DBInterface, channelTxFeesDb: DBInterface)
-    extends ChannelBag {
+class SQLiteChannel(val db: DBInterface, channelTxFeesDb: DBInterface) extends ChannelBag {
   override def put(
       persistentChannelData: PersistentChannelData
-  ): PersistentChannelData = db txWrap {
-    val rawContent = ChannelCodecs.persistentDataCodec
-      .encode(persistentChannelData)
-      .require
-      .toByteArray
-    db.change(
-      ChannelTable.newSql,
-      persistentChannelData.channelId.toHex,
-      rawContent
-    )
-    db.change(
-      ChannelTable.updSql,
-      rawContent,
-      persistentChannelData.channelId.toHex
-    )
-    persistentChannelData
-  }
+  ): PersistentChannelData =
+    db txWrap {
+      val rawContent = ChannelCodecs.persistentDataCodec
+        .encode(persistentChannelData)
+        .require
+        .toByteArray
+      db.change(
+        ChannelTable.newSql,
+        persistentChannelData.channelId.toHex,
+        rawContent
+      )
+      db.change(
+        ChannelTable.updSql,
+        rawContent,
+        persistentChannelData.channelId.toHex
+      )
+      persistentChannelData
+    }
 
   override def all: Iterable[PersistentChannelData] =
     db.select(ChannelTable.selectAllSql)
       .iterable(_ byteVec ChannelTable.data)
-      .map(bits =>
-        ChannelCodecs.persistentDataCodec.decode(bits.toBitVector).require.value
-      )
+      .map(bits => ChannelCodecs.persistentDataCodec.decode(bits.toBitVector).require.value)
 
   override def delete(channelId: ByteVector32): Unit =
     db.change(ChannelTable.killSql, channelId.toHex)
@@ -73,10 +71,11 @@ class SQLiteChannel(val db: DBInterface, channelTxFeesDb: DBInterface)
       htlcs: Seq[DirectedHtlc],
       sid: Long,
       commitNumber: Long
-  ): Unit = db txWrap {
-    for (htlc <- htlcs)
-      putHtlcInfo(sid, commitNumber, htlc.add.paymentHash, htlc.add.cltvExpiry)
-  }
+  ): Unit =
+    db txWrap {
+      for (htlc <- htlcs)
+        putHtlcInfo(sid, commitNumber, htlc.add.paymentHash, htlc.add.cltvExpiry)
+    }
 
   override def rmHtlcInfos(sid: Long): Unit =
     db.change(HtlcInfoTable.killSql, sid: JLong)

@@ -4,18 +4,22 @@ import fr.acinq.bitcoin.Satoshi
 import play.api.libs.json._
 
 case class MilliSatoshi(underlying: Long) extends AnyVal with Ordered[MilliSatoshi] {
-  def +(other: MilliSatoshi): MilliSatoshi = MilliSatoshi(
-    underlying + other.underlying
-  )
-  def -(other: MilliSatoshi): MilliSatoshi = MilliSatoshi(
-    underlying - other.underlying
-  )
-  def +(other: Satoshi): MilliSatoshi = MilliSatoshi(
-    underlying + other.toMilliSatoshi.underlying
-  )
-  def -(other: Satoshi): MilliSatoshi = MilliSatoshi(
-    underlying - other.toMilliSatoshi.underlying
-  )
+  def +(other: MilliSatoshi): MilliSatoshi =
+    MilliSatoshi(
+      underlying + other.underlying
+    )
+  def -(other: MilliSatoshi): MilliSatoshi =
+    MilliSatoshi(
+      underlying - other.underlying
+    )
+  def +(other: Satoshi): MilliSatoshi =
+    MilliSatoshi(
+      underlying + other.toMilliSatoshi.underlying
+    )
+  def -(other: Satoshi): MilliSatoshi =
+    MilliSatoshi(
+      underlying - other.toMilliSatoshi.underlying
+    )
   def *(m: Double): MilliSatoshi =
     MilliSatoshi(underlying = (underlying * m).toLong)
   def *(m: Long): MilliSatoshi = MilliSatoshi(underlying * m)

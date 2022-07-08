@@ -99,20 +99,21 @@ package object eclair { me =>
       logExponent: Double
   ): MilliSatoshi = {
     val nonLinearFeeMsat = math.pow(proportional, exponent) + math.pow(
-      math.log(proportional),
-      logExponent
-    )
+        math.log(proportional),
+        logExponent
+      )
     MilliSatoshi(nonLinearFeeMsat.ceil.toLong)
   }
 
-  /** @param address
-    *   base58 of bech32 address
-    * @param chainHash
-    *   hash of the chain we're on, which will be checked against the input
-    *   address
-    * @return
-    *   the public key script that matches the input address.
-    */
+  /**
+   * @param address
+   *   base58 of bech32 address
+   * @param chainHash
+   *   hash of the chain we're on, which will be checked against the input
+   *   address
+   * @return
+   *   the public key script that matches the input address.
+   */
   def addressToPublicKeyScript(
       address: String,
       chainHash: ByteVector32
@@ -121,14 +122,12 @@ package object eclair { me =>
       case Success((Base58.Prefix.PubkeyAddressTestnet, pubKeyHash))
           if chainHash == Block.TestnetGenesisBlock.hash || chainHash == Block.RegtestGenesisBlock.hash =>
         Script.pay2pkh(pubKeyHash)
-      case Success((Base58.Prefix.PubkeyAddress, pubKeyHash))
-          if chainHash == Block.LivenetGenesisBlock.hash =>
+      case Success((Base58.Prefix.PubkeyAddress, pubKeyHash)) if chainHash == Block.LivenetGenesisBlock.hash =>
         Script.pay2pkh(pubKeyHash)
       case Success((Base58.Prefix.ScriptAddressTestnet, scriptHash))
           if chainHash == Block.TestnetGenesisBlock.hash || chainHash == Block.RegtestGenesisBlock.hash =>
         OP_HASH160 :: OP_PUSHDATA(scriptHash) :: OP_EQUAL :: Nil
-      case Success((Base58.Prefix.ScriptAddress, scriptHash))
-          if chainHash == Block.LivenetGenesisBlock.hash =>
+      case Success((Base58.Prefix.ScriptAddress, scriptHash)) if chainHash == Block.LivenetGenesisBlock.hash =>
         OP_HASH160 :: OP_PUSHDATA(scriptHash) :: OP_EQUAL :: Nil
       case Success(_) =>
         throw new IllegalArgumentException(
@@ -148,23 +147,17 @@ package object eclair { me =>
             throw new IllegalArgumentException(
               "hash length in bech32m address must be 32 bytes"
             )
-          case Success(("bc", 1, bin))
-              if chainHash == Block.LivenetGenesisBlock.hash =>
+          case Success(("bc", 1, bin)) if chainHash == Block.LivenetGenesisBlock.hash =>
             OP_1 :: OP_PUSHDATA(bin) :: Nil
-          case Success(("tb", 1, bin))
-              if chainHash == Block.TestnetGenesisBlock.hash =>
+          case Success(("tb", 1, bin)) if chainHash == Block.TestnetGenesisBlock.hash =>
             OP_1 :: OP_PUSHDATA(bin) :: Nil
-          case Success(("bcrt", 1, bin))
-              if chainHash == Block.RegtestGenesisBlock.hash =>
+          case Success(("bcrt", 1, bin)) if chainHash == Block.RegtestGenesisBlock.hash =>
             OP_1 :: OP_PUSHDATA(bin) :: Nil
-          case Success(("bc", 0, bin))
-              if chainHash == Block.LivenetGenesisBlock.hash =>
+          case Success(("bc", 0, bin)) if chainHash == Block.LivenetGenesisBlock.hash =>
             OP_0 :: OP_PUSHDATA(bin) :: Nil
-          case Success(("tb", 0, bin))
-              if chainHash == Block.TestnetGenesisBlock.hash =>
+          case Success(("tb", 0, bin)) if chainHash == Block.TestnetGenesisBlock.hash =>
             OP_0 :: OP_PUSHDATA(bin) :: Nil
-          case Success(("bcrt", 0, bin))
-              if chainHash == Block.RegtestGenesisBlock.hash =>
+          case Success(("bcrt", 0, bin)) if chainHash == Block.RegtestGenesisBlock.hash =>
             OP_0 :: OP_PUSHDATA(bin) :: Nil
           case Failure(bech32error) =>
             throw new IllegalArgumentException(

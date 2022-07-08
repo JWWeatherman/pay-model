@@ -11,7 +11,7 @@ import fr.acinq.eclair.transactions.DirectedHtlc._
 import fr.acinq.eclair.transactions.Transactions._
 import fr.acinq.eclair.transactions._
 import fr.acinq.eclair.wire._
-import immortan.crypto.Tools.{Any2Some, newFeerate, none}
+import immortan.crypto.Tools.{newFeerate, none, Any2Some}
 import immortan.utils.Rx
 import immortan.{LNParams, RemoteNodeInfo, UpdateAddHtlcExt}
 
@@ -20,8 +20,9 @@ case class LocalChanges(
     signed: List[UpdateMessage],
     acked: List[UpdateMessage] = Nil
 ) {
-  lazy val adds: List[UpdateAddHtlc] = all.collect { case add: UpdateAddHtlc =>
-    add
+  lazy val adds: List[UpdateAddHtlc] = all.collect {
+    case add: UpdateAddHtlc =>
+      add
   }
   lazy val all: List[UpdateMessage] = proposed ++ signed ++ acked
 }
@@ -31,8 +32,9 @@ case class RemoteChanges(
     acked: List[UpdateMessage],
     signed: List[UpdateMessage] = Nil
 ) {
-  lazy val adds: List[UpdateAddHtlc] = all.collect { case add: UpdateAddHtlc =>
-    add
+  lazy val adds: List[UpdateAddHtlc] = all.collect {
+    case add: UpdateAddHtlc =>
+      add
   }
   lazy val all: List[UpdateMessage] = proposed ++ signed ++ acked
 }
@@ -83,19 +85,19 @@ trait Commitments {
   def allOutgoing: Set[
     UpdateAddHtlc
   ] // Cross-signed PLUS not yet signed payments offered by us
-  def crossSignedIncoming
-      : Set[UpdateAddHtlcExt] // Cross-signed incoming payments offered by them
+  def crossSignedIncoming: Set[UpdateAddHtlcExt] // Cross-signed incoming payments offered by them
   def revealedFulfills: Set[
     LocalFulfill
   ] // Incoming payments for which we have releaved a preimge
 
   def getPendingFulfills(
       preimages: HashToPreimage = Map.empty
-  ): Set[LocalFulfill] = for {
-    // Find still present cross-signed incoming payments for which we have revealed a preimage
-    UpdateAddHtlcExt(theirAdd, _) <- crossSignedIncoming
-    ourPreimage <- preimages.get(theirAdd.paymentHash)
-  } yield LocalFulfill(theirAdd, ourPreimage)
+  ): Set[LocalFulfill] =
+    for {
+      // Find still present cross-signed incoming payments for which we have revealed a preimage
+      UpdateAddHtlcExt(theirAdd, _) <- crossSignedIncoming
+      ourPreimage <- preimages.get(theirAdd.paymentHash)
+    } yield LocalFulfill(theirAdd, ourPreimage)
 }
 
 case class NormalCommits(
@@ -139,9 +141,7 @@ case class NormalCommits(
 
   lazy val allOutgoing: Set[UpdateAddHtlc] = {
     val allOutgoingAdds = localCommit.spec.outgoingAdds ++ localChanges.adds
-    allOutgoingAdds.filterNot(add =>
-      postCloseOutgoingResolvedIds contains add.id
-    )
+    allOutgoingAdds.filterNot(add => postCloseOutgoingResolvedIds contains add.id)
   }
 
   lazy val crossSignedIncoming: Set[UpdateAddHtlcExt] =
@@ -179,9 +179,9 @@ case class NormalCommits(
         channelFeatures.commitmentFormat
       )
       val manyMoreHtlc = htlcOutputFee(
-        reduced.feeratePerKw,
-        channelFeatures.commitmentFormat
-      ) * localParams.maxAcceptedHtlcs
+          reduced.feeratePerKw,
+          channelFeatures.commitmentFormat
+        ) * localParams.maxAcceptedHtlcs
       reduced.toRemote - localParams.channelReserve - commitFees - manyMoreHtlc
     } else reduced.toRemote - localParams.channelReserve
   }
@@ -193,7 +193,7 @@ case class NormalCommits(
       localCommit.spec.htlcs.nonEmpty || remoteCommit.spec.htlcs.nonEmpty || remoteNextCommitInfo.isLeft
     pendingHtlcs || changes.exists {
       case _: UpdateFee => true
-      case _            => false
+      case _ => false
     }
   }
 
@@ -203,20 +203,22 @@ case class NormalCommits(
   def addRemoteProposal(proposal: UpdateMessage): NormalCommits =
     me.modify(_.remoteChanges.proposed).using(_ :+ proposal)
 
-  def localHasUnsignedOutgoingHtlcs: Boolean = localChanges.proposed.exists {
-    case _: UpdateAddHtlc => true
-    case _                => false
-  }
+  def localHasUnsignedOutgoingHtlcs: Boolean =
+    localChanges.proposed.exists {
+      case _: UpdateAddHtlc => true
+      case _ => false
+    }
 
-  def remoteHasUnsignedOutgoingHtlcs: Boolean = remoteChanges.proposed.exists {
-    case _: UpdateAddHtlc => true
-    case _                => false
-  }
+  def remoteHasUnsignedOutgoingHtlcs: Boolean =
+    remoteChanges.proposed.exists {
+      case _: UpdateAddHtlc => true
+      case _ => false
+    }
 
   def remoteHasUnsignedOutgoingUpdateFee: Boolean =
     remoteChanges.proposed.exists {
       case _: UpdateFee => true
-      case _            => false
+      case _ => false
     }
 
   def localHasChanges: Boolean =
@@ -246,14 +248,13 @@ case class NormalCommits(
       commitments1.latestReducedRemoteSpec.feeratePerKw,
       channelFeatures.commitmentFormat
     )
-    val feerate = commitments1.latestReducedRemoteSpec.copy(feeratePerKw =
-      commitments1.latestReducedRemoteSpec.feeratePerKw
-    )
+    val feerate =
+      commitments1.latestReducedRemoteSpec.copy(feeratePerKw = commitments1.latestReducedRemoteSpec.feeratePerKw)
     val funderFeeBuffer = commitTxFeeMsat(
-      commitments1.remoteParams.dustLimit,
-      feerate,
-      channelFeatures.commitmentFormat
-    ) + feeBuffer
+        commitments1.remoteParams.dustLimit,
+        feerate,
+        channelFeatures.commitmentFormat
+      ) + feeBuffer
 
     val receiverWithReserve =
       commitments1.latestReducedRemoteSpec.toLocal - commitments1.localParams.channelReserve
@@ -347,19 +348,19 @@ case class NormalCommits(
       case Some(ourAdd) if ourAdd.add.paymentHash != fulfill.paymentHash =>
         throw ChannelTransitionFail(channelId, fulfill)
       case Some(ourAdd) => (addRemoteProposal(fulfill), ourAdd.add)
-      case None         => throw ChannelTransitionFail(channelId, fulfill)
+      case None => throw ChannelTransitionFail(channelId, fulfill)
     }
 
   def receiveFail(fail: UpdateFailHtlc): NormalCommits =
     localCommit.spec.findOutgoingHtlcById(fail.id) match {
       case None => throw ChannelTransitionFail(channelId, fail)
-      case _    => addRemoteProposal(fail)
+      case _ => addRemoteProposal(fail)
     }
 
   def receiveFailMalformed(fail: UpdateFailMalformedHtlc): NormalCommits =
     localCommit.spec.findOutgoingHtlcById(fail.id) match {
       case None => throw ChannelTransitionFail(channelId, fail)
-      case _    => addRemoteProposal(fail)
+      case _ => addRemoteProposal(fail)
     }
 
   def sendFee(rate: FeeratePerKw): (NormalCommits, Satoshi, UpdateFee) = {
@@ -370,7 +371,7 @@ case class NormalCommits(
       .using(changes =>
         changes.filter {
           case _: UpdateFee => false
-          case _            => true
+          case _ => true
         } :+ msg
       )
     val fees = commitTxFee(
@@ -392,7 +393,7 @@ case class NormalCommits(
       .using(changes =>
         changes.filter {
           case _: UpdateFee => false
-          case _            => true
+          case _ => true
         } :+ fee
       )
     val reduced = CommitmentSpec.reduce(
@@ -410,10 +411,10 @@ case class NormalCommits(
       ourAdd.amountMsat > threshold * LNParams.minForceClosableOutgoingHtlcAmountToFeeRatio && ourAdd.fullTag.tag == PaymentTagTlv.TRAMPLOINE_ROUTED
     )
     val dangerousState = largeRoutedExist && newFeerate(
-      LNParams.feeRates.info,
-      reduced,
-      LNParams.shouldForceClosePaymentFeerateDiff
-    ).isDefined && fee.feeratePerKw < commitments1.localCommit.spec.feeratePerKw
+        LNParams.feeRates.info,
+        reduced,
+        LNParams.shouldForceClosePaymentFeerateDiff
+      ).isDefined && fee.feeratePerKw < commitments1.localCommit.spec.feeratePerKw
 
     if (dangerousState) {
       // We force feerate update and block this thread while it's being executed, will have an updated info once done

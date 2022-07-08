@@ -10,11 +10,7 @@ import fr.acinq.bitcoin._
 import fr.acinq.eclair.Features._
 import fr.acinq.eclair._
 import fr.acinq.eclair.blockchain.electrum._
-import fr.acinq.eclair.blockchain.electrum.db.{
-  CompleteChainWalletInfo,
-  SigningWallet,
-  WatchingWallet
-}
+import fr.acinq.eclair.blockchain.electrum.db.{CompleteChainWalletInfo, SigningWallet, WatchingWallet}
 import fr.acinq.eclair.channel.{ChannelKeys, LocalParams, PersistentChannelData}
 import fr.acinq.eclair.router.ChannelUpdateExt
 import fr.acinq.eclair.router.Router.{PublicChannel, RouterConf}
@@ -122,8 +118,8 @@ object LNParams {
 
   def isOperational: Boolean =
     null != chainHash && null != secret && null != chainWallets && connectionProvider != null &&
-      null != syncParams && null != trampoline && null != fiatRates && null != feeRates && null != cm &&
-      null != cm.inProcessors && null != cm.sendTo && null != logBag && null != routerConf && null != ourInit
+    null != syncParams && null != trampoline && null != fiatRates && null != feeRates && null != cm &&
+    null != cm.inProcessors && null != cm.sendTo && null != logBag && null != routerConf && null != ourInit
 
   implicit val timeout: Timeout = Timeout(30.seconds)
   implicit val system: ActorSystem = ActorSystem("immortan-actor-system")

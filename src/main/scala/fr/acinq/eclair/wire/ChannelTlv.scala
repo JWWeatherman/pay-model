@@ -12,12 +12,11 @@ sealed trait AcceptChannelTlv extends Tlv
 
 object ChannelTlv {
 
-  /** Commitment to where the funds will go in case of a mutual close, which
-    * remote node will enforce in case we're compromised.
-    */
-  case class UpfrontShutdownScript(script: ByteVector)
-      extends OpenChannelTlv
-      with AcceptChannelTlv {
+  /**
+   * Commitment to where the funds will go in case of a mutual close, which
+   * remote node will enforce in case we're compromised.
+   */
+  case class UpfrontShutdownScript(script: ByteVector) extends OpenChannelTlv with AcceptChannelTlv {
     val isEmpty: Boolean = script.isEmpty
   }
 
