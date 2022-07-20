@@ -143,7 +143,8 @@ class FiatRatesService(backend: SttpBackend[Future, _])(implicit executionContex
     req.send(backend)
   }
 
-  def reloadData: Any = requestRatesRandom.map(_.body.map(m => updateInfo(m)))
+  def reloadData: Future[Either[ResponseException[String, JsError], FiatRatesInfo]] =
+    requestRatesRandom.map(_.body.map(m => updateInfo(m)))
   def updateInfo(newRates: Map[String, Double]): FiatRatesInfo = {
     val i = FiatRatesInfo(rates = newRates,
                           oldRates = info.map(_.rates).getOrElse(Map.empty),
