@@ -1,6 +1,6 @@
 package com.mathbot.pay
 
-import play.api.libs.json.{JsError, Json}
+import play.api.libs.json.{JsError, Json, OFormat}
 import sttp.client3.SttpBackend
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -52,29 +52,29 @@ object FiatRatesService {
   }
 
   object CoinGeckoItem {
-    implicit val formatCoinGeckoItem = Json.format[CoinGeckoItem]
+    implicit val formatCoinGeckoItem: OFormat[CoinGeckoItem] = Json.format[CoinGeckoItem]
   }
   case class CoinGeckoItem(value: Double)
   object BlockchainInfoItem {
-    implicit val formatBlockchainInfoItem = Json.format[BlockchainInfoItem]
+    implicit val formatBlockchainInfoItem: OFormat[BlockchainInfoItem] = Json.format[BlockchainInfoItem]
   }
   case class BlockchainInfoItem(last: Double)
   object BitpayItem {
-    implicit val formatBitpayItem = Json.format[BitpayItem]
+    implicit val formatBitpayItem: OFormat[BitpayItem] = Json.format[BitpayItem]
   }
   case class BitpayItem(code: String, rate: Double)
 
   object Bitpay {
-    implicit val formatBitpay = Json.format[Bitpay]
+    implicit val formatBitpay: OFormat[Bitpay] = Json.format[Bitpay]
   }
   case class Bitpay(data: FiatRatesService.BitpayItemList)
   object CoinGecko {
-    implicit val formatCoinGecko = Json.format[CoinGecko]
+    implicit val formatCoinGecko: OFormat[CoinGecko] = Json.format[CoinGecko]
   }
   case class CoinGecko(rates: FiatRatesService.CoinGeckoItemMap)
 
   object FiatRatesInfo {
-    implicit val fFiatRatesInfo = Json.format[FiatRatesInfo]
+    implicit val fFiatRatesInfo: OFormat[FiatRatesInfo] = Json.format[FiatRatesInfo]
   }
   case class FiatRatesInfo(
       rates: Map[String, Double],
@@ -98,8 +98,8 @@ object FiatRatesService {
   }
   type BlockchainInfoItemMap = Map[String, BlockchainInfoItem]
   type CoinGeckoItemMap = Map[String, CoinGeckoItem]
-  implicit val formatCoinGeckoItemMap = Json.format[CoinGeckoItem]
-  implicit val formatCoinGeckoItemMaps = Json.format[BlockchainInfoItem]
+  implicit val formatCoinGeckoItemMap: OFormat[CoinGeckoItem] = Json.format[CoinGeckoItem]
+  implicit val formatCoinGeckoItemMaps: OFormat[BlockchainInfoItem] = Json.format[BlockchainInfoItem]
   type BitpayItemList = List[BitpayItem]
 
 }
@@ -110,41 +110,47 @@ class FiatRatesService(backend: SttpBackend[Future, _])(implicit executionContex
   import sttp.client3._
   import playJson._
 
-  def requestRates: Future[Response[Either[ResponseException[String, JsError], Map[String, Double]]]] = {
-    val req = Random.shuffle(0 :: 1 :: 2 :: Nil).head match {
-      case 0 =>
-        basicRequest
-          .get(uri"https://api.coingecko.com/api/v3/exchange_rates")
-          .response(asJson[CoinGecko].mapRight(cg => {
-            cg.rates.map { case (code, item) => code.toLowerCase -> item.value }
-          }))
+  var listeners: Set[FiatRatesListener] = Set.empty
+  var info = Option.empty[FiatRatesInfo]
+  def getRatesCoinGecko: RequestT[Identity, Either[ResponseException[String, JsError], Map[String, Double]], Any] = {
+    basicRequest
+      .get(uri"https://api.coingecko.com/api/v3/exchange_rates")
+      .response(asJson[CoinGecko].mapRight(cg => {
+        cg.rates.map { case (code, item) => code.toLowerCase -> item.value }
+      }))
+  }
 
-      case 1 =>
-        basicRequest
-          .get(uri"https://blockchain.info/ticker")
-          .response(asJson[FiatRatesService.BlockchainInfoItemMap].mapRight(_.map {
-            case (code, item) => code.toLowerCase -> item.last
-          }))
-      case _ =>
-        basicRequest
-          .get(uri"https://bitpay.com/rates")
-          .response(asJson[Bitpay].mapRight(_.data.map {
-            case BitpayItem(code, rate) =>
-              code.toLowerCase -> rate
-          }.toMap))
-    }
+  def getRatesBlockChainInfo
+    : RequestT[Identity, Either[ResponseException[String, JsError], Map[String, Double]], Any] = {
+    basicRequest
+      .get(uri"https://blockchain.info/ticker")
+      .response(asJson[FiatRatesService.BlockchainInfoItemMap].mapRight(_.map {
+        case (code, item) => code.toLowerCase -> item.last
+      }))
+  }
+
+  def getRatesBitPay: RequestT[Identity, Either[ResponseException[String, JsError], Map[String, Double]], Any] = {
+    basicRequest
+      .get(uri"https://bitpay.com/rates")
+      .response(asJson[Bitpay].mapRight(_.data.map {
+        case BitpayItem(code, rate) =>
+          code.toLowerCase -> rate
+      }.toMap))
+  }
+
+  def requestRatesRandom: Future[Response[Either[ResponseException[String, JsError], Map[String, Double]]]] = {
+    val req = Random.shuffle(getRatesCoinGecko :: getRatesBlockChainInfo :: getRatesBitPay :: Nil).head
     req.send(backend)
   }
 
-  def reloadData = requestRates.map(_.body.map(m => updateInfo(m)))
-  def updateInfo(newRates: Map[String, Double]) = {
-    info = FiatRatesInfo(rates = newRates, oldRates = info.rates, stamp = System.currentTimeMillis)
-    for (lst <- listeners) lst.onFiatRates(info)
-    info
+  def reloadData: Any = requestRatesRandom.map(_.body.map(m => updateInfo(m)))
+  def updateInfo(newRates: Map[String, Double]): FiatRatesInfo = {
+    val i = FiatRatesInfo(rates = newRates,
+                          oldRates = info.map(_.rates).getOrElse(Map.empty),
+                          stamp = System.currentTimeMillis)
+    info = Some(i)
+    for (lst <- listeners) lst.onFiatRates(i)
+    i
   }
-
-  var listeners: Set[FiatRatesListener] = Set.empty
-  var info: FiatRatesInfo =
-    FiatRatesInfo(rates = Map.empty, oldRates = Map.empty, stamp = 0L)
 
 }

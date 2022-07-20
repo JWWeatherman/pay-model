@@ -220,9 +220,9 @@ class PayService(
     config: PayService.PayInvoiceServiceConfig,
     val backend: SttpBackend[Future, AkkaStreams with capabilities.WebSockets]
 )(implicit
-    val
-    ec: ExecutionContext
-) extends RpcLightningService {
+  val
+  ec: ExecutionContext)
+    extends RpcLightningService {
   import PayService._
   import config._
   import sttp.client3._
@@ -325,10 +325,11 @@ class PayService(
   def useWebSocket(ws: WebSocket[Future]): Future[Unit] = {
     def receive() = ws.receiveText().map(t => println(s"RECEIVED: $t"))
     for {
-      _ <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
+//      _ <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
+      _ <- ws.sendText(Json.toJson(ListInvoicesRequest(label = Some(""))).toString())
       _ <- receive()
 //      _ <- receive()
-    } yield ()
+    } yield {}
   }
 
   lazy val wsBase = base.get(uri"${config.wsBaseUrl}/ws")

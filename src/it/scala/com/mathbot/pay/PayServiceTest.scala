@@ -1,9 +1,12 @@
 package com.mathbot.pay
 
 import com.mathbot.pay.lightning.PayService.{PayInvoiceServiceConfig, RpcRequest}
-import com.mathbot.pay.lightning.{Bolt11, LightningGetInfoRequest, ListInvoicesRequest, PayService}
+import com.mathbot.pay.lightning.{Bolt11, LightningGetInfoRequest, ListInvoicesRequest, Pay, PayService}
 import com.softwaremill.macwire.wire
 import play.api.libs.json.Json
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class PayServiceTest extends BaseIntegrationTest {
   val config =
@@ -21,6 +24,43 @@ class PayServiceTest extends BaseIntegrationTest {
     "lnbc100n1pslhcydpp5dyxx4qt434te5wrlgrxrwzecuw8zcl2dtrew5tpfp8tg4z2tzlssdqzxycqpjsp5ktdd582vf5fg54edftkremwwdetr705nq7qpare832nw9vgmsf9qrzjq23qy3l4zhvh3jlea88x5s58kkf36ujqdzmm3za6attrsrdnmk8f5z0zdsqqykqqqqqqqqy0qqqqqqgqyg9qgsqqqyssq2zpr326vk2jtu3vvr8kmuc46jqnwmc449w0l4ejfdv47zg8npgaqxd2zsq63r059l3cqs0q076dps8k9sctf6gcrvs8p2krp2hjhdscpuldhzy"
   )
   "PayService" should {
+
+    "get token" in {
+      for {
+        r <- service.getToken
+      } yield {
+        assert(r.body.isRight)
+      }
+    }
+
+    "get info" in {
+      for {
+        tr <- service.getInfo
+      } yield {
+        assert(tr.body.isRight)
+      }
+    }
+
+    "get rates" in {
+      for {
+        r <- service.getRates
+      } yield {
+        assert(r.isSuccess)
+        assert(r.body.isRight)
+
+      }
+    }
+
+    "pay" in {
+      for {
+        r <- service.pay(Pay(Bolt11(sys.env("BOLT11"))))
+      } yield {
+        println(r.body)
+        println(r.code)
+        assert(r.body.isRight)
+      }
+    }
+
 //    "get info" in {
 //
 //      for {
@@ -80,13 +120,7 @@ class PayServiceTest extends BaseIntegrationTest {
 //    }
 
     "open ws" in {
-      println("get token")
       (for {
-        tr <- service.getToken
-        _ = println(tr)
-        if tr.isSuccess
-        _ = println("got token")
-        _ = println("test ws")
         _ <- service.testWs { ws =>
           {
 
