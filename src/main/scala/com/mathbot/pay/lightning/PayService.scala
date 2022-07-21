@@ -322,4 +322,36 @@ class PayService(
       )
       .send(backend)
   }
+
+  def getInvoiceByLabel(label: String)(ws: WebSocket[Future]) = {
+    for {
+      _ <- ws.sendText(
+        Json
+          .obj(
+            "method" -> "listinvoices",
+            "params" -> ListInvoicesRequest(label = Some(label))
+          )
+          .toString()
+      )
+      r <- ws
+        .receiveText()
+        .map(Json.parse(_).asOpt[Invoices].flatMap(_.invoices.find(_.label == label)))
+    } yield r
+  }
+  // todo: bad response from server
+  def invoiceByWs(inv: PlayerInvoice__IN)(ws: WebSocket[Future]) = {
+    for {
+      _ <- ws.sendText(
+        Json
+          .obj(
+            "method" -> "pay",
+            "params" -> inv
+          )
+          .toString()
+      )
+      r <- ws
+        .receiveText()
+//        .map(Json.parse(_).as[ListInvoice])
+    } yield r
+  }
 }
