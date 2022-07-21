@@ -1,11 +1,21 @@
 package com.mathbot.pay
 
-import com.mathbot.pay.lightning.PayService.{PayInvoiceServiceConfig, RpcRequest}
-import com.mathbot.pay.lightning.{Bolt11, LightningGetInfoRequest, ListInvoicesRequest, Pay, PayService}
+import com.mathbot.pay.lightning.PayService.{PayInvoiceServiceConfig, PlayerInvoice__IN, RpcRequest}
+import com.mathbot.pay.lightning.{
+  Bolt11,
+  Invoices,
+  LightningGetInfoRequest,
+  ListInvoicesRequest,
+  ListInvoicesResponse,
+  Pay,
+  PayService
+}
 import com.softwaremill.macwire.wire
+import fr.acinq.eclair.MilliSatoshi
 import play.api.libs.json.Json
+import sttp.ws.WebSocket
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.duration._
 
 class PayServiceTest extends BaseIntegrationTest {
@@ -46,6 +56,17 @@ class PayServiceTest extends BaseIntegrationTest {
         r <- service.getRates
       } yield {
         assert(r.isSuccess)
+        println(r.body)
+        assert(r.body.isRight)
+
+      }
+    }
+    "get rates usd" in {
+      for {
+        r <- service.getUSDRates
+      } yield {
+        assert(r.isSuccess)
+        println(r.body)
         assert(r.body.isRight)
 
       }
@@ -120,6 +141,14 @@ class PayServiceTest extends BaseIntegrationTest {
 //    }
 
     "open ws" in {
+
+      val p = Promise[Unit]()
+      service.testWs { ws =>
+        {
+
+          p.future
+        }
+      }
       (for {
         _ <- service.testWs { ws =>
           {
@@ -134,6 +163,18 @@ class PayServiceTest extends BaseIntegrationTest {
               .toString()
             val str1 = Json.obj("method" -> "decodepay", "params" -> bolt11.bolt11)
             for {
+              invoiceC <- service.invoiceByWs(
+                PlayerInvoice__IN(msatoshi = MilliSatoshi(1000),
+                                  playerId = "",
+                                  source = "",
+                                  description = None,
+                                  webhook = None,
+                                  expiry = None,
+                                  version = None)
+              )(ws)
+              _ = println("invoice ws= " + invoiceC)
+              result <- service.getInvoiceByLabel("blackjack,bekd8Mmr1v67pr2_-w0j3g==,e_zCciNMk-o=")(ws)
+              _ = println("ws label inv= " + result)
 //              s <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
               s <- ws.sendText(
                 str1.toString()

@@ -190,15 +190,6 @@ object PayService {
     val invoice: LightningInvoice = PayService.invoice(this)
   }
 
-  object ValidatePay {
-    implicit val formatValidatePay: OFormat[ValidatePay] = Json.format[ValidatePay]
-  }
-  case class ValidatePay(pay: PlayerPayment__IN, subtractFromBalance: MilliSatoshi) {
-    def maxWithdraw(statement: PlayerStatement): MilliSatoshi = statement.balance - subtractFromBalance
-    def validateStatement(statement: PlayerStatement): Boolean =
-      pay.bolt11.invoice.amountOpt.exists(e => e.toLong <= maxWithdraw(statement).toLong)
-  }
-
   object PlayerInvoiceWithDescriptionHash__IN {
     implicit val formatPlayerInvoiceWithDescriptionHash__In: OFormat[PlayerInvoiceWithDescriptionHash__IN] =
       Json.format[PlayerInvoiceWithDescriptionHash__IN]
@@ -213,7 +204,7 @@ object PayService {
   object FiatRatesInfoUSD {
     implicit val fFiatRatesInfoUSD: OFormat[FiatRatesInfoUSD] = Json.format[FiatRatesInfoUSD]
   }
-  case class FiatRatesInfoUSD(usd: Double)
+  case class FiatRatesInfoUSD(usd: BigDecimal)
 }
 
 class PayService(
@@ -297,18 +288,6 @@ class PayService(
       .response(toBody[PlayerStatement__OUT])
       .send(backend)
 
-  /**
-   * Validate the balance on the server and pay the invoice if so
-   * @param validatePay
-   * @return
-   */
-  def validatePay(validatePay: ValidatePay): Future[Response[Either[LightningRequestError, ListPay]]] =
-    base
-      .post(uri"${config.baseUrl}/lightning/player/validatePay")
-      .body(validatePay)
-      .response(toBody[ListPay])
-      .send(backend)
-
   def getRates: Future[Response[Either[LightningRequestError, FiatRatesInfo]]] =
     base
       .get(uri"${config.baseUrl}/rates")
@@ -320,22 +299,10 @@ class PayService(
       .get(uri"${config.baseUrl}/rates/usd")
       .response(toBody[FiatRatesInfoUSD])
       .send(backend)
-//
-
-  def useWebSocket(ws: WebSocket[Future]): Future[Unit] = {
-    def receive() = ws.receiveText().map(t => println(s"RECEIVED: $t"))
-    for {
-//      _ <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
-      _ <- ws.sendText(Json.toJson(ListInvoicesRequest(label = Some(""))).toString())
-      _ <- receive()
-//      _ <- receive()
-    } yield {}
-  }
+  //
 
   lazy val wsBase = base.get(uri"${config.wsBaseUrl}/ws")
-  def testWs: Future[Response[Either[String, Unit]]] = {
-    wsBase.response(asWebSocket(useWebSocket)).send(backend)
-  }
+
   def testWs(useWebSocket: WebSocket[Future] => Future[Unit]): Future[Response[Either[String, Unit]]] =
     wsBase.response(asWebSocket(useWebSocket)).send(backend)
 
