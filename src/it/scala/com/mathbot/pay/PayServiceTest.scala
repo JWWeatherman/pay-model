@@ -154,15 +154,9 @@ class PayServiceTest extends BaseIntegrationTest {
           {
 
             println("opened ws")
-            val str = Json
-              .obj(
-                "method" -> "listpays",
-                "params" ->
-                Json.obj()
-              )
-              .toString()
-            val str1 = Json.obj("method" -> "decodepay", "params" -> bolt11.bolt11)
             for {
+              result <- service.getInvoiceByLabelWs("blackjack,bekd8Mmr1v67pr2_-w0j3g==,e_zCciNMk-o=")(ws)
+              _ = println("ws label inv= " + result)
               invoiceC <- service.invoiceByWs(
                 PlayerInvoice__IN(msatoshi = MilliSatoshi(1000),
                                   playerId = "",
@@ -173,16 +167,9 @@ class PayServiceTest extends BaseIntegrationTest {
                                   version = None)
               )(ws)
               _ = println("invoice ws= " + invoiceC)
-              result <- service.getInvoiceByLabel("blackjack,bekd8Mmr1v67pr2_-w0j3g==,e_zCciNMk-o=")(ws)
-              _ = println("ws label inv= " + result)
-//              s <- ws.sendText(Json.toJson(LightningGetInfoRequest()).toString())
-              s <- ws.sendText(
-                str1.toString()
-              )
-              r <- ws.receiveText()
+
             } yield {
-              println("msg= " + r)
-              r
+              result
             }
           }
         }
