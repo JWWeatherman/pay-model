@@ -323,7 +323,7 @@ class PayService(
       .send(backend)
   }
 
-  def getInvoiceByLabel(label: String)(ws: WebSocket[Future]) = {
+  def getInvoiceByLabelWs(label: String)(ws: WebSocket[Future]) = {
     for {
       _ <- ws.sendText(
         Json
