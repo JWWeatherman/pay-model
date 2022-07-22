@@ -31,11 +31,12 @@ trait LightningService extends StrictLogging {
       payment_hash: String
   ): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
     for {
-      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(r =>
-        r.copy(
-          body = r.body.flatMap(
-            _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(ErrorMsg(404, "not found")))
-          )
+      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(
+        r =>
+          r.copy(
+            body = r.body.flatMap(
+              _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(404, "not found"))
+            )
         )
       )
     } yield inv
@@ -46,11 +47,12 @@ trait LightningService extends StrictLogging {
       bolt11: Bolt11
   ): Future[Response[Either[LightningRequestError, ListInvoice]]] =
     for {
-      inv <- listInvoices(ListInvoicesRequest(invstring = Some(bolt11.bolt11))).map(r =>
-        r.copy(
-          body = r.body.flatMap(
-            _.invoices.find(_.bolt11.contains(bolt11)).toRight(LightningRequestError(ErrorMsg(404, "not found")))
-          )
+      inv <- listInvoices(ListInvoicesRequest(invstring = Some(bolt11.bolt11))).map(
+        r =>
+          r.copy(
+            body = r.body.flatMap(
+              _.invoices.find(_.bolt11.contains(bolt11)).toRight(LightningRequestError(404, "not found"))
+            )
         )
       )
     } yield inv
@@ -59,11 +61,12 @@ trait LightningService extends StrictLogging {
       label: String
   ): Future[Response[Either[LightningRequestError, ListInvoice]]] =
     for {
-      inv <- listInvoices(ListInvoicesRequest(label = Some(label))).map(r =>
-        r.copy(
-          body = r.body.flatMap(
-            _.invoices.find(_.label == label).toRight(LightningRequestError(ErrorMsg(404, "not found")))
-          )
+      inv <- listInvoices(ListInvoicesRequest(label = Some(label))).map(
+        r =>
+          r.copy(
+            body = r.body.flatMap(
+              _.invoices.find(_.label == label).toRight(LightningRequestError(404, "not found"))
+            )
         )
       )
     } yield inv
@@ -113,7 +116,7 @@ trait LightningService extends StrictLogging {
     listPays(ListPaysRequest(payment_hash = payment_hash)).map(r => {
       r.copy(
         body = r.body.flatMap(
-          _.pays.find(_.payment_hash.contains(payment_hash)).toRight(LightningRequestError(ErrorMsg(404, "not found")))
+          _.pays.find(_.payment_hash.contains(payment_hash)).toRight(LightningRequestError(404, "not found"))
         )
       )
     })
@@ -123,7 +126,7 @@ trait LightningService extends StrictLogging {
     listPays(ListPaysRequest(bolt11)).map(r => {
       r.copy(
         body = r.body.flatMap(
-          _.pays.find(_.bolt11.contains(bolt11)).toRight(LightningRequestError(ErrorMsg(404, "not found")))
+          _.pays.find(_.bolt11.contains(bolt11)).toRight(LightningRequestError(404, "not found"))
         )
       )
     })
@@ -136,7 +139,7 @@ trait LightningService extends StrictLogging {
       id: String
   ): Future[Response[Either[LightningRequestError, LightningOffer]]] =
     listOffers(LightningListOffersRequest(offer_id = Some(id), only_active = None)).map(r => {
-      val a = r.body.flatMap(_.offers.find(_.offer_id == id).toRight(LightningRequestError(ErrorMsg(404, "not found"))))
+      val a = r.body.flatMap(_.offers.find(_.offer_id == id).toRight(LightningRequestError(404, "not found")))
       r.copy(
         body = a
       )

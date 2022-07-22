@@ -73,7 +73,7 @@ class LightningStreamService(lightningStream: LightningStream)(implicit val ec: 
       case t if t.validate[LightningRequestError].isSuccess =>
         p.success(Response.ok(Left(t.as[LightningRequestError])))
       case other =>
-        p.success(Response.ok(Left(LightningRequestError(ErrorMsg(500, s"Unknown result $other")))))
+        p.success(Response.ok(Left(LightningRequestError(500, s"Unknown result $other"))))
     }
     p.future
   }

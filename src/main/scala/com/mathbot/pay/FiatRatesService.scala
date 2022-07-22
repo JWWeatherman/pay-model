@@ -121,7 +121,7 @@ class FiatRatesService(backend: SttpBackend[Future, _])(implicit executionContex
   }
 
   def getRatesBlockChainInfo
-    : RequestT[Identity, Either[ResponseException[String, JsError], Map[String, Double]], Any] = {
+      : RequestT[Identity, Either[ResponseException[String, JsError], Map[String, Double]], Any] = {
     basicRequest
       .get(uri"https://blockchain.info/ticker")
       .response(asJson[FiatRatesService.BlockchainInfoItemMap].mapRight(_.map {
@@ -146,9 +146,11 @@ class FiatRatesService(backend: SttpBackend[Future, _])(implicit executionContex
   def reloadData: Future[Either[ResponseException[String, JsError], FiatRatesInfo]] =
     requestRatesRandom.map(_.body.map(m => updateInfo(m)))
   def updateInfo(newRates: Map[String, Double]): FiatRatesInfo = {
-    val i = FiatRatesInfo(rates = newRates,
-                          oldRates = info.map(_.rates).getOrElse(Map.empty),
-                          stamp = System.currentTimeMillis)
+    val i = FiatRatesInfo(
+      rates = newRates,
+      oldRates = info.map(_.rates).getOrElse(Map.empty),
+      stamp = System.currentTimeMillis
+    )
     info = Some(i)
     for (lst <- listeners) lst.onFiatRates(i)
     i

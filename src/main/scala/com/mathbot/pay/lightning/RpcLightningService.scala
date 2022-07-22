@@ -123,7 +123,7 @@ trait RpcLightningService extends LightningService {
       .response(toBody[ListInvoice])
       .send(backend)
   def toBody[T](implicit reads: Reads[T]): ResponseAs[Either[LightningRequestError, T], Any] =
-    asJson[T].mapLeft(err => LightningRequestError(ErrorMsg(500, s"Bad response $err")))
+    asJson[T].mapLeft(err => LightningRequestError(500, s"Bad response $err"))
 
   def makeBody(method: String, params: JsValue): JsObject =
     Json.obj(nameOf(method) -> method.toLowerCase, nameOf(params) -> params)

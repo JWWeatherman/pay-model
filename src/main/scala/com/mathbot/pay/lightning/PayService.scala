@@ -211,9 +211,9 @@ class PayService(
     config: PayService.PayInvoiceServiceConfig,
     val backend: SttpBackend[Future, AkkaStreams with capabilities.WebSockets]
 )(implicit
-  val
-  ec: ExecutionContext)
-    extends RpcLightningService {
+    val
+    ec: ExecutionContext
+) extends RpcLightningService {
   import PayService._
   import config._
   import sttp.client3._
@@ -333,9 +333,10 @@ class PayService(
           )
           .toString()
       )
-      r <- ws
-        .receiveText()
-        .map(Json.parse(_).asOpt[Invoices].flatMap(_.invoices.find(_.label == label)))
+      r <-
+        ws
+          .receiveText()
+          .map(Json.parse(_).asOpt[Invoices].flatMap(_.invoices.find(_.label == label)))
     } yield r
   }
   // todo: bad response from server
@@ -349,8 +350,9 @@ class PayService(
           )
           .toString()
       )
-      r <- ws
-        .receiveText()
+      r <-
+        ws
+          .receiveText()
 //        .map(Json.parse(_).as[ListInvoice])
     } yield r
   }

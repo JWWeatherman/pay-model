@@ -52,9 +52,7 @@ class LightningStream(
           logger.error(s"failure adding request to queue $lightning")
           finish(
             Json.toJson(
-              LightningRequestError(
-                error = ErrorMsg(code = 500, message = s"Error adding request to queue. error = $t")
-              )
+              LightningRequestError(code = 500, message = s"Error adding request to queue. error = $t")
             )
           )
       }(system.dispatcher)
