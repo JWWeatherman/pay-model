@@ -211,9 +211,9 @@ class PayService(
     config: PayService.PayInvoiceServiceConfig,
     val backend: SttpBackend[Future, AkkaStreams with capabilities.WebSockets]
 )(implicit
-    val
-    ec: ExecutionContext
-) extends RpcLightningService {
+  val
+  ec: ExecutionContext)
+    extends RpcLightningService {
   import PayService._
   import config._
   import sttp.client3._
@@ -323,7 +323,7 @@ class PayService(
       .send(backend)
   }
 
-  def getInvoiceByLabelWs(label: String)(ws: WebSocket[Future]) = {
+  def getInvoiceByLabelWs(label: String)(ws: WebSocket[Future]): Future[Option[ListInvoice]] = {
     for {
       _ <- ws.sendText(
         Json
@@ -333,14 +333,12 @@ class PayService(
           )
           .toString()
       )
-      r <-
-        ws
-          .receiveText()
-          .map(Json.parse(_).asOpt[Invoices].flatMap(_.invoices.find(_.label == label)))
+      r <- ws
+        .receiveText()
+        .map(Json.parse(_).asOpt[Invoices].flatMap(_.invoices.find(_.label == label)))
     } yield r
   }
-  // todo: bad response from server
-  def invoiceByWs(inv: PlayerInvoice__IN)(ws: WebSocket[Future]) = {
+  def invoiceByWs(inv: PlayerInvoice__IN)(ws: WebSocket[Future]): Future[Option[LightningCreateInvoice]] = {
     for {
       _ <- ws.sendText(
         Json
@@ -350,10 +348,13 @@ class PayService(
           )
           .toString()
       )
-      r <-
-        ws
-          .receiveText()
-//        .map(Json.parse(_).as[ListInvoice])
+      r <- ws
+        .receiveText()
+        .map(r => {
+          val json = Json.parse(r)
+          val j = json.asOpt[LightningCreateInvoice]
+          j
+        })
     } yield r
   }
 }

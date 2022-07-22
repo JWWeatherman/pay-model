@@ -31,12 +31,11 @@ trait LightningService extends StrictLogging {
       payment_hash: String
   ): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
     for {
-      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(
-        r =>
-          r.copy(
-            body = r.body.flatMap(
-              _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(404, "not found"))
-            )
+      inv <- listInvoices(ListInvoicesRequest(payment_hash = Some(payment_hash))).map(r =>
+        r.copy(
+          body = r.body.flatMap(
+            _.invoices.find(_.payment_hash == payment_hash).toRight(LightningRequestError(404, "not found"))
+          )
         )
       )
     } yield inv
@@ -47,12 +46,11 @@ trait LightningService extends StrictLogging {
       bolt11: Bolt11
   ): Future[Response[Either[LightningRequestError, ListInvoice]]] =
     for {
-      inv <- listInvoices(ListInvoicesRequest(invstring = Some(bolt11.bolt11))).map(
-        r =>
-          r.copy(
-            body = r.body.flatMap(
-              _.invoices.find(_.bolt11.contains(bolt11)).toRight(LightningRequestError(404, "not found"))
-            )
+      inv <- listInvoices(ListInvoicesRequest(invstring = Some(bolt11.bolt11))).map(r =>
+        r.copy(
+          body = r.body.flatMap(
+            _.invoices.find(_.bolt11.contains(bolt11)).toRight(LightningRequestError(404, "not found"))
+          )
         )
       )
     } yield inv
@@ -61,12 +59,11 @@ trait LightningService extends StrictLogging {
       label: String
   ): Future[Response[Either[LightningRequestError, ListInvoice]]] =
     for {
-      inv <- listInvoices(ListInvoicesRequest(label = Some(label))).map(
-        r =>
-          r.copy(
-            body = r.body.flatMap(
-              _.invoices.find(_.label == label).toRight(LightningRequestError(404, "not found"))
-            )
+      inv <- listInvoices(ListInvoicesRequest(label = Some(label))).map(r =>
+        r.copy(
+          body = r.body.flatMap(
+            _.invoices.find(_.label == label).toRight(LightningRequestError(404, "not found"))
+          )
         )
       )
     } yield inv
