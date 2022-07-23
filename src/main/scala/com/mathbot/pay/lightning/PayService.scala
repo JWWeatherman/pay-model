@@ -184,8 +184,7 @@ object PayService {
       source: String,
       description: Option[String],
       webhook: Option[CallbackURL],
-      expiry: Option[FiniteDuration],
-      version: Option[Int] = None
+      expiry: Option[FiniteDuration]
   ) {
     val invoice: LightningInvoice = PayService.invoice(this)
   }
@@ -323,7 +322,7 @@ class PayService(
       .send(backend)
   }
 
-  def getInvoiceByLabelWs(label: String)(ws: WebSocket[Future]): Future[Option[ListInvoice]] = {
+  def getInvoiceByLabelWs(label: String)(ws: WebSocket[Future]): Future[Option[ListInvoice]] =
     for {
       _ <- ws.sendText(
         Json
@@ -337,8 +336,9 @@ class PayService(
         .receiveText()
         .map(Json.parse(_).asOpt[Invoices].flatMap(_.invoices.find(_.label == label)))
     } yield r
-  }
-  def invoiceByWs(inv: PlayerInvoice__IN)(ws: WebSocket[Future]): Future[Option[LightningCreateInvoice]] = {
+  def invoiceByWs(
+      inv: PlayerInvoice__IN
+  )(ws: WebSocket[Future]) = {
     for {
       _ <- ws.sendText(
         Json
@@ -352,7 +352,7 @@ class PayService(
         .receiveText()
         .map(r => {
           val json = Json.parse(r)
-          val j = json.asOpt[LightningCreateInvoice]
+          val j = json.asOpt[ListInvoice]
           j
         })
     } yield r

@@ -163,8 +163,7 @@ class PayServiceTest extends BaseIntegrationTest {
                                   source = "",
                                   description = None,
                                   webhook = None,
-                                  expiry = None,
-                                  version = None)
+                                  expiry = None)
               )(ws)
               _ = println("invoice ws= " + invoiceC)
 
