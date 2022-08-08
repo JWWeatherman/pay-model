@@ -2,15 +2,10 @@ import Dependencies._
 import sbt._
 
 
-addCommandsAlias("validate", "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
-addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
-addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
-addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
+//ThisBuild / licenses            += License.Apache2
 
-addCommandsAlias("cc", Seq("clean", "compile"))
-addCommandAlias("err", "lastGrep error compile")
-addCommandAlias("errt", "lastGrep error test:compile")
-
+// maven magic, see https://github.com/makingthematrix/scala-suffix/tree/56270a6b4abbb1cd1008febbd2de6eea29a23b52#but-wait-thats-not-all
+Compile / packageBin / packageOptions += Package.ManifestAttributes("Automatic-Module-Name" -> "paymodel")
 
 val scala213 = "2.13.3"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
@@ -76,7 +71,7 @@ lazy val paymodel = (project in file("."))
   .settings(
     name := "pay-model",
     version := "0.0.1",
-    coverageMinimum := 70,
+    coverageMinimumStmtTotal := 70,
     libraryDependencies ++= commonDeps ++ eclairDeps,
     coverageFailOnMinimum := false,
     coverageHighlighting := true,
@@ -87,3 +82,12 @@ lazy val paymodel = (project in file("."))
 
 def addCommandsAlias(name: String, cmds: Seq[String]) =
   addCommandAlias(name, cmds.mkString(";", ";", ""))
+
+addCommandsAlias("validate", "compile":: "test:compile" :: "scalafmtCheckAll" :: Nil)
+addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
+addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
+addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
+
+addCommandsAlias("cc", Seq("clean", "compile"))
+addCommandAlias("err", "lastGrep error compile")
+addCommandAlias("errt", "lastGrep error test:compile")
