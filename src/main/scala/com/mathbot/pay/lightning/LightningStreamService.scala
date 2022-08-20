@@ -70,8 +70,8 @@ class LightningStreamService(lightningStream: LightningStream)(implicit val ec: 
     lightningStream.enqueue(r) {
       case t if t.\("result").isDefined && t("result").validate[T].isSuccess =>
         p.success(Response.ok(Right(t("result").as[T])))
-      case t if t.validate[LightningRequestError].isSuccess =>
-        p.success(Response.ok(Left(t.as[LightningRequestError])))
+      case t if t.\("error").isDefined && t("error").validate[LightningRequestError].isSuccess =>
+        p.success(Response.ok(Left(t("error").as[LightningRequestError])))
       case other =>
         p.success(Response.ok(Left(LightningRequestError(500, s"Unknown result $other"))))
     }
