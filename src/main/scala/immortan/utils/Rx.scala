@@ -7,7 +7,8 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 object Rx {
-  def fromFutureOnIo[T](future: Future[T] = null)(implicit
+  def fromFutureOnIo[T](future: Future[T] = null)(
+      implicit
       ec: ExecutionContext
   ): Observable[T] =
     Observable.from(future).observeOn(IOScheduler.apply)

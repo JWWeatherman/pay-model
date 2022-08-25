@@ -133,7 +133,7 @@ object ShaChain {
           var pos = index
 
           override def hasNext: Boolean =
-            pos >= index && pos <= 0xffffffffffffffffL
+            pos >= index && pos <= 0xFFFFFFFFFFFFFFFFL
 
           override def next(): ByteVector32 = {
             val value = chain.getHash(pos).get

@@ -18,7 +18,7 @@ object ShortChannelId {
     toShortId(blockHeight, txIndex, outputIndex)
 
   def toShortId(blockHeight: Int, txIndex: Int, outputIndex: Int): Long =
-    ((blockHeight & 0xffffffL) << 40) | ((txIndex & 0xffffffL) << 16) | (outputIndex & 0xffffL)
+    ((blockHeight & 0xFFFFFFL) << 40) | ((txIndex & 0xFFFFFFL) << 16) | (outputIndex & 0xFFFFL)
 
   @inline def blockHeight(sid: Long): Int = ((sid >> 40) & 0xffffff).toInt
 

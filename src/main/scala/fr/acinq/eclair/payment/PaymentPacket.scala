@@ -86,11 +86,11 @@ object IncomingPaymentPacket {
       case Left(failure) => Left(failure)
       // NB: we don't validate the ChannelRelayPacket here because its fees and cltv depend on what channel we'll choose to use.
       case Right(
-            DecodedOnionPacket(payload: PaymentOnion.ChannelRelayPayload, next)
+          DecodedOnionPacket(payload: PaymentOnion.ChannelRelayPayload, next)
           ) =>
         Right(ChannelRelayPacket(add, payload, next))
       case Right(
-            DecodedOnionPacket(payload: PaymentOnion.FinalTlvPayload, _)
+          DecodedOnionPacket(payload: PaymentOnion.FinalTlvPayload, _)
           ) =>
         payload.records.get[OnionPaymentPayloadTlv.TrampolineOnion] match {
           case Some(OnionPaymentPayloadTlv.TrampolineOnion(trampolinePacket)) =>
@@ -102,17 +102,17 @@ object IncomingPaymentPacket {
             ) match {
               case Left(failure) => Left(failure)
               case Right(
-                    DecodedOnionPacket(
-                      innerPayload: PaymentOnion.NodeRelayPayload,
-                      next
-                    )
+                  DecodedOnionPacket(
+                    innerPayload: PaymentOnion.NodeRelayPayload,
+                    next
+                  )
                   ) =>
                 validateNodeRelay(add, payload, innerPayload, next)
               case Right(
-                    DecodedOnionPacket(
-                      innerPayload: PaymentOnion.FinalPayload,
-                      _
-                    )
+                  DecodedOnionPacket(
+                    innerPayload: PaymentOnion.FinalPayload,
+                    _
+                  )
                   ) =>
                 validateFinal(add, payload, innerPayload)
             }

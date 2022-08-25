@@ -40,7 +40,7 @@ class LightningStreamTest
           .recover {
             case t =>
               println("recover from error " + t)
-              Json.toJson(LightningRequestError(ErrorMsg(500, t.toString)))
+              Json.toJson(LightningRequestError(500, t.toString))
           }
         wire[LightningStream]
       }

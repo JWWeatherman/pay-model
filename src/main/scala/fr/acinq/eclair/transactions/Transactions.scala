@@ -166,7 +166,6 @@ object Transactions {
    *   - [[HtlcPenaltyTx]] spends competes with [[HtlcSuccessTx]] and
    *     [[HtlcTimeoutTx]] for the same outputs (published by local)
    */
-
   /**
    * these values are specific to us (not defined in the specification) and
    * used to estimate fees
@@ -357,14 +356,14 @@ object Transactions {
    */
   def encodeTxNumber(txnumber: Long): (Long, Long) = {
     require(
-      txnumber <= 0xffffffffffffL,
+      txnumber <= 0xFFFFFFFFFFFFL,
       "txnumber must be lesser than 48 bits long"
     )
-    (0x80000000L | (txnumber >> 24), (txnumber & 0xffffffL) | 0x20000000)
+    (0x80000000L | (txnumber >> 24), (txnumber & 0xFFFFFFL) | 0x20000000)
   }
 
   def decodeTxNumber(sequence: Long, locktime: Long): Long =
-    ((sequence & 0xffffffL) << 24) + (locktime & 0xffffffL)
+    ((sequence & 0xFFFFFFL) << 24) + (locktime & 0xFFFFFFL)
 
   def getHtlcTxInputSequence(commitmentFormat: CommitmentFormat): Long =
     commitmentFormat match {
@@ -765,8 +764,8 @@ object Transactions {
     )
     outputs.zipWithIndex.collectFirst {
       case (
-            CommitmentOutputLink(_, _, OutHtlc(OutgoingHtlc(outgoingHtlc))),
-            outIndex
+          CommitmentOutputLink(_, _, OutHtlc(OutgoingHtlc(outgoingHtlc))),
+          outIndex
           ) if outgoingHtlc.id == htlc.id =>
         outIndex
     } match {
@@ -777,7 +776,7 @@ object Transactions {
           write(redeemScript)
         )
         val sequence = commitmentFormat match {
-          case DefaultCommitmentFormat => 0xffffffffL // RBF disabled
+          case DefaultCommitmentFormat => 0xFFFFFFFFL // RBF disabled
           case AnchorOutputsCommitmentFormat =>
             1 // txs have a 1-block delay to allow CPFP carve-out on anchors
         }
@@ -826,8 +825,8 @@ object Transactions {
     )
     outputs.zipWithIndex.collectFirst {
       case (
-            CommitmentOutputLink(_, _, InHtlc(IncomingHtlc(incomingHtlc))),
-            outIndex
+          CommitmentOutputLink(_, _, InHtlc(IncomingHtlc(incomingHtlc))),
+          outIndex
           ) if incomingHtlc.id == htlc.id =>
         outIndex
     } match {
@@ -1042,7 +1041,7 @@ object Transactions {
         // unsigned transaction
         val tx = Transaction(
           version = 2,
-          txIn = TxIn(input.outPoint, ByteVector.empty, 0xffffffffL) :: Nil,
+          txIn = TxIn(input.outPoint, ByteVector.empty, 0xFFFFFFFFL) :: Nil,
           txOut = TxOut(Satoshi(0), localFinalScriptPubKey) :: Nil,
           lockTime = 0
         )
@@ -1087,7 +1086,7 @@ object Transactions {
         // unsigned transaction
         val tx = Transaction(
           version = 2,
-          txIn = TxIn(input.outPoint, ByteVector.empty, 0xffffffffL) :: Nil,
+          txIn = TxIn(input.outPoint, ByteVector.empty, 0xFFFFFFFFL) :: Nil,
           txOut = TxOut(Satoshi(0), localFinalScriptPubKey) :: Nil,
           lockTime = 0
         )
@@ -1124,7 +1123,7 @@ object Transactions {
     // unsigned transaction
     val tx = Transaction(
       version = 2,
-      txIn = TxIn(input.outPoint, ByteVector.empty, 0xffffffffL) :: Nil,
+      txIn = TxIn(input.outPoint, ByteVector.empty, 0xFFFFFFFFL) :: Nil,
       txOut = TxOut(Satoshi(0), localFinalScriptPubKey) :: Nil,
       lockTime = 0
     )
@@ -1177,7 +1176,7 @@ object Transactions {
       txIn = TxIn(
           commitTxInput.outPoint,
           ByteVector.empty,
-          sequence = 0xffffffffL
+          sequence = 0xFFFFFFFFL
         ) :: Nil,
       txOut = toLocalOutput_opt.toSeq ++ toRemoteOutput_opt.toSeq ++ Nil,
       lockTime = 0

@@ -209,10 +209,11 @@ object PayService {
 class PayService(
     config: PayService.PayInvoiceServiceConfig,
     val backend: SttpBackend[Future, AkkaStreams with capabilities.WebSockets]
-)(implicit
-  val
-  ec: ExecutionContext)
-    extends RpcLightningService {
+)(
+    implicit
+    val
+    ec: ExecutionContext
+) extends RpcLightningService {
   import PayService._
   import config._
   import sttp.client3._

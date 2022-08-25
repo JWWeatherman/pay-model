@@ -66,7 +66,8 @@ case class BitcoinJsonRpcClient(
    * @tparam T the expected response from a successful call
    * @return Error or the method's expected response object
    */
-  def send[T](method: String, params: JsValueWrapper*)(implicit
+  def send[T](method: String, params: JsValueWrapper*)(
+      implicit
       jsonReader: Reads[T]
   ): Future[Either[RpcResponseError, T]] = {
     val ID = id.toString

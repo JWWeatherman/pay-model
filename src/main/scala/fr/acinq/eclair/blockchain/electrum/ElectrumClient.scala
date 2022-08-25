@@ -32,7 +32,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
-class ElectrumClient(serverAddress: InetSocketAddress, ssl: SSL)(implicit
+class ElectrumClient(serverAddress: InetSocketAddress, ssl: SSL)(
+    implicit
     val ec: ExecutionContext
 ) extends Actor
     with Stash {
@@ -550,26 +551,26 @@ object ElectrumClient {
           case ("blockchain.headers.subscribe", header :: Nil) =>
             HeaderSubscriptionResponse(parseBlockHeader(header))
           case (
-                "blockchain.address.subscribe",
-                JString(address) :: JNull :: Nil
+              "blockchain.address.subscribe",
+              JString(address) :: JNull :: Nil
               ) =>
             AddressSubscriptionResponse(address, "")
           case (
-                "blockchain.address.subscribe",
-                JString(address) :: JString(status) :: Nil
+              "blockchain.address.subscribe",
+              JString(address) :: JString(status) :: Nil
               ) =>
             AddressSubscriptionResponse(address, status)
           case (
-                "blockchain.scripthash.subscribe",
-                JString(scriptHashHex) :: JNull :: Nil
+              "blockchain.scripthash.subscribe",
+              JString(scriptHashHex) :: JNull :: Nil
               ) =>
             ScriptHashSubscriptionResponse(
               ByteVector32.fromValidHex(scriptHashHex),
               ""
             )
           case (
-                "blockchain.scripthash.subscribe",
-                JString(scriptHashHex) :: JString(status) :: Nil
+              "blockchain.scripthash.subscribe",
+              JString(scriptHashHex) :: JString(status) :: Nil
               ) =>
             ScriptHashSubscriptionResponse(
               ByteVector32.fromValidHex(scriptHashHex),

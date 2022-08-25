@@ -17,7 +17,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Random
 
-class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(implicit
+class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(
+    implicit
     val ec: ExecutionContext
 ) extends Actor
     with FSM[State, Data] {
@@ -55,8 +56,8 @@ class ElectrumClientPool(blockCount: AtomicLong, chainHash: ByteVector32)(implic
       handleHeader(sender, height, tip, Some(d))
 
     case Event(
-          ElectrumClient.HeaderSubscriptionResponse(height, tip),
-          d: ConnectedData
+        ElectrumClient.HeaderSubscriptionResponse(height, tip),
+        d: ConnectedData
         ) if addresses.contains(sender) =>
       handleHeader(sender, height, tip, Some(d))
 

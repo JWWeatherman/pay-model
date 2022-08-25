@@ -213,8 +213,8 @@ class OutgoingPaymentMaster(val cm: ChannelMaster) extends StateMachine[Outgoing
         me process CMDAskForRoute
 
       case (
-            ChannelFailedAtAmount(descAndCapacity),
-            EXPECTING_PAYMENTS | WAITING_FOR_ROUTE
+          ChannelFailedAtAmount(descAndCapacity),
+          EXPECTING_PAYMENTS | WAITING_FOR_ROUTE
           ) =>
         // At this point an affected InFlight status IS STILL PRESENT so failedAtAmount1 = usedCapacities = sum(inFlight)
         val amount1 = data.chanFailedAtAmount
@@ -239,8 +239,8 @@ class OutgoingPaymentMaster(val cm: ChannelMaster) extends StateMachine[Outgoing
         )
 
       case (
-            NodeFailed(nodeId, increment),
-            EXPECTING_PAYMENTS | WAITING_FOR_ROUTE
+          NodeFailed(nodeId, increment),
+          EXPECTING_PAYMENTS | WAITING_FOR_ROUTE
           ) =>
         val newNodeFailedTimes =
           data.nodeFailedWithUnknownUpdateTimes.getOrElse(nodeId, 0) + increment
@@ -264,8 +264,8 @@ class OutgoingPaymentMaster(val cm: ChannelMaster) extends StateMachine[Outgoing
         ChannelMaster.next(ChannelMaster.stateUpdateStream)
 
       case (
-            CreateSenderFSM(listeners, fullTag),
-            EXPECTING_PAYMENTS | WAITING_FOR_ROUTE
+          CreateSenderFSM(listeners, fullTag),
+          EXPECTING_PAYMENTS | WAITING_FOR_ROUTE
           ) if !data.payments.contains(fullTag) =>
         val data1 = data.payments.updated(
           value = new OutgoingPaymentSender(fullTag, listeners, me),

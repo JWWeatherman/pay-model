@@ -241,15 +241,13 @@ class IncomingPaymentReceiver(val fullTag: FullPaymentTag, cm: ChannelMaster) ex
 // TRAMPOLINE RELAYER
 
 case class TrampolineStopping(retry: Boolean, fullTag: FullPaymentTag) extends IncomingProcessorData // SENDING
-case class TrampolineProcessing(finalNodeId: PublicKey, fullTag: FullPaymentTag)
-    extends IncomingProcessorData // SENDING
+case class TrampolineProcessing(finalNodeId: PublicKey, fullTag: FullPaymentTag) extends IncomingProcessorData // SENDING
 case class TrampolineRevealed(
     preimage: ByteVector32,
     senderData: Option[OutgoingPaymentSenderData],
     fullTag: FullPaymentTag
 ) extends IncomingProcessorData // SENDING | FINALIZING
-case class TrampolineAborted(failure: FailureMessage, fullTag: FullPaymentTag)
-    extends IncomingProcessorData // FINALIZING
+case class TrampolineAborted(failure: FailureMessage, fullTag: FullPaymentTag) extends IncomingProcessorData // FINALIZING
 
 class TrampolinePaymentRelayer(val fullTag: FullPaymentTag, cm: ChannelMaster)
     extends IncomingPaymentProcessor
@@ -347,9 +345,9 @@ class TrampolinePaymentRelayer(val fullTag: FullPaymentTag, cm: ChannelMaster)
         becomeShutDown
 
       case (
-            inFlight: InFlightPayments,
-            TrampolineRevealed(preimage, senderData, _),
-            SENDING
+          inFlight: InFlightPayments,
+          TrampolineRevealed(preimage, senderData, _),
+          SENDING
           ) =>
         // A special case after we have just received a first preimage and can become revealed
         val ins =
@@ -391,18 +389,18 @@ class TrampolinePaymentRelayer(val fullTag: FullPaymentTag, cm: ChannelMaster)
         cm.notifyResolvers
 
       case (
-            data: OutgoingPaymentSenderData,
-            TrampolineStopping(false, _),
-            SENDING
+          data: OutgoingPaymentSenderData,
+          TrampolineStopping(false, _),
+          SENDING
           ) =>
         // We were waiting for all outgoing parts to fail on app restart, fail incoming
         become(abortedWithError(data.failures, invalidPubKey), FINALIZING)
         cm.notifyResolvers
 
       case (
-            data: OutgoingPaymentSenderData,
-            processing: TrampolineProcessing,
-            SENDING
+          data: OutgoingPaymentSenderData,
+          processing: TrampolineProcessing,
+          SENDING
           ) =>
         // This was a normal operation where we were trying to deliver a payment to recipient
         become(
@@ -448,9 +446,9 @@ class TrampolinePaymentRelayer(val fullTag: FullPaymentTag, cm: ChannelMaster)
         cm.notifyResolvers
 
       case (
-            inFlight: InFlightPayments,
-            revealed: TrampolineRevealed,
-            FINALIZING
+          inFlight: InFlightPayments,
+          revealed: TrampolineRevealed,
+          FINALIZING
           ) =>
         val ins =
           inFlight.in.getOrElse(fullTag, Nil).asInstanceOf[ReasonableTrampolines]

@@ -278,11 +278,9 @@ case class NormalCommits(
       return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
     if (missingForReceiver < 0L.sat && !localParams.isFunder)
       return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
-    if (
-      commitments1.allOutgoing.foldLeft(0L.msat)(
-        _ + _.amountMsat
-      ) > maxSendInFlight
-    ) return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
+    if (commitments1.allOutgoing.foldLeft(0L.msat)(
+          _ + _.amountMsat
+        ) > maxSendInFlight) return ChannelNotAbleToSend(cmd.incompleteAdd).asLeft
     if (totalOutgoingHtlcs > commitments1.remoteParams.maxAcceptedHtlcs)
       return ChannelNotAbleToSend(
         cmd.incompleteAdd
@@ -333,11 +331,9 @@ case class NormalCommits(
     else if (missingForReceiver < 0L.sat && localParams.isFunder)
       throw ChannelTransitionFail(channelId, add)
     // We do not check whether total incoming payments amount exceeds our local maxHtlcValueInFlightMsat becase it is always set to a whole channel capacity
-    if (
-      reduced.htlcs
-        .collect(incoming)
-        .size > commitments1.localParams.maxAcceptedHtlcs
-    ) throw ChannelTransitionFail(channelId, add)
+    if (reduced.htlcs
+          .collect(incoming)
+          .size > commitments1.localParams.maxAcceptedHtlcs) throw ChannelTransitionFail(channelId, add)
     commitments1
   }
 
@@ -419,10 +415,11 @@ case class NormalCommits(
     if (dangerousState) {
       // We force feerate update and block this thread while it's being executed, will have an updated info once done
       Rx.retry(
-        Rx.ioQueue.map(_ => LNParams.feeRates.reloadData),
-        Rx.incSec,
-        1 to 3
-      ).toBlocking
+          Rx.ioQueue.map(_ => LNParams.feeRates.reloadData),
+          Rx.incSec,
+          1 to 3
+        )
+        .toBlocking
         .subscribe(LNParams.feeRates.updateInfo, none)
       // We have seen a suspiciously lower feerate update from peer, then force-checked current network feerates and they are NOT THAT low
       val stillDangerousState = newFeerate(
@@ -617,7 +614,7 @@ case class NormalCommits(
           if revocation.perCommitmentSecret.publicKey == remoteCommit.remotePerCommitmentPoint =>
         val remotePerCommitmentSecrets1 = remotePerCommitmentSecrets.addHash(
           revocation.perCommitmentSecret.value,
-          0xffffffffffffL - remoteCommit.index
+          0xFFFFFFFFFFFFL - remoteCommit.index
         )
         copy(
           localChanges = localChanges.copy(

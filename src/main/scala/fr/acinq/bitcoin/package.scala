@@ -72,10 +72,10 @@ package object bitcoin {
   def decodeCompact(input: Long): (BigInteger, Boolean, Boolean) = {
     val nSize = (input >> 24).toInt
     val (nWord, result) = if (nSize <= 3) {
-      val nWord1 = (input & 0x007fffffL) >> 8 * (3 - nSize)
+      val nWord1 = (input & 0x007FFFFFL) >> 8 * (3 - nSize)
       (nWord1, BigInteger.valueOf(nWord1))
     } else {
-      val nWord1 = input & 0x007fffffL
+      val nWord1 = input & 0x007FFFFFL
       (nWord1, BigInteger.valueOf(nWord1).shiftLeft(8 * (nSize - 3)))
     }
     val isNegative = nWord != 0 && (input & 0x00800000) != 0

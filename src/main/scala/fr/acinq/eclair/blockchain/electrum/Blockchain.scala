@@ -176,8 +176,7 @@ object Blockchain {
     val checkpoints1 = headerDb.getTip match {
       case Some((height, _)) =>
         val newcheckpoints = for {
-          h <-
-            checkpoints.size * RETARGETING_PERIOD - 1 + RETARGETING_PERIOD to height - RETARGETING_PERIOD by RETARGETING_PERIOD
+          h <- checkpoints.size * RETARGETING_PERIOD - 1 + RETARGETING_PERIOD to height - RETARGETING_PERIOD by RETARGETING_PERIOD
         } yield {
           val cpheader = headerDb.getHeader(h).get
           val nextDiff = headerDb.getHeader(h + 1).get.bits
@@ -352,9 +351,7 @@ object Blockchain {
     )
     blockchain.headersMap.get(header.hashPreviousBlock) match {
       case Some(parent) if parent.height == height - 1 =>
-        if (
-          height % RETARGETING_PERIOD != 0 && (blockchain.chainHash == Block.LivenetGenesisBlock.hash || blockchain.chainHash == Block.RegtestGenesisBlock.hash)
-        ) {
+        if (height % RETARGETING_PERIOD != 0 && (blockchain.chainHash == Block.LivenetGenesisBlock.hash || blockchain.chainHash == Block.RegtestGenesisBlock.hash)) {
           // check difficulty target, which should be the same as for the parent block
           // we only check this on mainnet, on testnet rules are much more lax
           require(
@@ -503,12 +500,10 @@ object Blockchain {
         (height % RETARGETING_PERIOD) match {
           case 0 =>
             for {
-              parent <-
-                blockchain.getHeader(height - 1) orElse headerDb
-                  .getHeader(height - 1)
-              previous <-
-                blockchain.getHeader(height - 2016) orElse headerDb
-                  .getHeader(height - 2016)
+              parent <- blockchain.getHeader(height - 1) orElse headerDb
+                .getHeader(height - 1)
+              previous <- blockchain.getHeader(height - 2016) orElse headerDb
+                .getHeader(height - 2016)
               target = BlockHeader.calculateNextWorkRequired(
                 parent,
                 previous.time

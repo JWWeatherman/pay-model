@@ -170,13 +170,11 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef) extends Actor wi
     case ElectrumClient.GetScriptHashHistoryResponse(_, history) =>
       // we retrieve the transaction before checking watches
       // NB: height=-1 means that the tx is unconfirmed and at least one of its inputs is also unconfirmed. we need to take them into consideration if we want to handle unconfirmed txes (which is the case for turbo channels)
-      history.filter(_.height >= -1).foreach { item =>
-        client ! ElectrumClient.GetTransaction(item.txHash, Some(item))
-      }
+      history.filter(_.height >= -1).foreach { item => client ! ElectrumClient.GetTransaction(item.txHash, Some(item)) }
 
     case ElectrumClient.GetTransactionResponse(
-          tx,
-          Some(item: ElectrumClient.TransactionHistoryItem)
+        tx,
+        Some(item: ElectrumClient.TransactionHistoryItem)
         ) =>
       // this is for WatchSpent/WatchSpentBasic
       val watchSpentTriggered = tx.txIn
@@ -235,11 +233,11 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef) extends Actor wi
       )
 
     case ElectrumClient.GetMerkleResponse(
-          tx_hash,
-          _,
-          txheight,
-          pos,
-          Some(tx: Transaction)
+        tx_hash,
+        _,
+        txheight,
+        pos,
+        Some(tx: Transaction)
         ) =>
       val confirmations = height - txheight + 1
       val triggered = watches.collect {
@@ -270,8 +268,8 @@ class ElectrumWatcher(blockCount: AtomicLong, client: ActorRef) extends Actor wi
       origin ! GetTxWithMetaResponse(tx.txid, Some(tx), tip.time)
 
     case ElectrumClient.ServerError(
-          ElectrumClient.GetTransaction(txid, Some(origin: ActorRef)),
-          _
+        ElectrumClient.GetTransaction(txid, Some(origin: ActorRef)),
+        _
         ) =>
       origin ! GetTxWithMetaResponse(txid, None, tip.time)
 

@@ -66,15 +66,15 @@ abstract class SwapInAddressHandler extends StateMachine[AddressData] { me =>
   def doProcess(change: Any): Unit =
     (change, state) match {
       case (
-            NoSwapInSupport(worker),
-            WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
+          NoSwapInSupport(worker),
+          WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
           ) =>
         become(data.copy(results = data.results - worker.info), state)
         doSearch(force = false)
 
       case (
-            YesSwapInSupport(worker, msg: SwapInResponse),
-            WAITING_FIRST_RESPONSE
+          YesSwapInSupport(worker, msg: SwapInResponse),
+          WAITING_FIRST_RESPONSE
           ) =>
         val results1 = data.results.updated(
           worker.info,
@@ -90,8 +90,8 @@ abstract class SwapInAddressHandler extends StateMachine[AddressData] { me =>
         doSearch(force = false)
 
       case (
-            YesSwapInSupport(worker, msg: SwapInResponse),
-            WAITING_REST_OF_RESPONSES
+          YesSwapInSupport(worker, msg: SwapInResponse),
+          WAITING_REST_OF_RESPONSES
           ) =>
         val results1 = data.results.updated(
           worker.info,

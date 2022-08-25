@@ -11,7 +11,6 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * see https://en.bitcoin.it/wiki/Protocol_specification
  */
-
 case class ByteVector32(bytes: ByteVector) {
   require(bytes.size == 32, s"size must be 32 bytes, is ${bytes.size} bytes")
 
@@ -54,7 +53,6 @@ object Protocol {
   /**
    * basic serialization functions
    */
-
   val PROTOCOL_VERSION = 70015
 
   def uint8(input: InputStream): Int = input.read()
@@ -99,7 +97,7 @@ object Protocol {
 
   def uint32(input: Array[Byte], order: ByteOrder): Long = {
     val buffer = ByteBuffer.wrap(input).order(order)
-    buffer.getInt() & 0xffffffffL
+    buffer.getInt() & 0xFFFFFFFFL
   }
 
   def uint32(input: ByteVector, order: ByteOrder): Long = {
@@ -163,7 +161,7 @@ object Protocol {
     writeVarint(input.toLong, out)
 
   def writeVarint(input: Long, out: OutputStream): Unit = {
-    if (input < 0xfdL) writeUInt8(input.toInt, out)
+    if (input < 0xFDL) writeUInt8(input.toInt, out)
     else if (input < 65535L) {
       writeUInt8(0xfd, out)
       writeUInt16(input.toInt, out)
@@ -232,7 +230,8 @@ object Protocol {
   )(implicit ser: BtcSerializer[T]): Seq[T] =
     readCollection(input, ser.read, maxElement, protocolVersion)
 
-  def readCollection[T](input: InputStream, protocolVersion: Long)(implicit
+  def readCollection[T](input: InputStream, protocolVersion: Long)(
+      implicit
       ser: BtcSerializer[T]
   ): Seq[T] =
     readCollection(input, None, protocolVersion)(ser)
@@ -258,7 +257,8 @@ object Protocol {
       protocolVersion: Long
   ): Seq[T] = readCollection(input, reader, None, protocolVersion)
 
-  def writeCollection[T](seq: Seq[T], out: OutputStream, protocolVersion: Long)(implicit
+  def writeCollection[T](seq: Seq[T], out: OutputStream, protocolVersion: Long)(
+      implicit
       ser: BtcSerializer[T]
   ): Unit = {
     writeVarint(seq.length, out)
@@ -354,10 +354,10 @@ trait BtcSerializable[T] {
 }
 
 object Message extends BtcSerializer[Message] {
-  val MagicMain = 0xd9b4bef9L
-  val MagicTestNet = 0xdab5bffaL
-  val MagicTestnet3 = 0x0709110bL
-  val MagicNamecoin = 0xfeb4bef9L
+  val MagicMain = 0xD9B4BEF9L
+  val MagicTestNet = 0xDAB5BFFAL
+  val MagicTestnet3 = 0x0709110BL
+  val MagicNamecoin = 0xFEB4BEF9L
   val MagicSegnet = 0xc4a1abdc
 
   override def read(in: InputStream, protocolVersion: Long): Message = {

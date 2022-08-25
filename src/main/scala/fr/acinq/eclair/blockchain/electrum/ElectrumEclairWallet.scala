@@ -70,8 +70,8 @@ case class ElectrumEclairWallet(
       case res: ElectrumClient.BroadcastTransactionResponse if res.error.isDefined =>
         Future(false)
       case ElectrumClient.ServerError(
-            _: ElectrumClient.BroadcastTransaction,
-            _
+          _: ElectrumClient.BroadcastTransaction,
+          _
           ) =>
         Future(false)
     }

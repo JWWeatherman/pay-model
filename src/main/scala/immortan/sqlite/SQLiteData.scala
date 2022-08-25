@@ -136,9 +136,7 @@ class SQLiteData(val db: DBInterface) extends HeaderDb with DataBag {
 
   override def getHeader(height: Int): Option[BlockHeader] =
     db.select(ElectrumHeadersTable.selectByHeightSql, height.toString)
-      .headTry { rc =>
-        BlockHeader.read(rc bytes ElectrumHeadersTable.header)
-      }
+      .headTry { rc => BlockHeader.read(rc bytes ElectrumHeadersTable.header) }
       .toOption
 
   // Only used in testing currently
@@ -153,12 +151,12 @@ class SQLiteData(val db: DBInterface) extends HeaderDb with DataBag {
 
   override def getHeaders(startHeight: Int, maxCount: Int): Seq[BlockHeader] =
     db.select(
-      ElectrumHeadersTable.selectHeadersSql,
-      startHeight.toString,
-      maxCount.toString
-    ).iterable { rc =>
-      BlockHeader.read(rc bytes ElectrumHeadersTable.header)
-    }.toList
+        ElectrumHeadersTable.selectHeadersSql,
+        startHeight.toString,
+        maxCount.toString
+      )
+      .iterable { rc => BlockHeader.read(rc bytes ElectrumHeadersTable.header) }
+      .toList
 
   override def getTip: Option[HeightAndHeader] =
     db.select(ElectrumHeadersTable.selectTipSql)

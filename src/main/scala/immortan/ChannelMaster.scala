@@ -480,9 +480,9 @@ class ChannelMaster(
 
   override def onException: PartialFunction[Malfunction, Unit] = {
     case (
-          error: ExpiredHtlcInNormalChannel,
-          chan: ChannelNormal,
-          _: HasNormalCommitments
+        error: ExpiredHtlcInNormalChannel,
+        chan: ChannelNormal,
+        _: HasNormalCommitments
         ) =>
       LNParams.logBag.put(
         "channel-force-close-expired-htlc",
@@ -491,17 +491,17 @@ class ChannelMaster(
       chan doProcess CMD_CLOSE(scriptPubKey = None, force = true)
 
     case (
-          error: ChannelTransitionFail,
-          chan: ChannelNormal,
-          _: HasNormalCommitments
+        error: ChannelTransitionFail,
+        chan: ChannelNormal,
+        _: HasNormalCommitments
         ) =>
       LNParams.logBag.put("channel-force-close-error", error.stackTraceAsString)
       chan doProcess CMD_CLOSE(scriptPubKey = None, force = true)
 
     case (
-          error: ChannelTransitionFail,
-          chan: ChannelHosted,
-          hc: HostedCommits
+        error: ChannelTransitionFail,
+        chan: ChannelHosted,
+        hc: HostedCommits
         ) =>
       LNParams.logBag.put("hosted-channel-suspend", error.stackTraceAsString)
       chan.localSuspend(hc, ErrorCodes.ERR_HOSTED_MANUAL_SUSPEND)

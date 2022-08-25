@@ -42,8 +42,7 @@ class SQLiteNetwork(
     )
 
   def listExcludedChannels: Set[Long] =
-    db
-      .select(excludedTable.selectSql, System.currentTimeMillis.toString)
+    db.select(excludedTable.selectSql, System.currentTimeMillis.toString)
       .set(_ long excludedTable.shortChannelId)
 
   def listChannelsWithOneUpdate: ShortChanIdSet =

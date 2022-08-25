@@ -26,7 +26,7 @@ object OutPoint extends BtcSerializer[OutPoint] {
   }
 
   def isCoinbase(input: OutPoint) =
-    input.index == 0xffffffffL && input.hash == ByteVector32.Zeroes
+    input.index == 0xFFFFFFFFL && input.hash == ByteVector32.Zeroes
 
   def isNull(input: OutPoint) = isCoinbase(input)
 
@@ -62,7 +62,7 @@ object TxIn extends BtcSerializer[TxIn] {
   ): TxIn = new TxIn(outPoint, Script.write(signatureScript), sequence)
 
   /* Setting nSequence to this value for every input in a transaction disables nLockTime. */
-  val SEQUENCE_FINAL = 0xffffffffL
+  val SEQUENCE_FINAL = 0xFFFFFFFFL
 
   /* Below flags apply in the context of BIP 68*/
   /* If this flag set, CTxIn::nSequence is NOT interpreted as a relative lock-time. */
@@ -75,7 +75,7 @@ object TxIn extends BtcSerializer[TxIn] {
 
   /* If CTxIn::nSequence encodes a relative lock-time, this mask is
    * applied to extract that lock-time from the sequence field. */
-  val SEQUENCE_LOCKTIME_MASK = 0x0000ffffL
+  val SEQUENCE_LOCKTIME_MASK = 0x0000FFFFL
 
   /* In order to use the same number of bits to encode roughly the
    * same wall-clock duration, and because blocks are naturally
@@ -116,9 +116,9 @@ object TxIn extends BtcSerializer[TxIn] {
       "coinbase script length must be between 2 and 100"
     )
     TxIn(
-      OutPoint(ByteVector32.Zeroes, 0xffffffffL),
+      OutPoint(ByteVector32.Zeroes, 0xFFFFFFFFL),
       script,
-      sequence = 0xffffffffL
+      sequence = 0xFFFFFFFFL
     )
   }
 
@@ -513,11 +513,9 @@ object Transaction extends BtcSerializer[Transaction] {
         } else ByteVector32.Zeroes
 
         val hashSequence: ByteVector =
-          if (
-            !isAnyoneCanPay(sighashType) && !isHashSingle(
-              sighashType
-            ) && !isHashNone(sighashType)
-          ) {
+          if (!isAnyoneCanPay(sighashType) && !isHashSingle(
+                sighashType
+              ) && !isHashNone(sighashType)) {
             Crypto.hash256(
               tx.txIn
                 .map(_.sequence)
@@ -687,13 +685,11 @@ object Transaction extends BtcSerializer[Transaction] {
       val amount = prevOutput.amount
       val ctx = Script.Context(tx, i, amount)
       val runner = new Script.Runner(ctx, scriptFlags, callback)
-      if (
-        !runner.verifyScripts(
-          tx.txIn(i).signatureScript,
-          prevOutputScript,
-          tx.txIn(i).witness
-        )
-      )
+      if (!runner.verifyScripts(
+            tx.txIn(i).signatureScript,
+            prevOutputScript,
+            tx.txIn(i).witness
+          ))
         throw new RuntimeException(
           s"tx ${tx.txid} does not spend its input # $i"
         )

@@ -26,7 +26,7 @@ object Generators {
 
   def perCommitSecret(seed: ByteVector32, index: Long): PrivateKey =
     PrivateKey(
-      ShaChain.shaChainFromSeed(seed, 0xffffffffffffL - index)
+      ShaChain.shaChainFromSeed(seed, 0xFFFFFFFFFFFFL - index)
     )
 
   def perCommitPoint(seed: ByteVector32, index: Long): PublicKey =

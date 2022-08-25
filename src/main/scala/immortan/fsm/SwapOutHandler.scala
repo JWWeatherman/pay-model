@@ -44,13 +44,13 @@ abstract class SwapOutHandler(
     ): Unit =
       msg match {
         case SwapOutTransactionDenied(
-              btcAddr,
-              SwapOutTransactionDenied.UNKNOWN_CHAIN_FEERATES
+            btcAddr,
+            SwapOutTransactionDenied.UNKNOWN_CHAIN_FEERATES
             ) if btcAddr == btcAddress =>
           runAnd(finish)(onPeerCanNotHandle)
         case SwapOutTransactionDenied(
-              btcAddr,
-              SwapOutTransactionDenied.CAN_NOT_HANDLE_AMOUNT
+            btcAddr,
+            SwapOutTransactionDenied.CAN_NOT_HANDLE_AMOUNT
             ) if btcAddr == btcAddress =>
           runAnd(finish)(onPeerCanNotHandle)
         case message: SwapOutTransactionResponse if message.btcAddress == btcAddress =>

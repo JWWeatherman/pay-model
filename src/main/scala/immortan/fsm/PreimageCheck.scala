@@ -71,8 +71,8 @@ abstract class PreimageCheck extends StateMachine[PreimageCheck.CheckData] {
         become(data.copy(pairs = data.pairs + newPair), OPERATIONAL)
 
       case (
-            PreimageCheck.PeerResponse(msg: ReplyPreimages, worker),
-            OPERATIONAL
+          PreimageCheck.PeerResponse(msg: ReplyPreimages, worker),
+          OPERATIONAL
           ) =>
         // One of remote nodes replies, check if we have all preimages of interest collected
         become(

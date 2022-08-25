@@ -139,14 +139,12 @@ case class UpdateAddHtlc(
   // Important: LNParams.secret must be defined
   private[this] lazy val fullTagOpt: Option[FullPaymentTag] = for {
     EncryptedPaymentSecret(cipherBytes) <- tlvStream.get[EncryptedPaymentSecret]
-    plainBytes <-
-      Tools
-        .chaChaDecrypt(LNParams.secret.keys.ourNodePrivateKey.value, cipherBytes)
-        .toOption
-    DecodeResult(shortTag, _) <-
-      PaymentTagTlv.shortPaymentTagCodec
-        .decode(plainBytes.toBitVector)
-        .toOption
+    plainBytes <- Tools
+      .chaChaDecrypt(LNParams.secret.keys.ourNodePrivateKey.value, cipherBytes)
+      .toOption
+    DecodeResult(shortTag, _) <- PaymentTagTlv.shortPaymentTagCodec
+      .decode(plainBytes.toBitVector)
+      .toOption
   } yield FullPaymentTag(paymentHash, shortTag.paymentSecret, shortTag.tag)
 
   // This is relevant for outgoing payments, NO_SECRET means this is NOT an outgoing local or trampoline-routed payment
@@ -608,13 +606,9 @@ sealed trait SwapIn // Chain -> LN
 
 case object SwapInRequest extends SwapIn with ChainSwapMessage // (1) User notifies provider it wants to start swap-in
 
-case class SwapInResponse(btcAddress: String, minChainDeposit: Satoshi)
-    extends SwapIn
-    with ChainSwapMessage // (2) Provider replies with chain address
+case class SwapInResponse(btcAddress: String, minChainDeposit: Satoshi) extends SwapIn with ChainSwapMessage // (2) Provider replies with chain address
 
-case class SwapInPaymentRequest(paymentRequest: String, id: Long)
-    extends SwapIn
-    with ChainSwapMessage // (4) Once deposit is confirmed user can issue a withdraw invoice
+case class SwapInPaymentRequest(paymentRequest: String, id: Long) extends SwapIn with ChainSwapMessage // (4) Once deposit is confirmed user can issue a withdraw invoice
 
 object SwapInPaymentDenied {
   final val WITHDRAWAL_ALREADY_IN_FLIGHT = 1L

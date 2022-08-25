@@ -401,7 +401,7 @@ object ChannelKeys {
   }
 
   def newKeyPath(isFunder: Boolean): KeyPath = {
-    def nextHop: Long = secureRandom.nextInt & 0xffffffffL
+    def nextHop: Long = secureRandom.nextInt & 0xFFFFFFFFL
     val lastHop = if (isFunder) hardened(1) else hardened(0)
     val path = Seq(
       nextHop,

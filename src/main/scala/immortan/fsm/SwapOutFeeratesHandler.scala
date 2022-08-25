@@ -74,15 +74,15 @@ abstract class SwapOutFeeratesHandler extends StateMachine[FeeratesData] { me =>
   def doProcess(change: Any): Unit =
     (change, state) match {
       case (
-            NoSwapOutSupport(worker),
-            WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
+          NoSwapOutSupport(worker),
+          WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
           ) =>
         become(data.copy(results = data.results - worker.info), state)
         doSearch(force = false)
 
       case (
-            YesSwapOutSupport(worker, msg: SwapOutFeerates),
-            WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
+          YesSwapOutSupport(worker, msg: SwapOutFeerates),
+          WAITING_FIRST_RESPONSE | WAITING_REST_OF_RESPONSES
           )
           // Provider has sent feerates which are too low, tx won't likely ever confirm
           if msg.feerates.feerates.forall(params => minChainFee > params.fee) =>
@@ -90,8 +90,8 @@ abstract class SwapOutFeeratesHandler extends StateMachine[FeeratesData] { me =>
         doSearch(force = false)
 
       case (
-            YesSwapOutSupport(worker, msg: SwapOutFeerates),
-            WAITING_FIRST_RESPONSE
+          YesSwapOutSupport(worker, msg: SwapOutFeerates),
+          WAITING_FIRST_RESPONSE
           ) =>
         val results1 = data.results.updated(
           worker.info,
@@ -107,8 +107,8 @@ abstract class SwapOutFeeratesHandler extends StateMachine[FeeratesData] { me =>
         doSearch(force = false)
 
       case (
-            YesSwapOutSupport(worker, msg: SwapOutFeerates),
-            WAITING_REST_OF_RESPONSES
+          YesSwapOutSupport(worker, msg: SwapOutFeerates),
+          WAITING_REST_OF_RESPONSES
           ) =>
         val results1 = data.results.updated(
           worker.info,

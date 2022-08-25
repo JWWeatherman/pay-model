@@ -62,8 +62,7 @@ object CheckPoint {
     val checkpoints1 = headerDb.getTip match {
       case Some((height, _)) =>
         val newcheckpoints = for {
-          h <-
-            checkpoints.size * RETARGETING_PERIOD - 1 + RETARGETING_PERIOD to height - RETARGETING_PERIOD by RETARGETING_PERIOD
+          h <- checkpoints.size * RETARGETING_PERIOD - 1 + RETARGETING_PERIOD to height - RETARGETING_PERIOD by RETARGETING_PERIOD
         } yield {
           // we * should * have these headers in our db
           val cpheader = headerDb.getHeader(h).get

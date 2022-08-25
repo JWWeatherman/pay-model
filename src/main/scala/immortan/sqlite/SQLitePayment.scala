@@ -31,8 +31,7 @@ case class PaymentSummary(
 
 class SQLitePayment(db: DBInterface, preimageDb: DBInterface) extends PaymentBag {
   def getPaymentInfo(paymentHash: ByteVector32): Try[PaymentInfo] =
-    db
-      .select(PaymentTable.selectByHashSql, paymentHash.toHex)
+    db.select(PaymentTable.selectByHashSql, paymentHash.toHex)
       .headTry(toPaymentInfo)
 
   def removePaymentInfo(paymentHash: ByteVector32): Unit = {

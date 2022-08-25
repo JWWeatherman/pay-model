@@ -397,7 +397,7 @@ object Scripts {
    */
   def extractPaymentHashFromHtlcTimeout: PartialFunction[ScriptWitness, ByteVector] = {
     case ScriptWitness(
-          Seq(ByteVector.empty, _, _, ByteVector.empty, htlcOfferedScript)
+        Seq(ByteVector.empty, _, _, ByteVector.empty, htlcOfferedScript)
         ) =>
       htlcOfferedScript.slice(109, 109 + 20)
   }

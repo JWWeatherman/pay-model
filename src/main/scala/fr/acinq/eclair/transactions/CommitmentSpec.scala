@@ -24,7 +24,6 @@ import fr.acinq.eclair.wire._
 /**
  * Created by PM on 07/12/2016.
  */
-
 sealed trait CommitmentOutput
 
 object CommitmentOutput {

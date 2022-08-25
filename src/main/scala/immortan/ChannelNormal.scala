@@ -115,9 +115,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
         SEND(open)
 
       case (
-            wait: DATA_WAIT_FOR_ACCEPT_CHANNEL,
-            accept: AcceptChannel,
-            WAIT_FOR_ACCEPT
+          wait: DATA_WAIT_FOR_ACCEPT_CHANNEL,
+          accept: AcceptChannel,
+          WAIT_FOR_ACCEPT
           ) =>
         val data1 = DATA_WAIT_FOR_FUNDING_INTERNAL(
           wait.initFunder,
@@ -142,9 +142,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
         BECOME(data1, WAIT_FOR_ACCEPT)
 
       case (
-            wait: DATA_WAIT_FOR_FUNDING_INTERNAL,
-            realFunding: GenerateTxResponse,
-            WAIT_FOR_ACCEPT
+          wait: DATA_WAIT_FOR_FUNDING_INTERNAL,
+          realFunding: GenerateTxResponse,
+          WAIT_FOR_ACCEPT
           ) =>
         val fundingOutputIndex = realFunding.tx.txOut.indexWhere(
           _.publicKeyScript == realFunding.pubKeyScriptToAmount.keys.head
@@ -215,9 +215,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
         SEND(fundingCreated)
 
       case (
-            wait: DATA_WAIT_FOR_FUNDING_SIGNED,
-            signed: FundingSigned,
-            WAIT_FOR_ACCEPT
+          wait: DATA_WAIT_FOR_FUNDING_SIGNED,
+          signed: FundingSigned,
+          WAIT_FOR_ACCEPT
           ) =>
         val localSigOfLocalTx = Transactions.sign(
           wait.localCommitTx,
@@ -326,9 +326,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
         SEND(accept)
 
       case (
-            wait: DATA_WAIT_FOR_FUNDING_CREATED,
-            created: FundingCreated,
-            WAIT_FOR_ACCEPT
+          wait: DATA_WAIT_FOR_FUNDING_CREATED,
+          created: FundingCreated,
+          WAIT_FOR_ACCEPT
           ) =>
         val (localSpec, localCommitTx, remoteSpec, remoteCommitTx) =
           Helpers.Funding.makeFirstCommitTxs(
@@ -408,9 +408,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
       // AWAITING CONFIRMATION
 
       case (
-            wait: DATA_WAIT_FOR_FUNDING_CONFIRMED,
-            event: WatchEventConfirmed,
-            SLEEPING | WAIT_FUNDING_DONE
+          wait: DATA_WAIT_FOR_FUNDING_CONFIRMED,
+          event: WatchEventConfirmed,
+          SLEEPING | WAIT_FUNDING_DONE
           ) =>
         if (Try(wait checkSpend event.txConfirmedAt.tx).isFailure)
           StoreBecomeSend(
@@ -440,17 +440,17 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
         }
 
       case (
-            wait: DATA_WAIT_FOR_FUNDING_CONFIRMED,
-            locked: FundingLocked,
-            WAIT_FUNDING_DONE
+          wait: DATA_WAIT_FOR_FUNDING_CONFIRMED,
+          locked: FundingLocked,
+          WAIT_FUNDING_DONE
           ) =>
         // No need to store their message, they will re-send if we get disconnected
         BECOME(wait.copy(deferred = locked.asSome), WAIT_FUNDING_DONE)
 
       case (
-            wait: DATA_WAIT_FOR_FUNDING_LOCKED,
-            locked: FundingLocked,
-            WAIT_FUNDING_DONE
+          wait: DATA_WAIT_FOR_FUNDING_LOCKED,
+          locked: FundingLocked,
+          WAIT_FUNDING_DONE
           ) =>
         val commits1 = wait.commitments.copy(remoteNextCommitInfo = locked.nextPerCommitmentPoint.asRight)
         StoreBecomeSend(DATA_NORMAL(commits1, wait.shortChannelId), OPEN)
@@ -458,9 +458,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
       // MAIN LOOP
 
       case (
-            some: HasNormalCommitments,
-            WatchEventSpent(BITCOIN_FUNDING_SPENT, tx),
-            OPEN | SLEEPING | CLOSING
+          some: HasNormalCommitments,
+          WatchEventSpent(BITCOIN_FUNDING_SPENT, tx),
+          OPEN | SLEEPING | CLOSING
           ) =>
         // Catch all possible closings in one go, account for us receiving various closing txs multiple times
 
@@ -574,9 +574,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
       case (negs: DATA_NEGOTIATING, _: CMD_CLOSE, _) if negs.bestUnpublishedClosingTxOpt.nonEmpty =>
         handleMutualClose(negs.bestUnpublishedClosingTxOpt.get, negs)
       case (
-            some: HasNormalCommitments,
-            cmd: CMD_CLOSE,
-            OPEN | SLEEPING | WAIT_FUNDING_DONE | CLOSING
+          some: HasNormalCommitments,
+          cmd: CMD_CLOSE,
+          OPEN | SLEEPING | WAIT_FUNDING_DONE | CLOSING
           ) if cmd.force =>
         spendLocalCurrent(some, cmd)
 
@@ -803,13 +803,11 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
           negs.remoteShutdown.scriptPubKey,
           LNParams.feeRates.info.onChainFeeConf
         )
-        if (
-          negs.closingTxProposed.last.lastOption
-            .map(_.localClosingSigned.feeSatoshis)
-            .contains(
-              remote.feeSatoshis
-            ) || negs.closingTxProposed.flatten.size >= LNParams.maxNegotiationIterations
-        ) {
+        if (negs.closingTxProposed.last.lastOption
+              .map(_.localClosingSigned.feeSatoshis)
+              .contains(
+                remote.feeSatoshis
+              ) || negs.closingTxProposed.flatten.size >= LNParams.maxNegotiationIterations) {
           val negs1 =
             negs.copy(bestUnpublishedClosingTxOpt = signedClosingTx.asSome)
           handleMutualClose(signedClosingTx, negs1)
@@ -855,9 +853,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
       // OFFLINE IN PERSISTENT STATES
 
       case (
-            data1: HasNormalCommitments,
-            CMD_SOCKET_OFFLINE,
-            WAIT_FUNDING_DONE | OPEN
+          data1: HasNormalCommitments,
+          CMD_SOCKET_OFFLINE,
+          WAIT_FUNDING_DONE | OPEN
           ) =>
         // Do not persist if we had no proposed updates to protect against flapping channels
         val (data2, localProposedAdds, wasUpdated) =
@@ -870,9 +868,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
       // REESTABLISHMENT IN PERSISTENT STATES
 
       case (
-            wait: DATA_WAIT_FOR_REMOTE_PUBLISH_FUTURE_COMMITMENT,
-            CMD_SOCKET_ONLINE,
-            SLEEPING
+          wait: DATA_WAIT_FOR_REMOTE_PUBLISH_FUTURE_COMMITMENT,
+          CMD_SOCKET_ONLINE,
+          SLEEPING
           ) =>
         // There isn't much to do except asking them once again to publish their current commitment on chain
         CommsTower.workers
@@ -897,9 +895,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
         SEND(reestablish)
 
       case (
-            wait: DATA_WAIT_FOR_FUNDING_CONFIRMED,
-            _: ChannelReestablish,
-            SLEEPING
+          wait: DATA_WAIT_FOR_FUNDING_CONFIRMED,
+          _: ChannelReestablish,
+          SLEEPING
           ) =>
         // We put back the watch (operation is idempotent) because corresponding event may have been already fired while we were in SLEEPING state
         LNParams.chainWallets.watcher ! WatchConfirmed(
@@ -914,9 +912,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
         BECOME(wait, WAIT_FUNDING_DONE)
 
       case (
-            wait: DATA_WAIT_FOR_FUNDING_LOCKED,
-            _: ChannelReestablish,
-            SLEEPING
+          wait: DATA_WAIT_FOR_FUNDING_LOCKED,
+          _: ChannelReestablish,
+          SLEEPING
           ) =>
         // At this point funding tx already has a desired number of confirmations
         BECOME(wait, WAIT_FUNDING_DONE)
@@ -933,11 +931,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
               ) =>
             // If NextRemoteRevocationNumber is greater than our local commitment index, it means that either we are using an outdated commitment, or they are lying
             // we need to make sure that the last PerCommitmentSecret that they claim to have received from us is correct for that NextRemoteRevocationNumber - 1
-            if (
-              norm.commitments.localParams.keys.commitmentSecret(
-                rs.nextRemoteRevocationNumber - 1
-              ) == rs.yourLastPerCommitmentSecret
-            ) {
+            if (norm.commitments.localParams.keys.commitmentSecret(
+                  rs.nextRemoteRevocationNumber - 1
+                ) == rs.yourLastPerCommitmentSecret) {
               CommsTower.workers
                 .get(norm.commitments.remoteInfo.nodeSpecificPair)
                 .foreach(_ requestRemoteForceClose norm.channelId)
@@ -1061,9 +1057,9 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
         SEND(error)
 
       case (
-            closing: DATA_CLOSING,
-            WatchEventSpent(BITCOIN_OUTPUT_SPENT, tx),
-            CLOSING
+          closing: DATA_CLOSING,
+          WatchEventSpent(BITCOIN_OUTPUT_SPENT, tx),
+          CLOSING
           ) =>
         // An output in local/remote/revoked commit was spent, add it to irrevocably spent once confirmed
         LNParams.chainWallets.watcher ! WatchConfirmed(
@@ -1226,9 +1222,8 @@ abstract class ChannelNormal(bag: ChannelBag) extends Channel {
 
         val rcp1NextOpt = for {
           rcp <- closing.nextRemoteCommitPublished
-          nextRemoteCommit <-
-            commits1.remoteNextCommitInfo.left.toOption
-              .map(_.nextRemoteCommit)
+          nextRemoteCommit <- commits1.remoteNextCommitInfo.left.toOption
+            .map(_.nextRemoteCommit)
         } yield Closing.claimRemoteCommitTxOutputs(
           commits1,
           nextRemoteCommit,

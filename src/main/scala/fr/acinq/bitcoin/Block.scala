@@ -204,7 +204,7 @@ object Block extends BtcSerializer[Block] {
 
   val RegtestGenesisBlock = LivenetGenesisBlock.copy(header =
     LivenetGenesisBlock.header
-      .copy(bits = 0x207fffffL, nonce = 2, time = 1296688602)
+      .copy(bits = 0x207FFFFFL, nonce = 2, time = 1296688602)
   )
 
   val SegnetGenesisBlock = LivenetGenesisBlock.copy(header =
@@ -248,7 +248,7 @@ object Block extends BtcSerializer[Block] {
           if commitmentHeader.length == 36 && Protocol.uint32(
             commitmentHeader.take(4).toArray,
             ByteOrder.BIG_ENDIAN
-          ) == 0xaa21a9edL =>
+          ) == 0xAA21A9EDL =>
         ByteVector32(commitmentHeader.takeRight(32))
     }
 

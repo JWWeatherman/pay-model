@@ -75,9 +75,9 @@ abstract class ChannelHosted extends Channel { me =>
         BECOME(wait, WAIT_FOR_ACCEPT)
 
       case (
-            WaitRemoteHostedReply(remoteInfo, refundScriptPubKey, _),
-            init: InitHostedChannel,
-            WAIT_FOR_ACCEPT
+          WaitRemoteHostedReply(remoteInfo, refundScriptPubKey, _),
+          init: InitHostedChannel,
+          WAIT_FOR_ACCEPT
           ) =>
         if (init.initialClientBalanceMsat > init.channelCapacityMsat)
           throw new RuntimeException(
@@ -117,9 +117,9 @@ abstract class ChannelHosted extends Channel { me =>
         SEND(localHalfSignedHC.lastCrossSignedState.stateUpdate)
 
       case (
-            WaitRemoteHostedStateUpdate(_, localHalfSignedHC),
-            remoteSU: StateUpdate,
-            WAIT_FOR_ACCEPT
+          WaitRemoteHostedStateUpdate(_, localHalfSignedHC),
+          remoteSU: StateUpdate,
+          WAIT_FOR_ACCEPT
           ) =>
         val localCompleteLCSS = localHalfSignedHC.lastCrossSignedState
           .copy(remoteSigOfLocal = remoteSU.localSigOfRemoteLCSS)
@@ -145,9 +145,9 @@ abstract class ChannelHosted extends Channel { me =>
         )
 
       case (
-            wait: WaitRemoteHostedReply,
-            remoteLCSS: LastCrossSignedState,
-            WAIT_FOR_ACCEPT
+          wait: WaitRemoteHostedReply,
+          remoteLCSS: LastCrossSignedState,
+          WAIT_FOR_ACCEPT
           ) =>
         val isLocalSigOk =
           remoteLCSS.verifyRemoteSig(wait.remoteInfo.nodeSpecificPubKey)
@@ -355,9 +355,9 @@ abstract class ChannelHosted extends Channel { me =>
         StoreBecomeSend(hc.copy(overrideProposal = remoteSO.asSome), state)
 
       case (
-            hc: HostedCommits,
-            cmd @ CMD_HOSTED_STATE_OVERRIDE(remoteSO),
-            OPEN | SLEEPING
+          hc: HostedCommits,
+          cmd @ CMD_HOSTED_STATE_OVERRIDE(remoteSO),
+          OPEN | SLEEPING
           ) if hc.error.isDefined =>
         val overriddenLocalBalance =
           hc.lastCrossSignedState.initHostedChannel.channelCapacityMsat - remoteSO.localBalanceMsat

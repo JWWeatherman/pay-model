@@ -178,9 +178,9 @@ case class SyncWorker(
         become(data1, GOSSIP_SYNC)
 
       case (
-            worker: CommsTower.Worker,
-            syncData: SyncWorkerShortIdsData,
-            SHORT_ID_SYNC
+          worker: CommsTower.Worker,
+          syncData: SyncWorkerShortIdsData,
+          SHORT_ID_SYNC
           ) =>
         val tlv = QueryChannelRangeTlv.QueryFlags(flag = QueryChannelRangeTlv.QueryFlags.WANT_ALL)
         val query = QueryChannelRange(
@@ -192,9 +192,9 @@ case class SyncWorker(
         worker.handler process query
 
       case (
-            reply: ReplyChannelRange,
-            syncData: SyncWorkerShortIdsData,
-            SHORT_ID_SYNC
+          reply: ReplyChannelRange,
+          syncData: SyncWorkerShortIdsData,
+          SHORT_ID_SYNC
           ) =>
         val updatedData = syncData.copy(ranges = reply +: syncData.ranges)
         if (reply.syncComplete != 1) become(updatedData, SHORT_ID_SYNC)
@@ -230,9 +230,9 @@ case class SyncWorker(
         d1.syncMaster.onNodeAnnouncement(na)
 
       case (
-            _: ReplyShortChannelIdsEnd,
-            data1: SyncWorkerGossipData,
-            GOSSIP_SYNC
+          _: ReplyShortChannelIdsEnd,
+          data1: SyncWorkerGossipData,
+          GOSSIP_SYNC
           ) =>
         // We have completed current chunk, inform master and either continue or complete
         become(
@@ -253,9 +253,9 @@ case class SyncWorker(
         become(d1.withNewUpdate(update.lite), PHC_SYNC)
 
       case (
-            _: ReplyPublicHostedChannelsEnd,
-            completeSyncData: SyncWorkerPHCData,
-            PHC_SYNC
+          _: ReplyPublicHostedChannelsEnd,
+          completeSyncData: SyncWorkerPHCData,
+          PHC_SYNC
           ) =>
         // Peer has informed us that there is no more PHC gossip left, inform master and shut down
         master process completeSyncData
@@ -284,8 +284,7 @@ sealed trait SyncMasterData extends { me =>
   }
 
   def withoutSync(sd: SyncDisconnected): SyncMasterData =
-    me
-      .modify(_.extInfos)
+    me.modify(_.extInfos)
       .usingIf(sd.removePeer)(_ - sd.sync.remoteInfo)
       .modify(_.activeSyncs)
       .using(_ - sd.sync)
@@ -390,9 +389,9 @@ abstract class SyncMaster(
         Rx.ioQueue.delay(5.seconds).foreach(_ => me process CMDAddSync)
 
       case (
-            CMDShortIdsComplete(sync, ranges1),
-            data1: SyncMasterShortIdData,
-            SHORT_ID_SYNC
+          CMDShortIdsComplete(sync, ranges1),
+          data1: SyncMasterShortIdData,
+          SHORT_ID_SYNC
           ) =>
         val ranges2 = data1.ranges.updated(sync.pair.them, ranges1)
         val data2 = data1.copy(ranges = ranges2)
@@ -435,9 +434,9 @@ abstract class SyncMaster(
       // GOSSIP_SYNC
 
       case (
-            workerData: SyncWorkerGossipData,
-            data1: SyncMasterGossipData,
-            GOSSIP_SYNC
+          workerData: SyncWorkerGossipData,
+          data1: SyncMasterGossipData,
+          GOSSIP_SYNC
           ) if data1.activeSyncs.size < maxConnections =>
         // Turns out one of the workers has disconnected while getting gossip, create one with unused remote nodeId and track its progress
         // Important: we retain pending queries from previous sync worker, that's why we need worker data here
@@ -454,9 +453,9 @@ abstract class SyncMaster(
         become(data1.withoutSync(sd), GOSSIP_SYNC)
 
       case (
-            CMDChunkComplete(sync, workerData),
-            data1: SyncMasterGossipData,
-            GOSSIP_SYNC
+          CMDChunkComplete(sync, workerData),
+          data1: SyncMasterGossipData,
+          GOSSIP_SYNC
           ) =>
         for (liteAnnounce <- workerData.announces)
           confirmedChanAnnounces(liteAnnounce) =
@@ -527,10 +526,9 @@ abstract class SyncMaster(
     val shortIdFlagSeq = for {
       (shortId, theirTimestamps, theirChecksums) <- stack.zipped
       if provenAndNotExcluded(shortId)
-      nodeAnnounceFlags =
-        if (requestNodeAnnounce contains shortId)
-          INCLUDE_NODE_ANNOUNCEMENT_1 | INCLUDE_NODE_ANNOUNCEMENT_2
-        else 0
+      nodeAnnounceFlags = if (requestNodeAnnounce contains shortId)
+        INCLUDE_NODE_ANNOUNCEMENT_1 | INCLUDE_NODE_ANNOUNCEMENT_2
+      else 0
       finalFlag = computeFlag(
         shortId,
         theirTimestamps,

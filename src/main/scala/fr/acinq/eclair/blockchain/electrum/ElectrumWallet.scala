@@ -57,19 +57,15 @@ class ElectrumWallet(
         persistentDataCodec.decode(raw.toBitVector).require.value
       ).getOrElse(params.emptyPersistentData)
       val firstAccountKeys =
-        for (
-          idx <- math.max(
-            persisted.accountKeysCount - 1500,
-            0
-          ) until persisted.accountKeysCount
-        ) yield derivePublicKey(ewt.accountMaster, idx)
+        for (idx <- math.max(
+               persisted.accountKeysCount - 1500,
+               0
+             ) until persisted.accountKeysCount) yield derivePublicKey(ewt.accountMaster, idx)
       val firstChangeKeys =
-        for (
-          idx <- math.max(
-            persisted.changeKeysCount - 1500,
-            0
-          ) until persisted.changeKeysCount
-        ) yield derivePublicKey(ewt.changeMaster, idx)
+        for (idx <- math.max(
+               persisted.changeKeysCount - 1500,
+               0
+             ) until persisted.changeKeysCount) yield derivePublicKey(ewt.changeMaster, idx)
 
       stay using ElectrumData(
         ewt,
@@ -109,8 +105,8 @@ class ElectrumWallet(
       stay using persistAndNotify(data1)
 
     case Event(
-          ElectrumClient.ScriptHashSubscriptionResponse(scriptHash, status),
-          data
+        ElectrumClient.ScriptHashSubscriptionResponse(scriptHash, status),
+        data
         ) if data.status.get(scriptHash).contains(status) =>
       val missing = data.history
           .getOrElse(scriptHash, Nil)
@@ -132,24 +128,24 @@ class ElectrumWallet(
       } else stay
 
     case Event(
-          ElectrumClient.ScriptHashSubscriptionResponse(scriptHash, _),
-          data
+        ElectrumClient.ScriptHashSubscriptionResponse(scriptHash, _),
+        data
         )
         if !data.accountKeyMap.contains(scriptHash) && !data.changeKeyMap
           .contains(scriptHash) =>
       stay
 
     case Event(
-          ElectrumClient.ScriptHashSubscriptionResponse(scriptHash, status),
-          data
+        ElectrumClient.ScriptHashSubscriptionResponse(scriptHash, status),
+        data
         ) if status.isEmpty =>
       val status1 = data.status.updated(scriptHash, status)
       val data1 = data.copy(status = status1)
       stay using persistAndNotify(data1)
 
     case Event(
-          ElectrumClient.ScriptHashSubscriptionResponse(scriptHash, status),
-          data
+        ElectrumClient.ScriptHashSubscriptionResponse(scriptHash, status),
+        data
         ) =>
       val data1 = data.copy(
         status = data.status.updated(scriptHash, status),
@@ -159,8 +155,8 @@ class ElectrumWallet(
       stay using persistAndNotify(data1)
 
     case Event(
-          ElectrumClient.GetScriptHashHistoryResponse(scriptHash, items),
-          data
+        ElectrumClient.GetScriptHashHistoryResponse(scriptHash, items),
+        data
         ) =>
       val pendingHeadersRequests1 = collection.mutable.HashSet.empty[GetHeaders]
       pendingHeadersRequests1 ++= data.pendingHeadersRequests
@@ -173,12 +169,10 @@ class ElectrumWallet(
       val items1 = items ++ shadowItems
 
       def downloadHeadersIfMissing(height: Int): Unit = {
-        if (
-          data.blockchain
-            .getHeader(height)
-            .orElse(params.headerDb getHeader height)
-            .isEmpty
-        ) {
+        if (data.blockchain
+              .getHeader(height)
+              .orElse(params.headerDb getHeader height)
+              .isEmpty) {
           // we don't have this header because it is older than our checkpoints => request the entire chunk
           val request = GetHeaders(
             height / RETARGETING_PERIOD * RETARGETING_PERIOD,
@@ -333,8 +327,8 @@ class ElectrumWallet(
     case Event(GetData, data) => stay replying GetDataResponse(data)
 
     case Event(
-          CompleteTransaction(pubKeyScriptToAmount, feeRatePerKw, sequenceFlag),
-          data
+        CompleteTransaction(pubKeyScriptToAmount, feeRatePerKw, sequenceFlag),
+        data
         ) =>
       val txOuts =
         for (Tuple2(script, amount) <- pubKeyScriptToAmount)
@@ -359,15 +353,15 @@ class ElectrumWallet(
       stay replying resultTry1
 
     case Event(
-          SendAll(
-            publicKeyScript,
-            pubKeyScriptToAmount,
-            feeRatePerKw,
-            sequenceFlag,
-            fromOutpoints,
-            extraOutUtxos
-          ),
-          data
+        SendAll(
+          publicKeyScript,
+          pubKeyScriptToAmount,
+          feeRatePerKw,
+          sequenceFlag,
+          fromOutpoints,
+          extraOutUtxos
+        ),
+        data
         ) =>
       val inUtxos =
         if (fromOutpoints.nonEmpty)

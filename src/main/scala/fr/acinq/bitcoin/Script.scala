@@ -314,7 +314,7 @@ object Script {
       }
       var result = 0L
       for (i <- input.toSeq.indices) {
-        result |= (input(i) & 0xffL) << (8 * i)
+        result |= (input(i) & 0xFFL) << (8 * i)
       }
 
       // If the input vector's most significant byte is 0x80, remove it from
@@ -389,12 +389,10 @@ object Script {
     // We want to compare apples to apples, so fail the script
     // unless the type of nLockTime being tested is the same as
     // the nLockTime in the transaction.
-    if (
-      !(
-        (tx.lockTime < Transaction.LOCKTIME_THRESHOLD && lockTime < Transaction.LOCKTIME_THRESHOLD) ||
-        (tx.lockTime >= Transaction.LOCKTIME_THRESHOLD && lockTime >= Transaction.LOCKTIME_THRESHOLD)
-      )
-    ) {
+    if (!(
+          (tx.lockTime < Transaction.LOCKTIME_THRESHOLD && lockTime < Transaction.LOCKTIME_THRESHOLD) ||
+          (tx.lockTime >= Transaction.LOCKTIME_THRESHOLD && lockTime >= Transaction.LOCKTIME_THRESHOLD)
+        )) {
       return false
     }
 
@@ -454,12 +452,10 @@ object Script {
     // We want to compare apples to apples, so fail the script
     // unless the type of nSequenceMasked being tested is the same as
     // the nSequenceMasked in the transaction.
-    if (
-      !(
-        (txToSequenceMasked < TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked < TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG) ||
-        (txToSequenceMasked >= TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked >= TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG)
-      )
-    ) {
+    if (!(
+          (txToSequenceMasked < TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked < TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG) ||
+          (txToSequenceMasked >= TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked >= TxIn.SEQUENCE_LOCKTIME_TYPE_FLAG)
+        )) {
       return false
     }
 
@@ -1757,11 +1753,9 @@ object Script {
         require((scriptFlag & SCRIPT_VERIFY_P2SH) != 0)
       }
       val ssig = Script.parse(scriptSig)
-      if (
-        ((scriptFlag & SCRIPT_VERIFY_SIGPUSHONLY) != 0) && !Script.isPushOnly(
-          ssig
-        )
-      ) throw new RuntimeException("signature script is not PUSH-only")
+      if (((scriptFlag & SCRIPT_VERIFY_SIGPUSHONLY) != 0) && !Script.isPushOnly(
+            ssig
+          )) throw new RuntimeException("signature script is not PUSH-only")
       val stack = run(ssig)
 
       val spub = Script.parse(scriptPubKey)
@@ -1794,11 +1788,9 @@ object Script {
       } else stack0
 
       val stack2 =
-        if (
-          ((scriptFlag & SCRIPT_VERIFY_P2SH) != 0) && Script.isPayToScript(
-            scriptPubKey
-          )
-        ) {
+        if (((scriptFlag & SCRIPT_VERIFY_P2SH) != 0) && Script.isPayToScript(
+              scriptPubKey
+            )) {
           // scriptSig must be literals-only or validation fails
           if (!Script.isPushOnly(ssig))
             throw new RuntimeException("signature script is not PUSH-only")

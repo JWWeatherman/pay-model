@@ -86,7 +86,7 @@ object TlvCodecs {
   /** Truncated uint32 (0 to 4 bytes unsigned integer). */
   val tu32: Codec[Long] = tu64.exmap(
     {
-      case i if i > 0xffffffffL => Attempt.Failure(Err("tu32 overflow"))
+      case i if i > 0xFFFFFFFFL => Attempt.Failure(Err("tu32 overflow"))
       case i => Attempt.Successful(i.toBigInt.toLong)
     },
     l => Attempt.Successful(l)

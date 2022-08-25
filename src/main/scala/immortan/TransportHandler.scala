@@ -88,9 +88,9 @@ abstract class TransportHandler(keyPair: KeyPair, remotePubKey: ByteVector) exte
         doProcess(Ping)
 
       case (
-            CyphertextData(encoder, decoder, None, buffer),
-            Ping,
-            WAITING_CYPHERTEXT
+          CyphertextData(encoder, decoder, None, buffer),
+          Ping,
+          WAITING_CYPHERTEXT
           ) if buffer.length >= 18 =>
         val (ciphertext, remainder) = buffer.splitAt(18)
         val (decoder1, plaintext) =
@@ -101,9 +101,9 @@ abstract class TransportHandler(keyPair: KeyPair, remotePubKey: ByteVector) exte
         doProcess(Ping)
 
       case (
-            CyphertextData(encoder, decoder, Some(length), buffer),
-            Ping,
-            WAITING_CYPHERTEXT
+          CyphertextData(encoder, decoder, Some(length), buffer),
+          Ping,
+          WAITING_CYPHERTEXT
           ) if buffer.length >= length + 16 =>
         val (ciphertext, remainder) = buffer.splitAt(length + 16)
         val (decoder1, plaintext) =

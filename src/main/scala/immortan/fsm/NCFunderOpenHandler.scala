@@ -81,31 +81,31 @@ abstract class NCFunderOpenHandler(
 
       override def onBecome: PartialFunction[Transition, Unit] = {
         case (
-              _,
-              _: DATA_WAIT_FOR_ACCEPT_CHANNEL,
-              data: DATA_WAIT_FOR_FUNDING_INTERNAL,
-              WAIT_FOR_ACCEPT,
-              WAIT_FOR_ACCEPT
+            _,
+            _: DATA_WAIT_FOR_ACCEPT_CHANNEL,
+            data: DATA_WAIT_FOR_FUNDING_INTERNAL,
+            WAIT_FOR_ACCEPT,
+            WAIT_FOR_ACCEPT
             ) =>
           // At this point wallet should produce a real funding tx and send it to channel
           onAwaitFunding(data)
 
         case (
-              _,
-              _: DATA_WAIT_FOR_FUNDING_INTERNAL,
-              data: DATA_WAIT_FOR_FUNDING_SIGNED,
-              WAIT_FOR_ACCEPT,
-              WAIT_FOR_ACCEPT
+            _,
+            _: DATA_WAIT_FOR_FUNDING_INTERNAL,
+            data: DATA_WAIT_FOR_FUNDING_SIGNED,
+            WAIT_FOR_ACCEPT,
+            WAIT_FOR_ACCEPT
             ) =>
           // Once funding tx becomes known peer will start sending messages using a real channel ID, not a temp one
           assignedChanId = Some(data.channelId)
 
         case (
-              _,
-              _,
-              data: DATA_WAIT_FOR_FUNDING_CONFIRMED,
-              WAIT_FOR_ACCEPT,
-              WAIT_FUNDING_DONE
+            _,
+            _,
+            data: DATA_WAIT_FOR_FUNDING_CONFIRMED,
+            WAIT_FOR_ACCEPT,
+            WAIT_FUNDING_DONE
             ) =>
           // On disconnect we remove this listener from CommsTower, but retain it as channel listener
           // this ensures successful implanting if disconnect happens while funding is being published

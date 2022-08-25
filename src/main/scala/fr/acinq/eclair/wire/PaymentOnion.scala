@@ -28,7 +28,6 @@ import scodec.bits.{BitVector, ByteVector}
 /**
  * Created by t-bast on 05/07/2019.
  */
-
 /*
 We support multiple payment flows, each having different requirements for what the onions contain. The following is an
 overview of the onion contents we support.
@@ -542,8 +541,7 @@ object PaymentOnionCodecs {
           Attempt.failure(MissingRequiredTlv(UInt64(6)))
         case Left(tlvs) => Attempt.successful(ChannelRelayTlvPayload(tlvs))
         case Right(legacy) => Attempt.successful(legacy)
-      },
-      {
+      }, {
         case legacy: RelayLegacyPayload => Right(legacy)
         case ChannelRelayTlvPayload(tlvs) => Left(tlvs)
       }
@@ -559,8 +557,7 @@ object PaymentOnionCodecs {
         case tlvs if tlvs.get[OutgoingNodeId].isEmpty =>
           Attempt.failure(MissingRequiredTlv(UInt64(66098)))
         case tlvs => Attempt.successful(NodeRelayPayload(tlvs))
-      },
-      {
+      }, {
         case NodeRelayPayload(tlvs) =>
           tlvs
       }
@@ -576,8 +573,7 @@ object PaymentOnionCodecs {
         case tlvs if tlvs.get[PaymentData].isEmpty =>
           Attempt.failure(MissingRequiredTlv(UInt64(8)))
         case tlvs => Attempt.successful(FinalTlvPayload(tlvs))
-      },
-      {
+      }, {
         case FinalTlvPayload(tlvs) =>
           tlvs
       }

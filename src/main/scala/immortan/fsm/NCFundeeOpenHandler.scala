@@ -57,11 +57,11 @@ abstract class NCFundeeOpenHandler(
 
     override def onBecome: PartialFunction[Transition, Unit] = {
       case (
-            _,
-            _,
-            data: DATA_WAIT_FOR_FUNDING_CONFIRMED,
-            WAIT_FOR_ACCEPT,
-            WAIT_FUNDING_DONE
+          _,
+          _,
+          data: DATA_WAIT_FOR_FUNDING_CONFIRMED,
+          WAIT_FOR_ACCEPT,
+          WAIT_FUNDING_DONE
           ) =>
         // It is up to NC to store itself and communicate successful opening
         onEstablished(data.commitments, freshChannel)

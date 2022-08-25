@@ -77,8 +77,8 @@ class ElectrumChainSync(
       goto(RUNNING)
 
     case Event(
-          response: ElectrumClient.HeaderSubscriptionResponse,
-          blockchain
+        response: ElectrumClient.HeaderSubscriptionResponse,
+        blockchain
         ) =>
       context.system.eventStream publish ElectrumChainSync.ChainSyncStarted(
         blockchain.height,
@@ -100,8 +100,8 @@ class ElectrumChainSync(
       goto(RUNNING)
 
     case Event(
-          ElectrumClient.GetHeadersResponse(start, headers, _),
-          blockchain
+        ElectrumClient.GetHeadersResponse(start, headers, _),
+        blockchain
         ) =>
       val blockchain1Try =
         Try apply Blockchain.addHeaders(blockchain, start, headers)
@@ -131,8 +131,8 @@ class ElectrumChainSync(
 
   when(RUNNING) {
     case Event(
-          ElectrumClient.HeaderSubscriptionResponse(height, header),
-          blockchain
+        ElectrumClient.HeaderSubscriptionResponse(height, header),
+        blockchain
         ) if blockchain.tip.header != header =>
       val difficultyOk = Blockchain
         .getDifficulty(blockchain, height, headerDb)
@@ -154,8 +154,8 @@ class ElectrumChainSync(
       }
 
     case Event(
-          ElectrumClient.GetHeadersResponse(start, headers, _),
-          blockchain
+        ElectrumClient.GetHeadersResponse(start, headers, _),
+        blockchain
         ) =>
       val blockchain1Try =
         Try apply Blockchain.addHeaders(blockchain, start, headers)

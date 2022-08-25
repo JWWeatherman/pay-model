@@ -1170,10 +1170,8 @@ object Psbt {
     redeemScript.flatMap(script =>
       input.witnessScript match {
         case Some(witnessScript) =>
-          if (
-            !Script
-              .isPay2wpkh(script) && script != Script.pay2wsh(witnessScript)
-          ) {
+          if (!Script
+                .isPay2wpkh(script) && script != Script.pay2wsh(witnessScript)) {
             Failure(
               new IllegalArgumentException(
                 "witness script does not match redeemScript or scriptPubKey"
@@ -1312,11 +1310,9 @@ object Psbt {
           "cannot join psbts with different tx lockTime"
         )
       )
-    } else if (
-      psbts.flatMap(_.global.tx.txIn.map(_.outPoint)).toSet.size != psbts
-        .map(_.global.tx.txIn.size)
-        .sum
-    ) {
+    } else if (psbts.flatMap(_.global.tx.txIn.map(_.outPoint)).toSet.size != psbts
+                 .map(_.global.tx.txIn.size)
+                 .sum) {
       Failure(
         new IllegalArgumentException(
           "cannot join psbts that spend the same input"
@@ -1768,7 +1764,8 @@ object Psbt {
         unknown: Seq[DataEntry]
     ): Psbt.Input = {
       val emptied =
-        redeemScript.isEmpty && witnessScript.isEmpty && partialSigs.isEmpty && derivationPaths.isEmpty && sighashType.isEmpty
+        redeemScript.isEmpty && witnessScript.isEmpty && partialSigs.isEmpty && derivationPaths.isEmpty && sighashType
+          .isEmpty
       (nonWitnessUtxo, witnessUtxo, scriptSig, scriptWitness) match {
         // If the input is finalized, it must have been emptied otherwise it's invalid.
         case (_, Some(txOut), _, Some(finalScriptWitness)) if emptied =>

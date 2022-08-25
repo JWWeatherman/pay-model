@@ -31,8 +31,7 @@ object LightningMessageCodecs {
           case (gf, lf) =>
             val length = gf.length.max(lf.length)
             Features(gf.padLeft(length) | lf.padLeft(length)).initFeatures()
-        },
-        { features => (ByteVector.empty, features.toByteVector) }
+        }, { features => (ByteVector.empty, features.toByteVector) }
       )
 
   val initCodec =

@@ -806,12 +806,12 @@ object Helpers {
         cs.localParams.walletStaticPaymentBasepoint
       )
       require(
-        txnumber <= 0xffffffffffffL,
+        txnumber <= 0xFFFFFFFFFFFFL,
         "txnumber must be lesser than 48 bits long"
       )
 
       cs.remotePerCommitmentSecrets
-        .getHash(0xffffffffffffL - txnumber)
+        .getHash(0xFFFFFFFFFFFFL - txnumber)
         .map(PrivateKey.apply)
         .map { remotePerCommitmentSecret =>
           val remoteDelayedPaymentPubkey = Generators.derivePubKey(
@@ -957,7 +957,7 @@ object Helpers {
         )
 
         val infoOpt = cs.remotePerCommitmentSecrets
-          .getHash(0xffffffffffffL - txNumber)
+          .getHash(0xFFFFFFFFFFFFL - txNumber)
           .map(PrivateKey.apply)
           .flatMap { remotePerCommitmentSecret =>
             val remoteRevocationPubkey = Generators.revocationPubKey(

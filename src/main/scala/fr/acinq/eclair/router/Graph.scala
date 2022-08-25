@@ -129,26 +129,22 @@ object Graph {
             currentCost <= edge.updExt.capacity && currentCost >= edge.updExt.update.htlcMinimumMsat
           val neighbor = edge.desc.from
 
-          if (
-            boundaries(neighborWeight) && !ignoreEdges.contains(
-              edge.desc
-            ) && !ignoreVertices.contains(neighbor) && !ignoreDirections
-              .contains(edge.desc.toDirection) && canRelayAmount
-          ) {
+          if (boundaries(neighborWeight) && !ignoreEdges.contains(
+                edge.desc
+              ) && !ignoreVertices.contains(neighbor) && !ignoreDirections
+                .contains(edge.desc.toDirection) && canRelayAmount) {
             // if this path between neighbor and the target has a shorter distance than previously known, we select it
-            if (
-              neighborWeight.weight < bestWeights
-                .getOrElse(
-                  neighbor,
-                  RichWeight(
-                    List(Long.MaxValue.msat),
-                    Int.MaxValue,
-                    CltvExpiryDelta(Int.MaxValue),
-                    Double.MaxValue
+            if (neighborWeight.weight < bestWeights
+                  .getOrElse(
+                    neighbor,
+                    RichWeight(
+                      List(Long.MaxValue.msat),
+                      Int.MaxValue,
+                      CltvExpiryDelta(Int.MaxValue),
+                      Double.MaxValue
+                    )
                   )
-                )
-                .weight
-            ) {
+                  .weight) {
               // update the best edge for this vertex
               bestEdges += (neighbor -> edge)
               // add this updated node to the list for further exploration

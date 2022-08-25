@@ -141,11 +141,9 @@ object Tools {
     val newFeerate = info1.onChainFeeConf.feeEstimator.getFeeratePerKw(
       info1.onChainFeeConf.feeTargets.commitmentBlockTarget
     )
-    if (
-      spec.feeratePerKw.max(newFeerate).toLong.toDouble / spec.feeratePerKw
-        .min(newFeerate)
-        .toLong > threshold
-    ) Some(newFeerate)
+    if (spec.feeratePerKw.max(newFeerate).toLong.toDouble / spec.feeratePerKw
+          .min(newFeerate)
+          .toLong > threshold) Some(newFeerate)
     else None
   }
 
