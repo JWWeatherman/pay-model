@@ -86,3 +86,6 @@ addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverage
 addCommandsAlias("cc", Seq("clean", "compile"))
 addCommandAlias("err", "lastGrep error compile")
 addCommandAlias("errt", "lastGrep error test:compile")
+addCommandAlias("testpay", "it:testOnly com.mathbot.pay.PayServiceTest")
+addCommandAlias("testbtcpay", "it:testOnly btcpayserver.BTCPayServerServiceV2Test")
+addCommandAlias("testbitcoin", "it:testOnly com.mathbot.pay.bitcoin.BitcoinJsonRpcClientIntegrationTest")

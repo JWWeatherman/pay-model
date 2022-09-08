@@ -32,6 +32,12 @@ case class ChargeInfoData(
     exceptionStatus: Option[InvoiceException] = None
 ) {
   val priceUSD: Double = price
+
+  val bitcoinPayments = {
+    cryptoInfo
+      .filter(_.cryptoCode == "BTC")
+      .filter(_.paymentType == "BTCLike")
+  }
 }
 
 object ChargeInfoData extends PlayJsonSupport {
@@ -56,11 +62,11 @@ object ChargeInfoData extends PlayJsonSupport {
     (__ \ "currency").read[String] and
     (__ \ "itemDesc").readWithDefault[String]("") and
     (__ \ "exceptionStatus")
-      .read[String]
-      .orElse((__ \ "exceptionStatus").read[Boolean].map(_.toString))
+      .readNullable[String]
+      .orElse((__ \ "exceptionStatus").readNullable[Boolean].map(b => b.map(_.toString)))
       .map {
-        case "false" => None
-        case exception => Some(InvoiceException.withName(exception))
+        case Some("false") => None
+        case statusOpt => statusOpt.map(InvoiceException.withName)
       }
   )(ChargeInfoData.apply _)
   implicit val writesChargeInfoData: OWrites[ChargeInfoData] = Json.writes[ChargeInfoData]
