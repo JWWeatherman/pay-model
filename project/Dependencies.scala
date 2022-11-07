@@ -15,6 +15,7 @@ object Dependencies {
   lazy val bitcoinjV = "0.15.10"
   lazy val mockitoV = "3.2.8.0"
 
+  val jwtPlayJson = "com.pauldijou" %% "jwt-play-json" % "5.0.0"
   lazy val sttp = Seq(
     "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
     "com.softwaremill.sttp.client3" %% "akka-http-backend" % sttpVersion,
@@ -25,7 +26,7 @@ object Dependencies {
   val nameOf = "com.github.dwickern" %% "scala-nameof" % "4.0.0" % "provided"
   lazy val okhttp = "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpVersion
   lazy val akkaTestkit =
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it,test"
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it,test"
   lazy val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
   lazy val unixSocket = "com.lightbend.akka" %% "akka-stream-alpakka-unix-domain-socket" % alpakkaSocketV
   lazy val sttpModel = "com.softwaremill.sttp.model" %% "core" % sttpModelV
@@ -52,4 +53,25 @@ object Dependencies {
     "org.slf4j" % "slf4j-api" % "1.7.31"
   )
 
+  val CatsVersion = "2.2.0"
+  val cats = "org.typelevel" %% "cats-core" % CatsVersion
+
+  val commonDeps = Seq(
+      playJson,
+      cats,
+      jwtPlayJson,
+      bitcoinj,
+      sttpModel,
+      scalaTest,
+      akkaActor,
+      unixSocket,
+      requests,
+      akkaStream,
+      akkaStreamTestkit,
+      akkaTestkit,
+      scalactic,
+      mockito,
+      nameOf,
+      scodec
+    ) ++ sttp ++ macwire ++ loggingDeps
 }

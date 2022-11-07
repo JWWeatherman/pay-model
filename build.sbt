@@ -1,6 +1,7 @@
 import Dependencies._
 import sbt._
 
+val VERSION = "0.0.4-rc9"
 //ThisBuild / licenses            += License.Apache2
 
 // maven magic, see https://github.com/makingthematrix/scala-suffix/tree/56270a6b4abbb1cd1008febbd2de6eea29a23b52#but-wait-thats-not-all
@@ -23,35 +24,18 @@ val commonSettings = Seq(
     )
 )
 
-val commonDeps = Seq(
-    playJson,
-    bitcoinj,
-    sttpModel,
-    scalaTest,
-    akkaActor,
-    unixSocket,
-    requests,
-    akkaStream,
-    akkaStreamTestkit,
-    akkaTestkit,
-    scalactic,
-    mockito,
-    nameOf,
-    scodec
-  ) ++ sttp ++ macwire ++ loggingDeps
-
 lazy val eclairDeps = Seq(
   "com.google.guava" % "guava" % "31.1-jre", // eclair
-  "org.scala-lang.modules" % "scala-parser-combinators_2.13" % "2.1.0", // immortan
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0", // immortan
   "fr.acinq.secp256k1" % "secp256k1-kmp-jni-jvm" % "0.6.3", // eclair
-  "org.scodec" % "scodec-core_2.13" % "1.11.9", // immortan + eclair
+  "org.scodec" %% "scodec-core" % "1.11.9", // immortan + eclair
   "commons-codec" % "commons-codec" % "1.10", // immortan + eclair
-  "io.reactivex" % "rxscala_2.13" % "0.27.0", // immortan
-  "org.json4s" % "json4s-native_2.13" % "3.6.7", // electrum,
-  "io.spray" % "spray-json_2.13" % "1.3.5", // immortan,
+  "io.reactivex" %% "rxscala" % "0.27.0", // immortan
+  "org.json4s" %% "json4s-native" % "3.6.7", // electrum,
+  "io.spray" %% "spray-json" % "1.3.5", // immortan,
 //  "com.typesafe.akka" % "akka-actor_2.13" % "2.6.9", // immortan + eclair
   "io.netty" % "netty-all" % "4.1.42.Final", // electrum
-  "com.softwaremill.quicklens" % "quicklens_2.13" % "1.8.4", // immortan
+  "com.softwaremill.quicklens" %% "quicklens" % "1.8.4", // immortan
 //  "org.bouncycastle" % "bcprov-jdk15to18" % "1.68", // eclair
   "com.sparrowwallet" % "hummingbird" % "1.6.2" // immortan
 //  "com.github.alexarchambault" % "case-app_2.13" % "2.1.0-M13", // cliche
@@ -65,10 +49,21 @@ lazy val paymodel = (project in file("."))
   .configs(IntegrationTest)
   .settings(
     name := "pay-model",
-    version := "0.0.1",
+    version := VERSION,
     coverageMinimumStmtTotal := 70,
     libraryDependencies ++= commonDeps ++ eclairDeps,
     coverageFailOnMinimum := false,
+    // publish to github packages settings
+    publishTo := Some(
+        "GitHub j-chimienti Apache Maven Packages" at "https://maven.pkg.github.com/j-chimienti/pay-model"
+      ),
+    publishMavenStyle := true,
+    credentials += Credentials(
+        "GitHub Package Registry",
+        "maven.pkg.github.com",
+        "j-chimienti",
+        sys.env("GITHUB_TOKEN")
+      ),
     coverageHighlighting := true,
     organization := "com.mathbot",
     scalaVersion := scala213,
@@ -82,8 +77,9 @@ addCommandsAlias("validate", "compile" :: "test:compile" :: "scalafmtCheckAll" :
 addCommandsAlias("fmt", Seq("scalafmt", "test:scalafmt", "it:scalafmt"))
 addCommandsAlias("generateCoverageReport", "clean" :: "coverage" :: "test" :: "coverageReport" :: Nil)
 addCommandsAlias("githubWorkflow", Seq("validate", "coverage", "test", "coverageReport"))
-
+addCommandsAlias("pl", Seq("reload", "publishLocal"))
 addCommandsAlias("cc", Seq("clean", "compile"))
+
 addCommandAlias("err", "lastGrep error compile")
 addCommandAlias("errt", "lastGrep error test:compile")
 addCommandAlias("testpay", "it:testOnly com.mathbot.pay.PayServiceTest")

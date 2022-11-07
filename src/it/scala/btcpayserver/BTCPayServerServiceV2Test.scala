@@ -1,6 +1,6 @@
 package btcpayserver
 
-import com.mathbot.pay.BaseIntegrationTest
+import com.mathbot.pay.{BaseIntegrationTest, SecureIdentifier}
 
 class BTCPayServerServiceV2Test extends BaseIntegrationTest {
 
@@ -18,11 +18,11 @@ class BTCPayServerServiceV2Test extends BaseIntegrationTest {
       zip = Some("19000"),
       country = Some("country")
     ),
-    orderId = "orderId123445",
+    orderId = SecureIdentifier(16).toString,
     itemDesc = "itemDesc",
     redirectUrl = None,
-    notificationUrl = "http://example.com",
-    price = 2
+    notificationUrl = "http://pay:9000/callback/btcpayserver",
+    price = 20
   )
   "Btcpayserver" should {
 
@@ -30,14 +30,16 @@ class BTCPayServerServiceV2Test extends BaseIntegrationTest {
     "create invoice" in {
       val (res, invOpt) = apiService.invoice(req)
       println(res.statusCode)
-      println(res)
+      println(res.text())
       assert(invOpt.isSuccess)
-      println(invOpt.get.data.id)
+//      println(invOpt.get.data)
       response = Some(invOpt.get)
       assert(invOpt.isSuccess)
+      println("has addrs= " + invOpt.get.data.addresses)
+      assert(invOpt.get.data.addresses.BTC.isDefined)
     }
 
-    val invoiceId = invoiceIdOpt.getOrElse(response.get.data.id)
+    val invoiceId = "Kq89L4ZasEGSgS8UMMemCD" // invoiceIdOpt.getOrElse(response.get.data.id)
     s"get invoice by id: $invoiceId" in {
 
       val (a, b) = apiService
