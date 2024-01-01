@@ -63,8 +63,8 @@ lazy val paymodel = (project in file("."))
     credentials += Credentials(
         "GitHub Package Registry",
         "maven.pkg.github.com",
-        "j-chimienti",
-        sys.env("GITHUB_TOKEN")
+        sys.env.getOrElse("GITHUB_USERNAME", ""),
+        sys.env.getOrElse("GITHUB_TOKEN", "")
       ),
     coverageHighlighting := true,
     organization := "com.mathbot",

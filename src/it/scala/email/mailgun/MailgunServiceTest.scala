@@ -9,8 +9,8 @@ class MailgunServiceTest extends BaseIntegrationTest {
   val config =
     MailgunConfig(
       baseUrl = "https://api.mailgun.net",
-      apiKey = Sensitive("4fef063c61440a4533e201e2c6799a08-f2340574-23720cce"),
-      domain = "mg.pollofeed.com"
+      apiKey = Sensitive(sys.env("MAILGUN_API_KEY")),
+      domain = sys.env("MAILGUN_DOMAIN")
     )
   val service = wire[MailgunService]
   "MailgunService" should {
@@ -26,7 +26,7 @@ class MailgunServiceTest extends BaseIntegrationTest {
           override def subject: String = "test"
         })
         .map(r => {
-          assert(r.body.isRight)
+          assert(r.body.isRight, r)
         })
     }
   }
