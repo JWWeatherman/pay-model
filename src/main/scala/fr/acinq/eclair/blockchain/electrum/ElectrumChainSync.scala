@@ -120,7 +120,7 @@ class ElectrumChainSync(
           goto(SYNCING) using blockchain2
 
         case Failure(error) =>
-          log.error("Electrum peer sent bad headers", error)
+          log.error("Electrum peer sent bad headers error={}", error)
           goto(DISCONNECTED) replying PoisonPill
       }
 

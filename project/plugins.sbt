@@ -6,7 +6,12 @@ addSbtPlugin("com.github.cb372" % "sbt-explicit-dependencies" % "0.2.16")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.3")
 // loads .env file
 addSbtPlugin("au.com.onegeek" %% "sbt-dotenv" % "2.1.233")
-//addSbtPlugin("io.github.ghostbuster91.sttp-openapi" % "sbt-codegen-plugin" % "0.4.2") // import SttpOpenApiCodegenPlugin._ ; enablePlugins(SttpOpenApiCodegenPlugin)
+// dependencyTree, dependencyBrowseGraph, dependencyBrowseTree
+addDependencyTreePlugin
+// on compile will generate classes from /resources/*.yml
+//addSbtPlugin(
+//  "io.github.ghostbuster91.sttp-openapi" % "sbt-codegen-plugin" % "0.4.2"
+//) // import SttpOpenApiCodegenPlugin._ ; enablePlugins(SttpOpenApiCodegenPlugin)
 //addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.5")
 //addSbtPlugin("com.github.tkawachi" % "sbt-doctest" % "0.9.8")
 //addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.6.0")

@@ -1,7 +1,7 @@
 package com.mathbot.pay.lightning
 
 import com.mathbot.pay.lightning.url.{CreateInvoiceWithDescriptionHash, InvoiceWithDescriptionHash}
-import play.api.libs.json.Reads
+import play.api.libs.json.{Json, Reads}
 import sttp.client3.Response
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -73,7 +73,7 @@ class LightningStreamService(lightningStream: LightningStream)(implicit val ec: 
       case t if t.\("error").isDefined && t("error").validate[LightningRequestError].isSuccess =>
         p.success(Response.ok(Left(t("error").as[LightningRequestError])))
       case other =>
-        p.success(Response.ok(Left(LightningRequestError(500, s"Unknown result $other"))))
+        p.success(Response.ok(Left(LightningRequestError(code = 500, message = Json.stringify(other)))))
     }
     p.future
   }

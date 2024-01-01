@@ -1,12 +1,11 @@
 import Dependencies._
 import sbt._
 
-val VERSION = "0.0.4-rc9"
 //ThisBuild / licenses            += License.Apache2
 
 // maven magic, see https://github.com/makingthematrix/scala-suffix/tree/56270a6b4abbb1cd1008febbd2de6eea29a23b52#but-wait-thats-not-all
 Compile / packageBin / packageOptions += Package.ManifestAttributes("Automatic-Module-Name" -> "paymodel")
-val scala213 = "2.13.3"
+val scala213 = "2.13.12"
 // This Dependencies is only used when running sbt from the pay-model root.  Otherwise it will use the Dependencies
 // object defined in the /pay/project or /math-bot/project directory.
 val commonSettings = Seq(
@@ -44,12 +43,15 @@ lazy val eclairDeps = Seq(
 //  "org.xerial" % "sqlite-jdbc" % "3.27.2.1" // cliche
 )
 
+//import SttpOpenApiCodegenPlugin._
+//enablePlugins(SttpOpenApiCodegenPlugin)
+
 lazy val paymodel = (project in file("."))
   .settings(commonSettings: _*)
   .configs(IntegrationTest)
   .settings(
     name := "pay-model",
-    version := VERSION,
+    version := (version in ThisBuild).value,
     coverageMinimumStmtTotal := 70,
     libraryDependencies ++= commonDeps ++ eclairDeps,
     coverageFailOnMinimum := false,

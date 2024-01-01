@@ -356,7 +356,7 @@ object Blockchain {
           // we only check this on mainnet, on testnet rules are much more lax
           require(
             header.bits == parent.header.bits,
-            s"header invalid difficulty target for ${header}, it should be ${parent.header.bits}"
+            s"header invalid difficulty target for $header, it should be ${parent.header.bits}"
           )
         }
         val blockIndex = BlockIndex(
@@ -497,7 +497,7 @@ object Blockchain {
   ): Option[Long] = {
     blockchain.chainHash match {
       case Block.LivenetGenesisBlock.hash =>
-        (height % RETARGETING_PERIOD) match {
+        height % RETARGETING_PERIOD match {
           case 0 =>
             for {
               parent <- blockchain.getHeader(height - 1) orElse headerDb

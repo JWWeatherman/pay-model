@@ -15,6 +15,16 @@ trait RpcLightningService extends LightningService {
   def backend: SttpBackend[Future, AkkaStreams]
   def baseUrl: String
 
+  override def invoice(
+      inv: LightningInvoice
+  ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] = {
+    val r = base
+      .post(uri"$baseUrl")
+      .body(makeBody(nameOf(invoice _), Json.toJson(inv)))
+      .response(toBody[LightningCreateInvoice])
+    r.send(backend)
+  }
+
   override def listPays(
       l: ListPaysRequest = ListPaysRequest(bolt11 = None, payment_hash = None)
   ) = {
@@ -26,12 +36,12 @@ trait RpcLightningService extends LightningService {
 
   }
 
+  // fixme pay
   override def getInfo: Future[Response[Either[LightningRequestError, LightningNodeInfo]]] = {
     val r = base
       .post(uri"$baseUrl")
       .body(makeBody(nameOf(getInfo _), JsArray()))
       .response(toBody[LightningNodeInfo])
-
     r.send(backend)
   }
   override def listInvoices(
@@ -82,16 +92,6 @@ trait RpcLightningService extends LightningService {
     r.send(backend)
   }
 
-  override def invoice(
-      inv: LightningInvoice
-  ): Future[Response[Either[LightningRequestError, LightningCreateInvoice]]] = {
-    val r = base
-      .post(uri"$baseUrl")
-      .body(makeBody(nameOf(invoice _), Json.toJson(inv)))
-      .response(toBody[LightningCreateInvoice])
-    r.send(backend)
-  }
-
   def invoiceWithDescriptionHash(
       i: InvoiceWithDescriptionHash
   ): Future[Response[Either[LightningRequestError, CreateInvoiceWithDescriptionHash]]] = {
@@ -123,7 +123,15 @@ trait RpcLightningService extends LightningService {
       .response(toBody[ListInvoice])
       .send(backend)
   def toBody[T](implicit reads: Reads[T]): ResponseAs[Either[LightningRequestError, T], Any] =
-    asJson[T].mapLeft(err => LightningRequestError(500, s"Bad response $err"))
+    asJson[T].mapLeft(err => {
+      val msg = err match {
+        case HttpError(body, statusCode) => body
+        case DeserializationException(body, error) =>
+          println(body)
+          body
+      }
+      LightningRequestError(code = 500, message = msg)
+    })
 
   def makeBody(method: String, params: JsValue): JsObject =
     Json.obj(nameOf(method) -> method.toLowerCase, nameOf(params) -> params)

@@ -1,5 +1,6 @@
-package com.mathbot.pay.sendgrid
+package email.sendgrid
 
+import email.EmailMessage
 import play.api.libs.json.Json
 
 object To {

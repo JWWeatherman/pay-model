@@ -1,7 +1,8 @@
-package com.mathbot.pay.sendgrid
+package email.sendgrid
 
 import akka.http.scaladsl.util.FastFuture
 import com.mathbot.pay.Sensitive
+import email.EmailMessage
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.wordspec.AsyncWordSpec

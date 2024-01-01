@@ -1,6 +1,7 @@
 package com.mathbot.pay.lightning
 
 import akka.stream.scaladsl.Flow
+import com.github.dwickern.macros.NameOf.nameOf
 import com.mathbot.pay.FiatRatesService.FiatRatesInfo
 import com.mathbot.pay.Sensitive
 import play.api.libs.json._
@@ -40,16 +41,10 @@ object PayService {
   }
 
   /**
-   * {
-   *    "access_token" : "Si7EHoP_rRDoRAfTRORa-wESMvT2r5WnNarvDW-OjmQ.wCJWYPY-AoamoLF0q1ER5WJt04gOdDPgivY9EgAEBCs",
-   *    "expires_in" : 3599,
-   *    "scope" : "offline",
-   *    "token_type" : "bearer"
-   *  }
-   * @param access_token
-   * @param scope
-   * @param token_type
-   * @param refresh_token
+   * @param access_token eg Si7EHoP_rRDoRAfTRORa-wESMvT2r5WnNarvDW-OjmQ.wCJWYPY-AoamoLF0q1ER5WJt04gOdDPgivY9EgAEBCs
+   * @param expires_in eg 3599
+   * @param scope eg offline
+   * @param token_type bearer
    */
   case class MyTokenResponse(access_token: String, expires_in: Int, scope: String, token_type: String) {
     val expiresAt: Instant = Instant.now().plusSeconds(expires_in)
@@ -72,6 +67,7 @@ class PayService(
   import playJson._
   // todo: hardcode
   val baseUrl: String = config.baseUrl + "/lightning/rpc"
+  val baseUrlV2: String = config.baseUrl + "/v2/lightning/rpc"
 
   private var ACCESS_TOKEN = config.accessToken.getOrElse(default = "INVALID")
   def base: RequestT[Empty, Either[String, String], Any] =
@@ -98,6 +94,35 @@ class PayService(
             setAccessToken(r)
           })
       }
+
+  object V2 {
+    def invoice(
+        inv: LightningInvoice
+    ): Future[Response[Either[LightningRequestError, ListInvoice]]] = {
+      val r = base
+        .post(uri"$baseUrl")
+        .body(makeBody(nameOf(invoice _), Json.toJson(inv)))
+        .response(toBody[LightningCreateInvoice].mapRight(ci => {
+          ListInvoice(
+            label = inv.label,
+            bolt11 = Some(ci.bolt11),
+            payment_hash = ci.payment_hash,
+            amount_msat = Some(inv.msatoshi),
+            amount_received_msat = None,
+            status = LightningInvoiceStatus.unpaid,
+            pay_index = None,
+            paid_at = None,
+            description = inv.description,
+            expires_at = ci.expires_at,
+            bolt12 = None,
+            local_offer_id = None,
+            payer_note = None,
+            payment_preimage = None
+          )
+        }))
+      r.send(backend)
+    }
+  }
 
   def getRates: Future[Response[Either[LightningRequestError, FiatRatesInfo]]] =
     base

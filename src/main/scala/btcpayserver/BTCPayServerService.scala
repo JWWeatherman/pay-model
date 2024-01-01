@@ -16,7 +16,7 @@ class BTCPayServerService(
 )(implicit val e: ExecutionContext, val backend: SttpBackend[Future, _]) {
 
   val token = Base64.getEncoder.encodeToString(config.apiKey.getBytes())
-  private val basic = s"Basic ${token}"
+  private val basic = s"Basic $token"
 
   val baseRequest = basicRequest.auth
     .basicToken(config.apiKey)

@@ -54,14 +54,14 @@ object ShaChain {
    *   the child of our node in the specified direction
    */
   def derive(node: Node, direction: Boolean) =
-    direction match {
-      case false => Node(node.value, node.height + 1, Some(node))
-      case true =>
-        Node(
-          Crypto.sha256(flip(node.value, 63 - node.height)),
-          node.height + 1,
-          Some(node)
-        )
+    if (direction) {
+      Node(
+        Crypto.sha256(flip(node.value, 63 - node.height)),
+        node.height + 1,
+        Some(node)
+      )
+    } else {
+      Node(node.value, node.height + 1, Some(node))
     }
 
   def derive(node: Node, directions: Seq[Boolean]): Node =
@@ -85,21 +85,21 @@ object ShaChain {
       hash: ByteVector32,
       index: Index
   ): ShaChain = {
-    index.last match {
-      case true => ShaChain(receiver.knownHashes + (index -> hash))
-      case false =>
-        val parentIndex = index.dropRight(1)
-        // hashes are supposed to be received in reverse order so we already have parent :+ true
-        // which we should be able to recompute (it's a left node so its hash is the same as its parent's hash)
-        require(
-          getHash(receiver, parentIndex :+ true) == Some(
-              derive(Node(hash, parentIndex.length, None), true).value
-            ),
-          "invalid hash"
-        )
-        val nodes1 =
-          receiver.knownHashes - (parentIndex :+ false) - (parentIndex :+ true)
-        addHash(receiver.copy(knownHashes = nodes1), hash, parentIndex)
+    if (index.last) {
+      ShaChain(receiver.knownHashes + (index -> hash))
+    } else {
+      val parentIndex = index.dropRight(1)
+      // hashes are supposed to be received in reverse order so we already have parent :+ true
+      // which we should be able to recompute (it's a left node so its hash is the same as its parent's hash)
+      require(
+        getHash(receiver, parentIndex :+ true) == Some(
+          derive(Node(hash, parentIndex.length, None), true).value
+        ),
+        "invalid hash"
+      )
+      val nodes1 =
+        receiver.knownHashes - (parentIndex :+ false) - (parentIndex :+ true)
+      addHash(receiver.copy(knownHashes = nodes1), hash, parentIndex)
     }
   }
 

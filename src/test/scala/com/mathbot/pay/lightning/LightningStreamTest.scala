@@ -26,7 +26,7 @@ class LightningStreamTest
 
   val nodeInfo = Json.parse(Source.fromResource("getinfo.json").getLines.mkString("")).as[LightningNodeInfo]
 
-  val getinfoRes = GetInfoResponse(1, "2.0", nodeInfo)
+  val getinfoRes = GetInfoResponse(nodeInfo)
 //  override def afterAll: Unit = TestKit.shutdownActorSystem(system)
   val idAtom = new AtomicInteger(1)
   "LightningStream" should {

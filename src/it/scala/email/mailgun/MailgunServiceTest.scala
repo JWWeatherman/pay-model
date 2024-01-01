@@ -1,13 +1,19 @@
-package com.mathbot.pay.sendgrid
+package email.mailgun
 
 import com.mathbot.pay.{BaseIntegrationTest, Sensitive}
 import com.softwaremill.macwire.wire
+import email.EmailMessage
 
-class SendGridServiceTest extends BaseIntegrationTest {
-  val config = SendGridConfig(Sensitive(sys.env("SENDGRID_API_KEY")))
+class MailgunServiceTest extends BaseIntegrationTest {
 
-  val service = wire[SendGridService]
-  "SendGridService" should {
+  val config =
+    MailgunConfig(
+      baseUrl = "https://api.mailgun.net",
+      apiKey = Sensitive("4fef063c61440a4533e201e2c6799a08-f2340574-23720cce"),
+      domain = "mg.pollofeed.com"
+    )
+  val service = wire[MailgunService]
+  "MailgunService" should {
     "send email" in {
       service
         .sendMessage(new EmailMessage {
@@ -20,9 +26,7 @@ class SendGridServiceTest extends BaseIntegrationTest {
           override def subject: String = "test"
         })
         .map(r => {
-          println(r.code)
-          println(r.body)
-          assert(r.isSuccess)
+          assert(r.body.isRight)
         })
     }
   }

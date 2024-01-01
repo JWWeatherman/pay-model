@@ -151,11 +151,16 @@ class PayServiceTest extends BaseIntegrationTest {
 
       for {
         gt <- service.getToken
-        t = gt.body.right.get
-        r <- openPayWsReq.send(backend)
+        r <- service.getInfo
+//        r <- service.V2.invoice(
+//          LightningInvoice(MilliSatoshi(1), "test v2" + System.currentTimeMillis(), "testing v2", Some(3.minutes), None)
+//        )
+//        t = gt.body.right.get
+//        r <- openPayWsReq.send(backend)
       } yield {
-        println("done")
-        assert(true)
+        println(r.code)
+        println(r.body)
+        assert(r.body.isRight)
       }
     }
 //    "open ws" in {

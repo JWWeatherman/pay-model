@@ -1,4 +1,4 @@
-package com.mathbot.pay.sendgrid
+package email
 
 trait EmailMessage {
   def asHtml: String

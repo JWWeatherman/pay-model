@@ -1,9 +1,12 @@
 package fr.acinq.bitcoin
 
+import scala.annotation.tailrec
+
 /**
  * see https://en.bitcoin.it/wiki/Protocol_specification#Merkle_Trees
  */
 object MerkleTree {
+  @tailrec
   def computeRoot(tree: Seq[ByteVector32]): ByteVector32 =
     tree.length match {
       case 1 => tree(0)

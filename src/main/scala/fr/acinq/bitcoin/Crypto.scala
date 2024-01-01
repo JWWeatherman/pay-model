@@ -730,9 +730,9 @@ object Crypto {
     val m = new BigInteger(1, message.toArray)
 
     val (p1, p2) = recoverPoint(r)
-    val Q1 = (p1
+    val Q1 = p1
       .multiply(s)
-      .subtract(Crypto.curve.getG.multiply(m)))
+      .subtract(Crypto.curve.getG.multiply(m))
       .multiply(r.modInverse(Crypto.curve.getN))
     val Q2 = (p2
       .multiply(s)

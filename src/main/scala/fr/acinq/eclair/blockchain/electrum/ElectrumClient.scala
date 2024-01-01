@@ -148,7 +148,7 @@ class ElectrumClient(serverAddress: InetSocketAddress, ssl: SSL)(
         msg: String,
         out: util.List[AnyRef]
     ): Unit = {
-      val s = msg.asInstanceOf[String]
+      val s = msg
       val r = parseResponse(s)
       out.add(r)
     }

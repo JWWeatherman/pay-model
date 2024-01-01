@@ -17,7 +17,7 @@ case class CryptoInfo(
     networkFee: String,
     txCount: Double,
     cryptoPaid: String,
-    payments: Seq[Payments]
+    payments: Seq[BtcPayPayment]
 )
 
 object CryptoInfo {

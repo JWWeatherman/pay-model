@@ -4,7 +4,8 @@ import com.mathbot.pay.BaseIntegrationTest
 
 class BTCPayServerServiceTest extends BaseIntegrationTest {
 
-  val config = BTCPayServerConfig(baseUrl = sys.env("BTCPAYSERVER_BASE_URL"), apiKey = sys.env("BTCPAYSERVER_API_KEY"))
+  val config =
+    BTCPayServerConfig(baseUrl = sys.env("BTCPAYSERVER_BASE_URL"), apiKey = sys.env("BTCPAYSERVER_API_KEY"), "")
   val invoiceIdOpt = sys.env.get("BTCPAYSERVER_TEST_INVOICE_ID")
 
   val apiService = new BTCPayServerService(config)
